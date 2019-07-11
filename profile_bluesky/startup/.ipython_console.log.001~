@@ -1,0 +1,67 @@
+# IPython log file
+
+# Thu, 11 Jul 2019 14:17:51
+import ophyd.sim
+sim = ophyd.sim.hw()
+RE(bp.count([sim.det]))
+#[Out]# ('7c92672c-4d48-4d60-8567-d64c47209062',)
+# Thu, 11 Jul 2019 14:33:33
+RE.md
+#[Out]# {'beamline_id': 'developer__YOUR_BEAMLINE_HERE', 'proposal_id': None, 'pid': 3598, 'login_id': '8idiuser@snow.xray.aps.anl.gov', 'versions': {'bluesky': '1.5.3', 'ophyd': '1.3.3', 'databroker': '0.13.0', 'apstools': '1.1.7', 'epics': '3.3.3', 'numpy': '1.16.4', 'matplotlib': '3.1.0', 'spec2nexus': '2020.0.2', 'pyRestTable': '2019.0508.1'}, 'scan_id': 1}
+# Thu, 11 Jul 2019 14:33:52
+RE.md["scan_id"]
+#[Out]# 1
+# Thu, 11 Jul 2019 14:34:39
+h.stop
+# Thu, 11 Jul 2019 14:38:21
+RE.md[bp.count[],num=5]
+# Thu, 11 Jul 2019 14:38:37
+RE.md(bp.count[],num=5)
+# Thu, 11 Jul 2019 14:38:44
+RE(bp.count[],num=5)
+# Thu, 11 Jul 2019 14:39:53
+RE(bp.count([sim.det],num=5))
+#[Out]# ('844bd97c-385f-4a3b-a853-eda6b518ed23',)
+# Thu, 11 Jul 2019 14:40:08
+RE(bp.count([sim.det],num=5,delay=1))
+#[Out]# ('466a7528-3fbb-47a2-ba8d-eb0f63095aad',)
+# Thu, 11 Jul 2019 14:41:33
+RE(bp.count([sim.det],num=5,delay=1),md=dict(reason="demo",beamline="44ID"))
+#[Out]# ('a6b0772b-5bfb-4c9a-be6d-7315ff6fd180',)
+# Thu, 11 Jul 2019 14:44:20
+h.stop
+# Thu, 11 Jul 2019 14:46:13
+h=list(db(scan_id=2))[0]
+# Thu, 11 Jul 2019 14:46:17
+h.start
+#[Out]# {'time': 1562873993.1799142,
+#[Out]#  'uid': '844bd97c-385f-4a3b-a853-eda6b518ed23',
+#[Out]#  'beamline_id': 'developer__YOUR_BEAMLINE_HERE',
+#[Out]#  'proposal_id': None,
+#[Out]#  'pid': 3598,
+#[Out]#  'login_id': '8idiuser@snow.xray.aps.anl.gov',
+#[Out]#  'versions': {'bluesky': '1.5.3',
+#[Out]#   'ophyd': '1.3.3',
+#[Out]#   'databroker': '0.13.0',
+#[Out]#   'apstools': '1.1.7',
+#[Out]#   'epics': '3.3.3',
+#[Out]#   'numpy': '1.16.4',
+#[Out]#   'matplotlib': '3.1.0',
+#[Out]#   'spec2nexus': '2020.0.2',
+#[Out]#   'pyRestTable': '2019.0508.1'},
+#[Out]#  'scan_id': 2,
+#[Out]#  'plan_type': 'generator',
+#[Out]#  'plan_name': 'count',
+#[Out]#  'detectors': ['det'],
+#[Out]#  'num_points': 5,
+#[Out]#  'num_intervals': 4,
+#[Out]#  'plan_args': {'detectors': ["SynGauss(name='det', value=1.0, timestamp=1562872671.5741467)"],
+#[Out]#   'num': 5},
+#[Out]#  'hints': {'dimensions': [[['time'], 'primary']]}}
+# Thu, 11 Jul 2019 14:47:55
+RE(bp.count([sim.det],num=5,delay=1),dict(reason="demo",beamline="44ID"))
+# Thu, 11 Jul 2019 14:49:29
+RE(bp.scan([sim.det], sim.motor, -10, 0, 11))
+#[Out]# ('3131e415-1b92-4490-8701-80b206c4f136',)
+# Thu, 11 Jul 2019 14:51:41
+quit()

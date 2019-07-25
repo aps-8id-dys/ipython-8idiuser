@@ -4,12 +4,12 @@ from datetime import datetime
 
 # Set up default metadata
 
-RE.md['beamline_id'] = 'developer__YOUR_BEAMLINE_HERE'
+RE.md['beamline_id'] = 'APS TRR 8-ID-I'
 RE.md['proposal_id'] = None
 RE.md['pid'] = os.getpid()
 
 HOSTNAME = socket.gethostname() or 'localhost' 
-USERNAME = getpass.getuser() or 'synApps_xxx_user' 
+USERNAME = getpass.getuser() or 'APS 8-ID-I user' 
 RE.md['login_id'] = USERNAME + '@' + HOSTNAME
 
 # useful diagnostic to record with all data

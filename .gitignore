@@ -1,3 +1,12 @@
+# backup files
+*~
+
+# SpecWriter (SPEC) data files:
+20*.dat
+
+# ipython session log files
+.ipython*.log*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

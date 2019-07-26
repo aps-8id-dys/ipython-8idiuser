@@ -46,3 +46,9 @@ def newSpecFile(title, scan_id=1):
 
     logger.info(f"SPEC file name : {specwriter.spec_filename}")
     logger.info(f"File will be {handled} at end of next bluesky scan.")
+
+
+logger.info(f"""
+Known ophyd structures: show_ophyd_symbols():
+{show_ophyd_symbols(printing=False)}
+""")

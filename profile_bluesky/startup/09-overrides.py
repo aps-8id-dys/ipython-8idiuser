@@ -16,7 +16,7 @@ try:
     logger.warning("in 09-overrides.py")
     logger.warning("APS_utils.show_ophyd_symbols() is available")
     logger.warning("Can remove local definition show_ophyd_symbols()")
-except AssertionError:
+except Exception:
     # could not find, must define it here
     logger.warning("in 09-overrides.py")
     logger.warning("APS_utils.show_ophyd_symbols() not available")

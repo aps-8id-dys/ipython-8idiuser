@@ -1,6 +1,25 @@
 # backup files
 *~
 
+db/
+history
+history.sqlite
+log/
+pid/
+security/
+*.pyc
+*.pyo
+*~
+mViewer.log
+
+# eclipse IDE
+.project
+.pydevproject
+.settings
+
+# APS IT
+.loglogin
+
 # SpecWriter (SPEC) data files:
 20*.dat
 

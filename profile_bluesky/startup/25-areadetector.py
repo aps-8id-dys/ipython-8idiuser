@@ -21,6 +21,7 @@ class Lambda750kCam(CamBase):
 
 
 class ImmJoinPlugin(ADBase):
+    """plugin (not in ophyd)"""
     capture_imm0 = Component(EpicsSignal, 'IMMFanoutCapture.OUTA')
     capture_imm1 = Component(EpicsSignal, 'IMMFanoutCapture.OUTB')
     capture_imm2 = Component(EpicsSignal, 'IMMFanoutCapture.OUTC')
@@ -28,6 +29,7 @@ class ImmJoinPlugin(ADBase):
 
 
 class IMMFilePlugin(FilePlugin):
+    """plugin (not in ophyd)"""
     _default_suffix = ''
     _html_docs = ['NDFileIMM.html']
     _plugin_type = 'NDFileIMM'
@@ -58,13 +60,13 @@ class IMMFilePlugin(FilePlugin):
 
 
 class GatherPlugin(PluginBase):
-    """GATHER plugin (not in ophyd)"""
+    """plugin (not in ophyd)"""
     _default_suffix = 'GATHER1:'
     _html_docs = ['gather.html']
     _plugin_type = 'NDPluginGather'
 
 class ScatterPlugin(PluginBase):
-    """SCATTER plugin (not in ophyd)"""
+    """plugin (not in ophyd)"""
     _default_suffix = 'SCATTER1:'
     _html_docs = ['scatter.html']
     _plugin_type = 'NDPluginScatter'

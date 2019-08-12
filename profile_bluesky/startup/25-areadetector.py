@@ -60,13 +60,13 @@ class IMMFilePlugin(FilePlugin):
 
 
 class GatherPlugin(PluginBase):
-    """plugin (not in ophyd)"""
+    """plugin (override what is new in ophyd for now)"""
     _default_suffix = 'GATHER1:'
     _html_docs = ['gather.html']
     _plugin_type = 'NDPluginGather'
 
 class ScatterPlugin(PluginBase):
-    """plugin (not in ophyd)"""
+    """plugin (override what is new in ophyd for now)"""
     _default_suffix = 'SCATTER1:'
     _html_docs = ['scatter.html']
     _plugin_type = 'NDPluginScatter'

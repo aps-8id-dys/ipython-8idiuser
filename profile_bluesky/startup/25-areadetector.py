@@ -5,7 +5,8 @@ logger.info(__file__)
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 DATABROKER_ROOT_PATH = "/"
-AD_HDF5_IOC_WRITE_PATH = "/tmp/ADlambda/%Y/%m/%d/"     # FIXME: where will data be saved?
+# AD_HDF5_IOC_WRITE_PATH = "/tmp/ADlambda/%Y/%m/%d/"     # FIXME: where will data be saved?
+AD_HDF5_IOC_WRITE_PATH = "/home/8-id-i/bluesky-AD-data/%Y/%m/%d/"
 AD_HDF5_DB_READ_PATH = AD_HDF5_IOC_WRITE_PATH
 
 
@@ -48,7 +49,7 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     cam = ADComponent(Lambda750kCam, "cam1:")
     image = Component(ImagePlugin, suffix="image1:")
     hdf1 = Component(
-        Plugin_HDF5_Bluesky_Names,
+        Plugin_HDF5_EPICS_Names,
         suffix='HDF1:', 
         root = DATABROKER_ROOT_PATH,
         write_path_template = AD_HDF5_IOC_WRITE_PATH,

@@ -1,32 +1,76 @@
 logger.info(__file__)
 
-"""area detectors: ADSimDetector"""
+"""area detector: X-Spectrum Lambda 750K"""
+
+LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
+
+DATABROKER_ROOT_PATH = "/"
+# AD_HDF5_IOC_WRITE_PATH = "/tmp/ADlambda/%Y/%m/%d/"     # FIXME: where will data be saved?
+AD_HDF5_IOC_WRITE_PATH = "/home/8-id-i/bluesky-AD-data/%Y/%m/%d/"
+AD_HDF5_DB_READ_PATH = AD_HDF5_IOC_WRITE_PATH
 
 
-class MyHDF5Plugin(HDF5Plugin, FileStoreHDF5IterativeWrite):
-    create_directory_depth = Component(EpicsSignalWithRBV, suffix="CreateDirectory")
+class Lambda750kCam(CamBase):
+    """support for X-Spectrum Lambda 750K detector"""
+    _html_docs = []
+    temperature = Component(EpicsSignalWithRBV, 'Temperature')
+    # TODO: What else?  Anything we'll configure or log.
+    # config_file_path
+    # operating_mode (with RBV)
 
 
-class MySingleTriggerHdf5SimDetector(SingleTrigger, SimDetector): 
-       
+# Use one of these plugins when configuring the HDF support:
+#    Plugin_HDF5_Bluesky_Names  : Bluesky picks HDF5 file names, compatible with databroker
+#    Plugin_HDF5_EPICS_Names    : EPICS user picks HDF5 file names, not compatible with databroker
+
+class Plugin_HDF5_Bluesky_Names(
+    HDF5Plugin, 
+    FileStoreHDF5IterativeWrite
+    ):
+    create_directory_depth = Component(
+        EpicsSignalWithRBV, 
+        suffix="CreateDirectory")
+
+
+class EpicsHdf5IterativeWriter(
+    APS_devices.AD_EpicsHdf5FileName, # <-- code that uses EPICS naming
+    FileStoreIterativeWrite
+    ): pass
+class Plugin_HDF5_EPICS_Names(
+    HDF5Plugin, 
+    EpicsHdf5IterativeWriter  # <-- custom from above
+    ):
+    create_directory_depth = Component(
+        EpicsSignalWithRBV, 
+        suffix="CreateDirectory")
+
+
+class Lambda750kAreaDetector(SingleTrigger, AreaDetector): 
+    cam = ADComponent(Lambda750kCam, "cam1:")
     image = Component(ImagePlugin, suffix="image1:")
     hdf1 = Component(
-        MyHDF5Plugin,
+        Plugin_HDF5_EPICS_Names,
         suffix='HDF1:', 
-        root='/',                               # for databroker
-        
-    # note: path MUST, must, MUST have trailing "/"!!!
-    #  ...and... start with the same path defined in root (above)
-    write_path_template="/tmp/simdet/%Y/%m/%d/",    # for EPICS AD
+        root = DATABROKER_ROOT_PATH,
+        write_path_template = AD_HDF5_IOC_WRITE_PATH,
+        read_path_template = AD_HDF5_DB_READ_PATH,
     )
 
 
-_ad_prefix = "xxxSIM1:"		# IOC prefix
 try:
-    adsimdet = MySingleTriggerHdf5SimDetector(_ad_prefix, name='adsimdet')
-    adsimdet.read_attrs.append("hdf1")
-    if adsimdet.hdf1.create_directory_depth.value == 0:
-        # probably not set, so let's set it now to some default
-        adsimdet.hdf1.create_directory_depth.put(-5)
+    adlambda = Lambda750kAreaDetector(
+        LAMBDA_750K_IOC_PREFIX, 
+        name='adlambda',
+        )
+    adlambda.read_attrs.append("hdf1")
+
+    # suggestions for setting defaults
+    # adlambda.hdf1.file_path.put(AD_HDF5_IOC_WRITE_PATH)
+    # adlambda.hdf1.file_name.put("bluesky")
+    # adlambda.hdf1.file_number.put(101)
+    # adlambda.hdf1.array_counter.put(adlambda.hdf1.file_number.value)
+    
 except TimeoutError:
-    logger.warning(f"Could not connect {_ad_prefix} sim detector")
+    m = "Could not connect Lambda 750K detector"
+    m += f" with prefix  {LAMBDA_750K_IOC_PREFIX}"
+    logger.warning(m)

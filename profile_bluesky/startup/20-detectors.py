@@ -2,7 +2,7 @@ logger.info(__file__)
 
 """detectors (area detectors handled separately)"""
 
-scaler1 = ScalerCH('8idi:scaler1', name='scaler1', labels=("detectors",))
+scaler1 = ScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
 scaler1.select_channels(None)   # choose just the channels with EPICS names
 
 # This configuration moved from 15-spec-config.py

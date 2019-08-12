@@ -19,8 +19,12 @@ from ophyd.scaler import ScalerCH, ScalerChannel
 from ophyd.sim import SynSignal
 
 # area detector support (ADSimDetector)
-from ophyd import SingleTrigger, SimDetector
+from ophyd import ADComponent
+from ophyd import AreaDetector
+from ophyd import CamBase
 from ophyd import HDF5Plugin, ImagePlugin
+from ophyd import SingleTrigger, SimDetector
+from ophyd.areadetector.filestore_mixins import FileStoreIterativeWrite
 from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
 
 import apstools.callbacks as APS_callbacks

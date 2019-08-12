@@ -3,6 +3,17 @@ logger.info(__file__)
 """detectors (area detectors handled separately)"""
 
 scaler1 = ScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
+
+_timeout = time.time() + 10
+while time.time() < _timeout:
+    if scaler1.connected:
+        break
+    time.sleep(0.2)
+if time.time() > _timeout:
+	msg = "10s timeout expired waiting for scaler1 to connect"
+	raise RuntimeError(msg)
+del _timeout
+
 scaler1.select_channels(None)   # choose just the channels with EPICS names
 
 # This configuration moved from 15-spec-config.py

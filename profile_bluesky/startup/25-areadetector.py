@@ -14,9 +14,6 @@ class Lambda750kCam(CamBase):
     """support for X-Spectrum Lambda 750K detector"""
     _html_docs = []
     temperature = Component(EpicsSignalWithRBV, 'Temperature')
-    # TODO: What else?  Anything we'll configure or log.
-    # config_file_path
-    # operating_mode (with RBV)
 
 
 # Use one of these plugins when configuring the HDF support:
@@ -62,9 +59,9 @@ try:
         LAMBDA_750K_IOC_PREFIX, 
         name='adlambda',
         )
-    adlambda.read_attrs.append("hdf1")
 
-    # suggestions for setting defaults
+    adlambda.read_attrs.append("hdf1")
+    # suggestions for setting HDF5 plugin defaults
     # adlambda.hdf1.file_path.put(AD_HDF5_IOC_WRITE_PATH)
     # adlambda.hdf1.file_name.put("bluesky")
     # adlambda.hdf1.file_number.put(101)

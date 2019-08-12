@@ -13,7 +13,61 @@ AD_HDF5_DB_READ_PATH = AD_HDF5_IOC_WRITE_PATH
 class Lambda750kCam(CamBase):
     """support for X-Spectrum Lambda 750K detector"""
     _html_docs = []
+    config_file_path = Component(EpicsSignal, 'ConfigFilePath')
+    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV')
+    operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode')
+    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV')
     temperature = Component(EpicsSignalWithRBV, 'Temperature')
+
+
+class ImmJoinPlugin(ADBase):
+    capture_imm0 = Component(EpicsSignal, 'IMMFanoutCapture.OUTA')
+    capture_imm1 = Component(EpicsSignal, 'IMMFanoutCapture.OUTB')
+    capture_imm2 = Component(EpicsSignal, 'IMMFanoutCapture.OUTC')
+    joined_capture = Component(EpicsSignal, 'IMMJoinedCapture')
+
+
+class IMMFilePlugin(FilePlugin):
+    _default_suffix = ''
+    _html_docs = ['NDFileIMM.html']
+    _plugin_type = 'NDFileIMM'
+    
+    file_number_sync = None
+    file_number_write = None
+
+    imm_elapsed = Component(EpicsSignalRO, 'NDFileIMM_imm_elapsed_RBV')
+    is_already_imm = Component(EpicsSignalRO, 'NDFileIMM_is_already_imm_RBV')
+    imm_systicks = Component(EpicsSignalRO, 'NDFileIMM_imm_systicks_RBV')
+    imm_corecoticks = Component(EpicsSignalRO, 'NDFileIMM_imm_corecoticks_RBV')
+    imm_dlen = Component(EpicsSignalRO, 'NDFileIMM_imm_dlen_RBV')
+    threshold = Component(EpicsSignalWithRBV, 'NDFileIMM_threshold')
+    is_imm_comp = Component(EpicsSignalRO, 'NDFileIMM_is_imm_comp_RBV')
+    timestamp = Component(EpicsSignalRO, 'NDFileIMM_timestamp_RBV')
+    number_imm_pixels = Component(EpicsSignalRO, 'NDFileIMM_num_imm_pixels_RBV')
+
+    #  These records control file I/O
+    file_format = Component(EpicsSignalWithRBV, 'NDFileIMM_format')
+    unique_id = Component(EpicsSignalRO, 'NDFileIMM_uniqueID_RBV')
+    print_attributes = Component(EpicsSignal, 'NDFileIMM_printAttributes')
+    number_missed_timestamps = Component(EpicsSignalWithRBV, 'NDFileIMM_NmissedTimeStamps')
+    number_missed_ids = Component(EpicsSignalWithRBV, 'NDFileIMM_NmissedIDs')
+    number_img_rst_ts = Component(EpicsSignalWithRBV, 'NDFileIMM_Nimg_rst_ts')
+    throw_images = Component(EpicsSignalWithRBV, 'NDFileIMM_throw_images')
+    frame_period = Component(EpicsSignalWithRBV, 'NDFileIMM_framePeriod')
+    file_event = Component(EpicsSignalRO, 'NDFileIMM_fileevent')
+
+
+class GatherPlugin(PluginBase):
+    """GATHER plugin (not in ophyd)"""
+    _default_suffix = 'GATHER1:'
+    _html_docs = ['gather.html']
+    _plugin_type = 'NDPluginGather'
+
+class ScatterPlugin(PluginBase):
+    """SCATTER plugin (not in ophyd)"""
+    _default_suffix = 'SCATTER1:'
+    _html_docs = ['scatter.html']
+    _plugin_type = 'NDPluginScatter'
 
 
 # Use one of these plugins when configuring the HDF support:
@@ -52,6 +106,14 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         write_path_template = AD_HDF5_IOC_WRITE_PATH,
         read_path_template = AD_HDF5_DB_READ_PATH,
     )
+    immjoin = Component(ImmJoinPlugin, "IMMJoin:")
+    imm0 = Component(IMMFilePlugin, "IMM0:")
+    imm1 = Component(IMMFilePlugin, "IMM1:")
+    imm2 = Component(IMMFilePlugin, "IMM2:")
+    imm3 = Component(IMMFilePlugin, "IMM3:")
+    immout = Component(IMMFilePlugin, "IMMout:")
+    gather = Component(GatherPlugin, "Gather1:")
+    scatter = Component(ScatterPlugin, "Scatter1:")
 
 
 try:
@@ -60,6 +122,7 @@ try:
         name='adlambda',
         )
 
+    adlambda.read_attrs += "immjoin imm0 imm1 imm2 imm3 immout gather scatter".split()
     adlambda.read_attrs.append("hdf1")
     # suggestions for setting HDF5 plugin defaults
     # adlambda.hdf1.file_path.put(AD_HDF5_IOC_WRITE_PATH)

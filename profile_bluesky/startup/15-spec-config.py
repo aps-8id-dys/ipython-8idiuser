@@ -101,14 +101,14 @@ sipvgap = EpicsMotor('8idi:SlitpinkVsize', name='sipvgap', labels=("motor",))
 sipvcen = EpicsMotor('8idi:SlitpinkVcenter', name='sipvcen', labels=("motor",))
 siphgap = EpicsMotor('8idi:SlitpinkHsize', name='siphgap', labels=("motor",))
 siphcen = EpicsMotor('8idi:SlitpinkHcenter', name='siphcen', labels=("motor",))
-dsbstpx = EpicsMotor('8idisoft:m1', name='dsbstpx', labels=("motor",))
-dsbstpz = EpicsMotor('8idisoft:m2', name='dsbstpz', labels=("motor",))
-dsccdx = EpicsMotor('8idi:m81', name='dsccdx', labels=("motor",))
+#dsbstpx = EpicsMotor('8idisoft:m1', name='dsbstpx', labels=("softmotor",))
+#dsbstpz = EpicsMotor('8idisoft:m2', name='dsbstpz', labels=("softmotor",))
+#dsccdx = EpicsMotor('8idi:m81', name='dsccdx', labels=("motor",))
 si2t = EpicsMotor('8idi:m46', name='si2t', labels=("motor",))
 si2b = EpicsMotor('8idi:m45', name='si2b', labels=("motor",))
 si2i = EpicsMotor('8idi:m47', name='si2i', labels=("motor",))
 si2o = EpicsMotor('8idi:m48', name='si2o', labels=("motor",))
-dsccdz = EpicsMotor('8idi:m68', name='dsccdz', labels=("motor",))
+#dsccdz = EpicsMotor('8idi:m68', name='dsccdz', labels=("motor",))
 # Macro Motor: SpecMotor(mne='si2vg', config_line='107', name='si2vg', macro_prefix='Slit2SoftV', labels=("motor",)) # read_mode=0
 nano = EpicsMotor('8idimono:m5', name='nano', labels=("motor",)) # read_mode=0
 

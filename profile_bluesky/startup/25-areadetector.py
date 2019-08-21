@@ -122,6 +122,7 @@ try:
     adlambda = Lambda750kAreaDetector(
         LAMBDA_750K_IOC_PREFIX, 
         name='adlambda',
+        labels=["areadetector",]
         )
 
     adlambda.read_attrs += "immjoin imm0 imm1 imm2 imm3 immout gather scatter".split()

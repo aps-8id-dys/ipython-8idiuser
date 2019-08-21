@@ -26,8 +26,12 @@ scaler1.select_channels(None)   # choose just the channels with EPICS names
 # counter: pdbs = SpecCounter(mne='pdbs', config_line='6', name='pdbs', unit='0', chan='5', pvname=8idi:scaler1.S6)
 # counter: I_APS = SpecCounter(mne='I_APS', config_line='7', name='I_APS', unit='0', chan='6', pvname=8idi:scaler1.S7)
 # line 8: CNT008 =     NONE  2  0      1 0x000     ccdc  ccdc
-Atten1 = EpicsSignal('8idi:userTran1.P', name='Atten1')
-Atten2 = EpicsSignal('8idi:userTran3.P', name='Atten2')
-T_A = EpicsSignal('8idi:LS336:TC4:IN1', name='T_A')
-T_SET = EpicsSignal('8idi:LS336:TC4:OUT1:SP', name='T_SET')
+Atten1 = EpicsSignalRO('8idi:userTran1.P', name='Atten1', labels=["detectors",])
+Atten2 = EpicsSignalRO('8idi:userTran3.P', name='Atten2', labels=["detectors",])
+att1 = EpicsSignal('8idi:BioDecode1.A', name='att1', write_pv='8idi:BioEncode1.A')
+att2 = EpicsSignal('8idi:BioDecode2.A', name='att2', write_pv='8idi:BioEncode2.A')
+
+
+T_A = EpicsSignalRO('8idi:LS336:TC4:IN1', name='T_A', labels=["detectors",])
+T_SET = EpicsSignalWithRBV('8idi:LS336:TC4:OUT1:SP', name='T_SET', labels=["detectors",])
 # counter: APD = SpecCounter(mne='APD', config_line='13', name='APD', unit='0', chan='8', pvname=8idi:scaler1.S9)

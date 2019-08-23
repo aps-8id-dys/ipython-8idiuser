@@ -1,0 +1,77 @@
+##some functions used here like max requires
+##https://subversion.xray.aps.anl.gov/trac/spec/browser/common/aps/math.mac
+##copied to s8spec
+
+def write_CCD_MetaData_Registers '{
+
+	global batch_pars user_data_folder atten_set attvalue BURST_MODE
+
+	epics_put("8idi:Reg101",batch_pars["col_beg"])
+	epics_put("8idi:Reg102",batch_pars["col_end"])
+	epics_put("8idi:Reg103",batch_pars["row_beg"])
+	epics_put("8idi:Reg104",batch_pars["row_end"])
+
+	epics_put("8idi:Reg105",batch_pars["cols"])
+	epics_put("8idi:Reg106",batch_pars["rows"])
+	
+	epics_put("8idi:Reg107",batch_pars["kinetics"])
+	epics_put("8idi:Reg108",batch_pars["kinwinsize"])
+	epics_put("8idi:Reg109",batch_pars["slicetop"])
+	epics_put("8idi:Reg110",attvalue)
+	##Reg111 and Reg112 are filled down, conditional on dark frames
+	epics_put("8idi:Reg113",batch_pars["ndata0"])
+	epics_put("8idi:Reg114",batch_pars["ndataend"])
+
+	epics_put("8idi:Reg115",batch_pars["preset"])
+	epics_put("8idi:Reg116",batch_pars["preset_period"])
+
+	epics_put("8idi:Reg117",-1)
+	epics_put("8idi:Reg118",batch_pars["spec_scanN"])
+	
+	epics_put("8idi:Reg119",batch_pars["ccdx"])
+	epics_put("8idi:Reg120",batch_pars["ccdz"])
+	
+	epics_put("8idi:Reg121",batch_pars["ring_i_beg"])
+	epics_put("8idi:Reg122",batch_pars["ring_i_end"])
+
+	
+	#epics_put("8idi:Reg123",batch_pars["I0Mon"])
+
+	epics_put("8idi:Reg124",batch_pars["burst_mode"])
+	epics_put("8idi:Reg125",batch_pars["number_of_bursts"])
+	epics_put("8idi:Reg126",batch_pars["first_usable_burst"])
+	epics_put("8idi:Reg127",batch_pars["last_usable_burst"])
+	
+	##string registers
+	epics_put("8idi:StrReg1",DATAFILE)
+	epics_put("8idi:StrReg2",batch_pars["parent"])
+	epics_put("8idi:StrReg3",user_data_folder)
+	epics_put("8idi:StrReg4",batch_pars["child"])
+	epics_put("8idi:StrReg5",rmquotes(batch_pars["datafilename"]))
+	epics_put("8idi:StrReg6",rmquotes(batch_pars["start_time"]))
+	epics_put("8idi:StrReg7",rmquotes(batch_pars["end_time"]))
+
+	#check to make sure these exist because in case of compression, these are not defined
+	if (!exists("batch_pars","ndark0")) epics_put("8idi:Reg111",-1)
+	if (!exists("batch_pars","ndarkend")) epics_put("8idi:Reg112",-1)
+	
+	if (exists("batch_pars","ndark0")) epics_put("8idi:Reg111",batch_pars["ndark0"])
+	if (exists("batch_pars","ndarkend")) epics_put("8idi:Reg112",batch_pars["ndarkend"])
+
+	if (!exists("batch_pars","beam_i_vacuum")) epics_put("8idi:Reg9",1.0)
+	if (!exists("batch_pars","beam_i")) epics_put("8idi:Reg10",1.0)
+	
+	if (exists("batch_pars","beam_i_vacuum")) epics_put("8idi:Reg9", max(1.0,batch_pars["beam_i_vacuum"]))
+	if (exists("batch_pars","beam_i")) epics_put("8idi:Reg10", max(1.0,batch_pars["beam_i"]))
+}'
+
+def write_CCD_MetaData_hdf '{
+	global HDF5_METADATA_FILE FULL_INFOFILE_NO_EXT
+	local cmd fn tmp1
+
+	##call python to create hdf metadatafile that can replace batchinfo
+	HDF5_METADATA_FILE = FULL_INFOFILE_NO_EXT ".hdf";
+	cmd=sprintf("/APSshare/anaconda/x86_64/bin/python /home/beams/8IDIUSER/Python_HDF5_DataExchange/Create_DataExchange_HDF5_8idi.py %s", HDF5_METADATA_FILE);
+	if (PRINT_DEBUG_MSG == 2) printf("%s...\n",cmd)
+	unix(cmd);
+}'

@@ -28,7 +28,7 @@ class EigerHDF5:
 
     def create_hdf5_file(self, filename):
         """
-        write metadata to new HDF5 file
+        write metadata from EPICS PVs to new HDF5 file
         """
         
         # Gets Python Dict stored in other file

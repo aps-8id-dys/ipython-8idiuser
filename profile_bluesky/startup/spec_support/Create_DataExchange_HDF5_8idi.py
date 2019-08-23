@@ -23,8 +23,8 @@ class EigerHDF5:
             filename = sys.argv[1]
             try:
                 self.f = h5py.File(filename, "w-")
-            except Exception, ex:
-                print "Error: %s" % ex
+            except Exception as ex:
+                print("Error: %s" % ex)
                 sys.exit(1)
 
             # Gets Python Dict stored in other file
@@ -73,7 +73,7 @@ class EigerHDF5:
             temp = self.f.create_dataset("/measurement/instrument/acquisition/specscan_data_number", (1,1),dtype='uint64')
             temp[(0,0)] = epics.caget('8idi:Reg118')
             
-        temp = self.f.create_dataset("/measurement/instrument/acquisition/attenuation", (1,1))
+            temp = self.f.create_dataset("/measurement/instrument/acquisition/attenuation", (1,1))
             temp[(0,0)] = epics.caget('8idi:Reg110')
 
             temp = self.f.create_dataset("/measurement/instrument/acquisition/beam_size_H", (1,1))
@@ -82,11 +82,11 @@ class EigerHDF5:
             temp = self.f.create_dataset("/measurement/instrument/acquisition/beam_size_V", (1,1))
             temp[(0,0)] = epics.caget('8idi:Slit3Vsize.VAL')
 
-        self.f["/measurement/instrument/acquisition/specfile"] = epics.caget('8idi:StrReg1',as_string=True)
-        self.f["/measurement/instrument/acquisition/root_folder"] = epics.caget('8idi:StrReg2',as_string=True)
-        self.f["/measurement/instrument/acquisition/parent_folder"] = epics.caget('8idi:StrReg3',as_string=True)
-        self.f["/measurement/instrument/acquisition/data_folder"] = epics.caget('8idi:StrReg4',as_string=True)
-        self.f["/measurement/instrument/acquisition/datafilename"] = epics.caget('8idi:StrReg5',as_string=True)
+            self.f["/measurement/instrument/acquisition/specfile"] = epics.caget('8idi:StrReg1',as_string=True)
+            self.f["/measurement/instrument/acquisition/root_folder"] = epics.caget('8idi:StrReg2',as_string=True)
+            self.f["/measurement/instrument/acquisition/parent_folder"] = epics.caget('8idi:StrReg3',as_string=True)
+            self.f["/measurement/instrument/acquisition/data_folder"] = epics.caget('8idi:StrReg4',as_string=True)
+            self.f["/measurement/instrument/acquisition/datafilename"] = epics.caget('8idi:StrReg5',as_string=True)
 
 ##standard fields continue
             temp = self.f.create_dataset("/measurement/instrument/acquisition/beam_center_x", (1,1))
@@ -108,9 +108,9 @@ class EigerHDF5:
             temp[(0,0)] = epics.caget('8idi:Reg120')
 
             if compression == 1:
-            self.f["/measurement/instrument/acquisition/compression"] = 'ENABLED'
+                self.f["/measurement/instrument/acquisition/compression"] = 'ENABLED'
             else :
-            self.f["/measurement/instrument/acquisition/compression"] = 'DISABLED'
+                self.f["/measurement/instrument/acquisition/compression"] = 'DISABLED'
 
             if geometry_num == 1: ##reflection geometry
                 temp = self.f.create_dataset("/measurement/instrument/acquisition/xspec", (1,1))
@@ -157,20 +157,20 @@ class EigerHDF5:
             temp = self.f.create_dataset("/measurement/instrument/source_begin/energy", (1,1))
             temp[(0,0)] = epics.caget('8idimono:sm2.RBV')
             
-        self.f["/measurement/instrument/source_begin/datetime"] = epics.caget('8idi:StrReg6',as_string=True)
+            self.f["/measurement/instrument/source_begin/datetime"] = epics.caget('8idi:StrReg6',as_string=True)
 
 #/measurement/instrument/source_end (added in January 2019)
             temp = self.f.create_dataset("/measurement/instrument/source_end/current", (1,1))
             temp[(0,0)] = epics.caget('8idi:Reg122')
         
-        self.f["/measurement/instrument/source_end/datetime"] = epics.caget('8idi:StrReg7',as_string=True)
+            self.f["/measurement/instrument/source_end/datetime"] = epics.caget('8idi:StrReg7',as_string=True)
 
 ###############################################################################################################
 #/measurement/instrument/sample
             temp = self.f.create_dataset("/measurement/sample/thickness", (1,1))
             temp[(0,0)] = 1.0
             
-        temp = self.f.create_dataset("/measurement/sample/temperature_A", (1,1))
+            temp = self.f.create_dataset("/measurement/sample/temperature_A", (1,1))
             temp[(0,0)] = epics.caget('8idi:LS336:TC4:IN1')
 
             temp = self.f.create_dataset("/measurement/sample/temperature_B", (1,1))
@@ -184,14 +184,14 @@ class EigerHDF5:
             temp[(0,0)] = epics.caget('8idi:LS336:TC4:OUT1:SP')
 
             temp = self.f.create_dataset("/measurement/sample/translation", (1,3)) ##x,y,z
-        temp[(0,0)] = epics.caget('8idi:m54.RBV')
-        temp[(0,1)] = epics.caget('8idi:m49.RBV')
+            temp[(0,0)] = epics.caget('8idi:m54.RBV')
+            temp[(0,1)] = epics.caget('8idi:m49.RBV')
             temp[(0,2)] = epics.caget('8idi:m50.RBV')
             
             ##new dataset added on Oct 15,2018 (2018-3) to additionally add table params
-        temp = self.f.create_dataset("/measurement/sample/translation_table", (1,3)) ##x,y,z
-        temp[(0,0)] = epics.caget('8idi:TI3:x.VAL')
-        temp[(0,1)] = epics.caget('8idi:TI3:z.VAL')
+            temp = self.f.create_dataset("/measurement/sample/translation_table", (1,3)) ##x,y,z
+            temp[(0,0)] = epics.caget('8idi:TI3:x.VAL')
+            temp[(0,1)] = epics.caget('8idi:TI3:z.VAL')
             temp[(0,2)] = epics.caget('8idi:TI3:y.VAL')
 
             temp = self.f.create_dataset("/measurement/sample/orientation", (1,3)) ##pitch,roll.yaw
@@ -201,9 +201,9 @@ class EigerHDF5:
 
 #######/measurement/instrument/detector#########################
             try:
-            self.f["/measurement/instrument/detector/manufacturer"] = manufacturerDict[detNum]
+                self.f["/measurement/instrument/detector/manufacturer"] = manufacturerDict[detNum]
             except KeyError:
-            self.f["/measurement/instrument/detector/manufacturer"] = 'UNKNOWN'
+                self.f["/measurement/instrument/detector/manufacturer"] = 'UNKNOWN'
 
         ##self.f["/measurement/instrument/detector/model"] = 'UNKNOWN'
 
@@ -254,19 +254,19 @@ class EigerHDF5:
             else :
                 temp[(0,0)] = 0
 
-        temp = self.f.create_dataset("/measurement/instrument/detector/distance", (1,1))
+            temp = self.f.create_dataset("/measurement/instrument/detector/distance", (1,1))
             temp[(0,0)] = epics.caget('8idi:Reg5')
 
 
             if masterDict[detNum]["flatfield"] == 1:
-            self.f["/measurement/instrument/detector/flatfield_enabled"] = 'ENABLED'
+                self.f["/measurement/instrument/detector/flatfield_enabled"] = 'ENABLED'
             else :
-            self.f["/measurement/instrument/detector/flatfield_enabled"] = 'DISABLED'
+                self.f["/measurement/instrument/detector/flatfield_enabled"] = 'DISABLED'
 
             if masterDict[detNum]["blemish"] == 1:
-            self.f["/measurement/instrument/detector/blemish_enabled"] = 'ENABLED'
+                self.f["/measurement/instrument/detector/blemish_enabled"] = 'ENABLED'
             else :
-            self.f["/measurement/instrument/detector/blemish_enabled"] = 'DISABLED'
+                self.f["/measurement/instrument/detector/blemish_enabled"] = 'DISABLED'
 
             temp = self.f.create_dataset("/measurement/instrument/detector/efficiency", (1,1))
             temp[(0,0)] = masterDict[detNum]["efficiency"]
@@ -290,21 +290,21 @@ class EigerHDF5:
             temp[(0,0)] = 1
 
             if geometry_num == 0:
-            self.f["/measurement/instrument/detector/geometry"] = 'TRANSMISSION'
+                self.f["/measurement/instrument/detector/geometry"] = 'TRANSMISSION'
             elif geometry_num == 1:
-            self.f["/measurement/instrument/detector/geometry"] = 'REFLECTION'
+                self.f["/measurement/instrument/detector/geometry"] = 'REFLECTION'
             else :
-            self.f["/measurement/instrument/detector/geometry"] = 'UNKNOWN'
+                self.f["/measurement/instrument/detector/geometry"] = 'UNKNOWN'
 
             if kinetics_state == 1:
-            self.f["/measurement/instrument/detector/kinetics_enabled"] = 'ENABLED'
+                self.f["/measurement/instrument/detector/kinetics_enabled"] = 'ENABLED'
             else :
-            self.f["/measurement/instrument/detector/kinetics_enabled"] = 'DISABLED'
+                self.f["/measurement/instrument/detector/kinetics_enabled"] = 'DISABLED'
 
             if burst_mode_state == 1:
-            self.f["/measurement/instrument/detector/burst_enabled"] = 'ENABLED'
+                self.f["/measurement/instrument/detector/burst_enabled"] = 'ENABLED'
             else :
-            self.f["/measurement/instrument/detector/burst_enabled"] = 'DISABLED'
+                self.f["/measurement/instrument/detector/burst_enabled"] = 'DISABLED'
 #######/measurement/instrument/detector/kinetics/######
             temp = self.f.create_dataset("/measurement/instrument/detector/kinetics/first_usable_window", (1,1),dtype='uint32')
             if kinetics_state == 1:
@@ -314,8 +314,8 @@ class EigerHDF5:
 
             temp = self.f.create_dataset("/measurement/instrument/detector/kinetics/last_usable_window", (1,1),dtype='uint32')
             if  kinetics_state == 1:
-            temp1slicetop = epics.caget("8idi:Reg109")
-        temp1size = epics.caget("8idi:Reg108")
+                temp1slicetop = epics.caget("8idi:Reg109")
+                temp1size = epics.caget("8idi:Reg108")
                 temp[(0,0)] = int(temp1slicetop/temp1size)-1
             else :
                 temp[(0,0)] = 0

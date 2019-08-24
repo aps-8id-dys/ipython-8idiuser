@@ -20,12 +20,22 @@ from bluesky import plan_stubs as bps
 import datetime
 import h5py
 import math
+import subprocess 
 
 from . import detector_parameters
 
 
 def unix(command):
-    raise NotImplementedError(f'unix("{command}")') # TODO: 
+    # TODO: use logging package
+    sp = subprocess.Popen(
+        command, 
+        shell=True,
+        stdin = subprocess.PIPE,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        )
+    out, err = sp.communicate()
+    return out
 
 
 class DM_Workflow:
@@ -56,8 +66,11 @@ class DM_Workflow:
         self.DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02"
         # self.DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-nos8iddata"
         # self.DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-nos8iddata"
-        self.transfer_command = ""
-        self.analysis_command = ""
+        self.TRANSFER_COMMAND = ""
+        self.ANALYSIS_COMMAND = ""
+        
+        self.QMAP_FOLDER_PATH = "" # TODO:
+        self.XPCS_QMAP_FILENAME = "" # TODO:
 
     # def begin(self, filename):
     #     # TODO: Why is this method needed?
@@ -408,42 +421,56 @@ class DM_Workflow:
         #####################################################################################
         # Close file closes automatically due to the "with" opener
 
-    def DataTransfer(self):
+    def DataTransfer(self, hdf_with_fullpath):
         """
         initiate data transfer
         """
-        # local cmd, hdf_in_data_folder_with_fullpath
-        # hdf_with_fullpath = $1     ##usually this is saved in the global variable HDF5_METADATA_FILE
-        # cmd = sprintf("source /home/dm/etc/dm.setup.sh; dm-start-processing-job --workflow-name=%s filePath:%s",self.DM_WORKFLOW_DATA_TRANSFER,hdf_with_fullpath);
-        self.transfer_command = cmd;
-        # printf("DM Workflow call is made for DATA transfer: %s----%s\n",hdf_with_fullpath,date());
-        # unix(cmd);
+        cmd = (
+            "source /home/dm/etc/dm.setup.sh; "
+            "dm-start-processing-job"
+            f" --workflow-name={self.DM_WORKFLOW_DATA_TRANSFER}"
+            f" filePath:{hdf_with_fullpath}"
+            )
+        self.TRANSFER_COMMAND = cmd;
+        print(
+            "DM Workflow call is made for DATA transfer: "
+            f"{hdf_with_fullpath}"
+            f"----{datetime.datetime.now()}"
+            )
+        unix(cmd)
         pass
 
-    def DataAnalysis(self):
+    def DataAnalysis(self, 
+                     hdf_with_fullpath, 
+                     qmapfile_with_fullpath=None, 
+                     xpcs_group_name=None):
         """
         initiate data analysis
+        
+        SPEC note: hdf_with_fullpath : usually saved in global HDF5_METADATA_FILE 
         """
-        # local cmd, hdf_with_fullpath, qmapfile_with_fullpath
-        # global QMAP_FOLDER_PATH, XPCS_QMAP_FILENAME
-        # hdf_with_fullpath = $1     ##usually this is saved in the global variable HDF5_METADATA_FILE
-        # 
-        # if ($# < 2) {
-        #     qmapfile_with_fullpath = QMAP_FOLDER_PATH XPCS_QMAP_FILENAME
-        # } else {
-        #     qmapfile_with_fullpath = $2
-        # }
-        # 
-        # if ($# < 3) {
-        #     xpcs_group_name = "/xpcs"
-        # } else {
-        #     xpcs_group_name = $3
-        # }
-        # 
-        # cmd = sprintf("source /home/dm/etc/dm.setup.sh; dm-start-processing-job --workflow-name=%s filePath:%s qmapFile:%s xpcsGroupName:%s",self.DM_WORKFLOW_DATA_ANALYSIS,hdf_with_fullpath,qmapfile_with_fullpath,xpcs_group_name);
-        self.analysis_command = cmd;
-        # printf("DM Workflow call is made for XPCS Analysis: %s,%s----%s\n",hdf_with_fullpath,qmapfile_with_fullpath,date());
-        # unix(cmd);
+        
+        default = os.path.join(self.QMAP_FOLDER_PATH, self.XPCS_QMAP_FILENAME)
+        qmapfile_with_fullpath = qmapfile_with_fullpath or default
+        xpcs_group_name = xpcs_group_name or "/xpcs"
+
+        cmd = (
+            "source /home/dm/etc/dm.setup.sh; "
+            "dm-start-processing-job"
+            f" --workflow-name={self.DM_WORKFLOW_DATA_ANALYSIS}"
+            f" filePath:{hdf_with_fullpath}"
+            f" qmapFile:{qmapfile_with_fullpath}"
+            f" xpcsGroupName:{xpcs_group_name}"
+            )
+        self.ANALYSIS_COMMAND = cmd;
+
+        # TODO: use logging package
+        print(
+            f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
+            f",{qmapfile_with_fullpath}"
+            f"----{datetime.datetime.now()}"
+            )
+        unix(cmd)
         pass
 
     def ListJobs(self):
@@ -451,7 +478,15 @@ class DM_Workflow:
         list current jobs in the workflow
         """
         print("*"*30)
-        unix("source /home/dm/etc/dm.setup.sh; dm-list-processing-jobs --display-keys=startTime,endTime,sgeJobName,status,stage,runTime,id | sort -r |head -n 10");
+        command = (
+            "source /home/dm/etc/dm.setup.sh; "
+            "dm-list-processing-jobs"
+            " --display-keys=startTime,endTime,sgeJobName,status,stage,runTime,id"
+            " | sort -r"
+            " |head -n 10"
+            )
+        # TODO: use logging package
+        unix(command);
         print("*"*30)
         print(datetime.datetime.now())
         print("*"*30)

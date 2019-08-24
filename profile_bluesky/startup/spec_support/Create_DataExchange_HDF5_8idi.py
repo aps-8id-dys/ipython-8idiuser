@@ -6,12 +6,9 @@ This file is meant to be called from SPEC
 that can replace .batchinfo
 """
 
-import datetime
-import epics
+from bluesky import plan_stubs as bps
 import h5py
 import math
-import sys
-import time
 
 from . import detector_parameters
 
@@ -363,6 +360,7 @@ class EigerHDF5:
 
 
 if __name__ == "__main__":
+    import sys
     filename = sys.argv[1]  # caller must provide a filename
 
     newObject = EigerHDF5()

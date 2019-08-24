@@ -4,71 +4,74 @@ logger.info(__file__)
 support for APS data management
 """
 
-dm_signals = {}
-
-
-class EpicsSignalDM(EpicsSignal):
-    """custom class for Data Management metadata"""
-    h5address = None
-    
-    # needs constructor to handle additional terms
-    def __init__(self, 
-                 prefix, h5address, 
-                 *,
-                 size = (1, 1),
-                 dtype = None,
-                 **kwargs):
-        self.h5address = h5address
-        self.size = size
-        self.dtype = dtype
-        super().__init__(prefix, **kwargs)
-        
-        # keep our own dictionary of the DM metadata signals
-        dm_signals[h5address] = self
-
 
 class DataManagementMetadata(Device):
     """
     signals for the APS Data Management service
-    
-    The EpicsSignalDM signals will be written to the HDF5 file
     """
-    # will not be stored in HDF5 file
-    detNum = Component(EpicsSignal, "8idi:Reg2")
-    geometry_num = Component(EpicsSignal, "8idi:Reg3")
-    kinetics_state = Component(EpicsSignal, "8idi:Reg107")
-    burst_mode_state = Component(EpicsSignal, "8idi:Reg124")
-    compression = Component(EpicsSignal, "8idi:Reg8")       # , string=True
-
-    hdf_metadata_version = Component(EpicsSignalDM, "8idi:Reg1",   "/hdf_metadata_version")
-    dark_begin           = Component(EpicsSignalDM, "8idi:Reg111", "/measurement/instrument/acquisition/dark_begin")
-    dark_end             = Component(EpicsSignalDM, "8idi:Reg112", "/measurement/instrument/acquisition/dark_end")
-    data_begin           = Component(EpicsSignalDM, "8idi:Reg113", "/measurement/instrument/acquisition/dark_end")
-    data_end             = Component(EpicsSignalDM, "8idi:Reg114", "/measurement/instrument/acquisition/data_end")
-
-    specscan_dark_number = Component(EpicsSignalDM, "8idi:Reg117", "/measurement/instrument/acquisition/specscan_dark_number", dtype='uint64') 
-    specscan_data_number = Component(EpicsSignalDM, "8idi:Reg118", "/measurement/instrument/acquisition/specscan_data_number", dtype='uint64')
-    attenuation          = Component(EpicsSignalDM, "8idi:Reg110", "/measurement/instrument/acquisition/attenuation")
-    beam_size_H          = Component(EpicsSignalDM, "8idi:Slit2Hsize", "/measurement/instrument/acquisition/beam_size_H")
-    beam_size_V          = Component(EpicsSignalDM, "8idi:Slit3Vsize", "/measurement/instrument/acquisition/beam_size_V")
-
-    specfile             = Component(EpicsSignalDM, "8idi:StrReg1", "/measurement/instrument/acquisition/specfile",      string=True)
-    root_folder          = Component(EpicsSignalDM, "8idi:StrReg2", "/measurement/instrument/acquisition/root_folder",   string=True)
-    parent_folder        = Component(EpicsSignalDM, "8idi:StrReg3", "/measurement/instrument/acquisition/parent_folder", string=True)
-    data_folder          = Component(EpicsSignalDM, "8idi:StrReg4", "/measurement/instrument/acquisition/data_folder",   string=True)
-    datafilename         = Component(EpicsSignalDM, "8idi:StrReg5", "/measurement/instrument/acquisition/datafilename",  string=True)
-
-    beam_center_x        = Component(EpicsSignalDM, "8idi:Reg11",  "/measurement/instrument/acquisition/beam_center_x")
-    beam_center_y        = Component(EpicsSignalDM, "8idi:Reg12",  "/measurement/instrument/acquisition/beam_center_y")
-    stage_zero_x         = Component(EpicsSignalDM, "8idi:Reg13",  "/measurement/instrument/acquisition/stage_zero_x")
-    stage_zero_z         = Component(EpicsSignalDM, "8idi:Reg14",  "/measurement/instrument/acquisition/stage_zero_z")
-    stage_x              = Component(EpicsSignalDM, "8idi:Reg119", "/measurement/instrument/acquisition/stage_x")
-    stage_z              = Component(EpicsSignalDM, "8idi:Reg120", "/measurement/instrument/acquisition/stage_z")
-    
-    # TODO: compression is represented as an enum
-    # h5address = "/measurement/instrument/acquisition/compression"
-    # f[h5address] = {True: "ENABLED", False: "DISABLED"}[compression == 1]
-    
-    # TODO: geometry needs help: if geometry == 0 (transmission): all values are -1
-
-    # TODO: see how far we can get with this
+    # TODO: check opbjects commented out that they are not already defined elsewhere
+    # TODO: names could be changed
+    detNum = EpicsSignal("8idi:Reg2")
+    geometry_num = EpicsSignal("8idi:Reg3")
+    kinetics_state = EpicsSignal("8idi:Reg107")
+    burst_mode_state = EpicsSignal("8idi:Reg124")
+    compression = EpicsSignal("8idi:Reg8")
+    hdf_metadata_version = EpicsSignal("8idi:Reg1")
+    dark_begin = EpicsSignal("8idi:Reg111")
+    dark_end = EpicsSignal("8idi:Reg112")
+    data_begin = EpicsSignal("8idi:Reg113")
+    data_end = EpicsSignal("8idi:Reg114")
+    specscan_dark_number = EpicsSignal("8idi:Reg117")
+    specscan_data_number = EpicsSignal("8idi:Reg118")
+    attenuation = EpicsSignal("8idi:Reg110")
+    # beam_size_H = EpicsSignal("8idi:Slit2Hsize.VAL")
+    # beam_size_V = EpicsSignal("8idi:Slit3Vsize.VAL")
+    specfile = EpicsSignal("8idi:StrReg1", string=True)
+    root_folder = EpicsSignal("8idi:StrReg2", string=True)
+    parent_folder = EpicsSignal("8idi:StrReg3", string=True)
+    data_folder = EpicsSignal("8idi:StrReg4", string=True)
+    datafilename = EpicsSignal("8idi:StrReg5", string=True)
+    beam_center_x = EpicsSignal("8idi:Reg11")
+    beam_center_y = EpicsSignal("8idi:Reg12")
+    stage_zero_x = EpicsSignal("8idi:Reg13")
+    stage_zero_z = EpicsSignal("8idi:Reg14")
+    stage_x = EpicsSignal("8idi:Reg119")
+    stage_z = EpicsSignal("8idi:Reg120")
+    xspec = EpicsSignal("8idi:Reg15")
+    zspec = EpicsSignal("8idi:Reg16")
+    ccdxspec = EpicsSignal("8idi:Reg18")
+    ccdzspec = EpicsSignal("8idi:Reg17")
+    angle = EpicsSignal("8idi:Reg19")
+    source_begin_beam_intensity_incident = EpicsSignal("8idi:Reg9")
+    source_begin_beam_intensity_transmitted = EpicsSignal("8idi:Reg10")
+    source_begin_current = EpicsSignal("8idi:Reg121")
+    # source_begin_energy = EpicsSignal("8idimono:sm2.RBV")
+    source_begin_datetime = EpicsSignal("8idi:StrReg6", string=True)
+    source_end_current = EpicsSignal("8idi:Reg122")
+    source_end_datetime = EpicsSignal("8idi:StrReg7", string=True)
+    # temperature_A = EpicsSignal("8idi:LS336:TC4:IN1")
+    # temperature_B = EpicsSignal("8idi:LS336:TC4:IN1")
+    # temperature_A_set = EpicsSignal("8idi:LS336:TC4:OUT1:SP")
+    ## pid1 = EpicsSignal("8idi:pid1.VAL")
+    # temperature_B_set = EpicsSignal("8idi:LS336:TC4:OUT1:SP")
+    # translation_x = EpicsSignal("8idi:m54.RBV")
+    # translation_y = EpicsSignal("8idi:m49.RBV")
+    # translation_z = EpicsSignal("8idi:m50.RBV")
+    # translation_table_x = EpicsSignal("8idi:TI3:x.VAL")
+    # translation_table_y = EpicsSignal("8idi:TI3:z.VAL")
+    # translation_table_z = EpicsSignal("8idi:TI3:y.VAL")
+    # sample_pitch = EpicsSignal("8idi:m52.RBV")
+    # sample_roll = EpicsSignal("8idi:m53.RBV")
+    # sample_yaw = EpicsSignal("8idi:m51.RBV")
+    exposure_time = EpicsSignal("8idi:Reg115")
+    exposure_period = EpicsSignal("8idi:Reg116")
+    number_of_bursts = EpicsSignal("8idi:Reg125")
+    first_usable_burst = EpicsSignal("8idi:Reg126")
+    last_usable_burst = EpicsSignal("8idi:Reg127")
+    detector_distance = EpicsSignal("8idi:Reg5")
+    kinetics_top = EpicsSignal("8idi:Reg109")
+    kinetics_window_size = EpicsSignal("8idi:Reg108")
+    roi_x1 = EpicsSignal("8idi:Reg101")
+    roi_y1 = EpicsSignal("8idi:Reg103")
+    roi_x2 = EpicsSignal("8idi:Reg102")
+    roi_y2 = EpicsSignal("8idi:Reg104")

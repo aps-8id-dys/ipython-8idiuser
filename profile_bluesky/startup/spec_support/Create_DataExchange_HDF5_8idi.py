@@ -23,9 +23,20 @@ class EigerHDF5:
     #     # Why not call create_hdf5_file() directly?
     #     self.create_hdf5_file(filename)
 
-    def create_hdf5_file(self, filename, as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, dm_pars, as_bluesky_plan=False):
         """
         write metadata from EPICS PVs to new HDF5 file
+        
+        PARAMETERS
+        
+        filename : str
+            name of the HDF5 file to be written
+        
+        dm_pars : ophyd.Device
+            Instance of `ophyd.Device` connected to metadata PVs
+        
+        as_bluesky_plan : bool
+            If ``True``, yield a bluesky Message, default: ``False``
         """
         
         if as_bluesky_plan:

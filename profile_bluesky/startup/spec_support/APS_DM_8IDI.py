@@ -1,20 +1,45 @@
 
 """
-Reads camera data from EPICS PVs and writes to an hdf5 file
 
-This file is meant to be called from SPEC
-that can replace .batchinfo
+create_hdf5_file    Reads camera data from EPICS PVs and writes to an hdf5 file
+DataTransfer        
+DataAnalysis        
+ListJobs            
+
+Starting in January 2018, we are trying to move towards SDM Group product as part of DM or Data
+Management developed by Sinisa Veseli. This primarily has tools to move data to the storage server with
+cataloging tools. Additionally, this has workflow processing tools which are all done in python along with
+shell scripts. With Faisal's new xpcs analysis toolkit, we will be using Sun Grid Engine (SGE) for job
+submission. So it is time to move away from the Active MQ pipeline with the actors, etc. 
+
+Sinisa has set up workflows: one for data transfer using GridFTP and the other to do full analysis. He has
+also developed SGE submission and monitoring which is very helpful. The downside as of now is that there
+is no GUI that shows the job status which was a plus with the old pipeline. A GUI will be developed in the
+near future.
+
+These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
 from bluesky import plan_stubs as bps
+import datetime
 import h5py
 import math
 
 from . import detector_parameters
 
 
-class EigerHDF5:
-    def __init__(self):
+class DM_Workflow:
+    """
+    support for the APD Data Management tools
+        
+    PARAMETERS
+    
+    dm_pars : ophyd.Device
+        Instance of `ophyd.Device` connected to metadata PVs
+    """
+
+    def __init__(self, dm_pars):
+        self.dm_pars = dm_pars
         self.index = 0      # TODO: How is this used?
         self.detectors = detector_parameters.PythonDict()
 
@@ -23,7 +48,7 @@ class EigerHDF5:
     #     # Why not call create_hdf5_file() directly?
     #     self.create_hdf5_file(filename)
 
-    def create_hdf5_file(self, filename, dm_pars, as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, as_bluesky_plan=False):
         """
         write metadata from EPICS PVs to new HDF5 file
         
@@ -32,12 +57,10 @@ class EigerHDF5:
         filename : str
             name of the HDF5 file to be written
         
-        dm_pars : ophyd.Device
-            Instance of `ophyd.Device` connected to metadata PVs
-        
         as_bluesky_plan : bool
             If ``True``, yield a bluesky Message, default: ``False``
         """
+        dm_pars = self.dm_pars
         
         if as_bluesky_plan:
             # make this a bluesky plan, MUST yield at least one Message
@@ -370,12 +393,71 @@ class EigerHDF5:
         # Close file closes automatically due to the "with" opener
 
 
+    # global DM_WORKFLOW_DATA_TRANSFER, DM_WORKFLOW_DATA_ANALYSIS
+    # global DM_WORKFLOW_DATA_TRANSFER_CMD, DM_WORKFLOW_DATA_ANALYSIS_CMD
+    # 
+    # DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01"
+    # DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02"
+    # 
+    # ###DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-nos8iddata"
+    # ###DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-nos8iddata"
+
+    def DataTransfer(self):
+        """
+        initiate data transfer
+        """
+        # local cmd, hdf_in_data_folder_with_fullpath
+        # hdf_with_fullpath = $1     ##usually this is saved in the global variable HDF5_METADATA_FILE
+        # global DM_WORKFLOW_DATA_TRANSFER
+        # cmd = sprintf("source /home/dm/etc/dm.setup.sh; dm-start-processing-job --workflow-name=%s filePath:%s",DM_WORKFLOW_DATA_TRANSFER,hdf_with_fullpath);
+        # DM_WORKFLOW_DATA_TRANSFER_CMD = cmd;
+        # printf("DM Workflow call is made for DATA transfer: %s----%s\n",hdf_with_fullpath,date());
+        # unix(cmd);
+        pass
+
+    def DataAnalysis(self):
+        """
+        initiate data analysis
+        """
+        # local cmd, hdf_with_fullpath, qmapfile_with_fullpath
+        # global DM_WORKFLOW_DATA_ANALYSIS, QMAP_FOLDER_PATH, XPCS_QMAP_FILENAME
+        # hdf_with_fullpath = $1     ##usually this is saved in the global variable HDF5_METADATA_FILE
+        # 
+        # if ($# < 2) {
+        #     qmapfile_with_fullpath = QMAP_FOLDER_PATH XPCS_QMAP_FILENAME
+        # } else {
+        #     qmapfile_with_fullpath = $2
+        # }
+        # 
+        # if ($# < 3) {
+        #     xpcs_group_name = "/xpcs"
+        # } else {
+        #     xpcs_group_name = $3
+        # }
+        # 
+        # cmd = sprintf("source /home/dm/etc/dm.setup.sh; dm-start-processing-job --workflow-name=%s filePath:%s qmapFile:%s xpcsGroupName:%s",DM_WORKFLOW_DATA_ANALYSIS,hdf_with_fullpath,qmapfile_with_fullpath,xpcs_group_name);
+        # DM_WORKFLOW_DATA_ANALYSIS_CMD = cmd;
+        # printf("DM Workflow call is made for XPCS Analysis: %s,%s----%s\n",hdf_with_fullpath,qmapfile_with_fullpath,date());
+        # unix(cmd);
+        pass
+
+    def ListJobs(self):
+        """
+        list current jobs in the workflow
+        """
+        print("*"*30)
+        # TODO: unix("source /home/dm/etc/dm.setup.sh; dm-list-processing-jobs --display-keys=startTime,endTime,sgeJobName,status,stage,runTime,id | sort -r |head -n 10");
+        print("*"*30)
+        print(datetime.datetime.now())
+        print("*"*30)
+        pass
+
 if __name__ == "__main__":
     import sys
     filename = sys.argv[1]  # caller must provide a filename
     
     dm_pars = None  # TODO: need an ophyd.Device
 
-    newObject = EigerHDF5()
+    newObject = EigerHDF5(dm_pars)
     newObject.create_hdf5_file(filename)
    

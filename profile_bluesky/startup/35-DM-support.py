@@ -13,14 +13,15 @@ class EpicsSignalDM(EpicsSignal):
     
     # needs constructor to handle additional terms
     def __init__(self, 
-                 prefix, h5address, *args, 
+                 prefix, h5address, 
+                 *,
                  size = (1, 1),
                  dtype = None,
                  **kwargs):
         self.h5address = h5address
         self.size = size
         self.dtype = dtype
-        super().__init__(prefix, *args, **kwargs)
+        super().__init__(prefix, **kwargs)
         
         # keep our own dictionary of the DM metadata signals
         dm_signals[h5address] = self
@@ -45,8 +46,8 @@ class DataManagementMetadata(Device):
     data_begin           = Component(EpicsSignalDM, "8idi:Reg113", "/measurement/instrument/acquisition/dark_end")
     data_end             = Component(EpicsSignalDM, "8idi:Reg114", "/measurement/instrument/acquisition/data_end")
 
-    specscan_dark_number = Component(EpicsSignalDM, "8idi:Reg117", "/measurement/instrument/acquisition/specscan_dark_number")  # dtype='uint64'
-    specscan_data_number = Component(EpicsSignalDM, "8idi:Reg118", "/measurement/instrument/acquisition/specscan_data_number")  # dtype='uint64'
+    specscan_dark_number = Component(EpicsSignalDM, "8idi:Reg117", "/measurement/instrument/acquisition/specscan_dark_number", dtype='uint64') 
+    specscan_data_number = Component(EpicsSignalDM, "8idi:Reg118", "/measurement/instrument/acquisition/specscan_data_number", dtype='uint64')
     attenuation          = Component(EpicsSignalDM, "8idi:Reg110", "/measurement/instrument/acquisition/attenuation")
     beam_size_H          = Component(EpicsSignalDM, "8idi:Slit2Hsize", "/measurement/instrument/acquisition/beam_size_H")
     beam_size_V          = Component(EpicsSignalDM, "8idi:Slit3Vsize", "/measurement/instrument/acquisition/beam_size_V")

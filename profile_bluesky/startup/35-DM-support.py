@@ -4,6 +4,8 @@ logger.info(__file__)
 support for APS data management
 """
 
+from .spec_support import detector_parameters
+
 
 class DataManagementMetadata(Device):
     """
@@ -73,5 +75,13 @@ class DataManagementMetadata(Device):
     roi_y1 = EpicsSignal("8idi:Reg103")
     roi_x2 = EpicsSignal("8idi:Reg102")
     roi_y2 = EpicsSignal("8idi:Reg104")
+
+    cols = EpicsSignal("8idi:Reg105")
+    rows = EpicsSignal("8idi:Reg106")
+    I0mon = EpicsSignal("8idi:Reg123")
+    
+    # provide access to the metadata file writer
+    hdf5_writer = detector_parameters.EigerHDF5()
+
 
 dm_pars = DataManagementMetadata()

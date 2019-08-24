@@ -3,7 +3,8 @@ logger.info(__file__)
 """
 support for APS data management
 """
-from Crypto.Util.number import size
+
+dm_signals = {}
 
 
 class EpicsSignalDM(EpicsSignal):
@@ -20,6 +21,9 @@ class EpicsSignalDM(EpicsSignal):
         self.size = size
         self.dtype = dtype
         super().__init__(prefix, *args, **kwargs)
+        
+        # keep our own dictionary of the DM metadata signals
+        dm_signals[h5address] = self
 
 
 class DataManagementMetadata(Device):

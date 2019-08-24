@@ -3,15 +3,23 @@ logger.info(__file__)
 """
 support for APS data management
 """
+from Crypto.Util.number import size
 
 
 class EpicsSignalDM(EpicsSignal):
     """custom class for Data Management metadata"""
     h5address = None
-    # TODO: default: size = (1, 1)
-    # TODO: default: dtype = 'uint64'
     
-    # TODO: needs constructor to handle additional terms
+    # needs constructor to handle additional terms
+    def __init__(self, 
+                 prefix, h5address, *args, 
+                 size = (1, 1),
+                 dtype = None,
+                 **kwargs):
+        self.h5address = h5address
+        self.size = size
+        self.dtype = dtype
+        super().__init__(prefix, *args, **kwargs)
 
 
 class DataManagementMetadata(Device):

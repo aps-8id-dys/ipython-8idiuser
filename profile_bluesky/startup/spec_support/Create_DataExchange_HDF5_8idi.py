@@ -373,6 +373,8 @@ class EigerHDF5:
 if __name__ == "__main__":
     import sys
     filename = sys.argv[1]  # caller must provide a filename
+    
+    dm_pars = None  # TODO: need an ophyd.Device
 
     newObject = EigerHDF5()
     newObject.create_hdf5_file(filename)

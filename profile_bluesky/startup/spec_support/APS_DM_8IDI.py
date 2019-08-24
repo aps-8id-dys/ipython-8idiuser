@@ -46,6 +46,18 @@ class DM_Workflow:
     
     dm_pars : ophyd.Device
         Instance of `ophyd.Device` connected to metadata PVs
+    
+    transfer : str, optional
+        Data Management Workflow transfer key (DM_WORKFLOW_DATA_TRANSFER)
+    
+    analysis : str, optional
+        Data Management Workflow analysis key (DM_WORKFLOW_DATA_ANALYSIS)
+    
+    qmap_path : str, optional
+        qmap file directory (QMAP_FOLDER_PATH)
+    
+    xpcs_qmap_file : str, optional
+        XPCS qmap file name (XPCS_QMAP_FILENAME)
 
     ==================  ===========================================
     method              docstring
@@ -57,20 +69,25 @@ class DM_Workflow:
     ==================  ===========================================
     """
 
-    def __init__(self, dm_pars):
+    def __init__(self, 
+                 dm_pars,
+                 transfer="xpcs8-01",
+                 analysis="xpcs8-02",
+                 qmap_path=None,
+                 xpcs_qmap_file=None):
         self.dm_pars = dm_pars
         self.index = 0      # TODO: How is this used?
         self.detectors = detector_parameters.PythonDict()
 
-        self.DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01"
-        self.DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02"
+        self.DM_WORKFLOW_DATA_TRANSFER = transfer
+        self.DM_WORKFLOW_DATA_ANALYSIS = analysis
         # self.DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-nos8iddata"
         # self.DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-nos8iddata"
         self.TRANSFER_COMMAND = ""
         self.ANALYSIS_COMMAND = ""
         
-        self.QMAP_FOLDER_PATH = "" # TODO:
-        self.XPCS_QMAP_FILENAME = "" # TODO:
+        self.QMAP_FOLDER_PATH = qmap_path or "" # TODO:
+        self.XPCS_QMAP_FILENAME = xpcs_qmap_file or "" # TODO:
 
     # def begin(self, filename):
     #     # TODO: Why is this method needed?

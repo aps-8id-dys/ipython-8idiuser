@@ -16,7 +16,7 @@ from . import detector_parameters
 class EigerHDF5:
     def __init__(self):
         self.index = 0      # TODO: How is this used?
-        self.obj = detector_parameters.PythonDict()
+        self.detectors = detector_parameters.PythonDict()
 
     # def begin(self, filename):
     #     # TODO: Why is this method needed?
@@ -45,7 +45,7 @@ class EigerHDF5:
             yield from bps.null()
 
         # Gets Python Dict stored in other file
-        masterDict = self.obj.returnMasterDict()
+        masterDict = self.detectors.returnMasterDict()
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:

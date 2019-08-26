@@ -120,8 +120,8 @@ class DM_Workflow:
         with h5py.File(filename, "w-") as f:
 
             # Metadata
-            dt = h5py.special_dtype(vlen=unicode)   # TODO: not used below, what does it do?
-            data = 0
+#            dt = h5py.special_dtype(vlen=unicode)   # TODO: not used below, what does it do?
+#            data = 0
 
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
@@ -386,7 +386,7 @@ class DM_Workflow:
 
             choices = {0: "TRANSMISSION", 1: "REFLECTION"}
             v = choices.get(dm_pars.geometry_num.value, "UNKNOWN")
-            f["/measurement/instrument/detector/flatfield_enabled"] = v
+            f["/measurement/instrument/detector/geometry"] = v
 
             choices = {True: "ENABLED", False: "DISABLED"}
             v = choices[dm_pars.kinetics_state.value == 1]

@@ -1,4 +1,8 @@
-# Converts matlab code into a python dictionary
+
+"""Convert matlab code into a python dictionary"""
+
+
+import os
 
 
 class PythonDict:
@@ -38,7 +42,9 @@ class PythonDict:
         
         masterDict = {}
         
-        with open("detectorinfo.m", "r") as f:
+        path = os.path.dirname(__file__)
+        matlab_file = os.path.join(path, "detectorinfo.m")
+        with open(matlab_file, "r") as f:
             for line in f:
                 line = line.strip()
                 if len(line) == 0 or line[0] == "%":

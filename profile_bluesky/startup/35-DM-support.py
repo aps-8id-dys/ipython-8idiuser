@@ -79,11 +79,7 @@ class DataManagementMetadata(Device):
     cols = EpicsSignal("8idi:Reg105")
     rows = EpicsSignal("8idi:Reg106")
     I0mon = EpicsSignal("8idi:Reg123")
-    
-    # provide access to the data management tools
-    dm_workflow = None		# TODO: do in a constructor
-    # dm_workflow = APS_DM_8IDI.DM_Workflow(self)
 
 
 dm_pars = DataManagementMetadata(name="dm_pars")
-dm_pars.dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars)
+dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars)

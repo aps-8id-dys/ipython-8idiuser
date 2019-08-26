@@ -4,7 +4,7 @@ logger.info(__file__)
 support for APS data management
 """
 
-from .spec_support import APS_DM_8IDI
+from spec_support import APS_DM_8IDI
 
 
 class DataManagementMetadata(Device):
@@ -81,7 +81,9 @@ class DataManagementMetadata(Device):
     I0mon = EpicsSignal("8idi:Reg123")
     
     # provide access to the data management tools
-    dm_workflow = APS_DM_8IDI.DM_Workflow(self)
+    dm_workflow = None		# TODO: do in a constructor
+    # dm_workflow = APS_DM_8IDI.DM_Workflow(self)
 
 
-dm_pars = DataManagementMetadata()
+dm_pars = DataManagementMetadata(name="dm_pars")
+dm_pars.dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars)

@@ -109,7 +109,6 @@ si2b = EpicsMotor('8idi:m45', name='si2b', labels=("motor",))
 si2i = EpicsMotor('8idi:m47', name='si2i', labels=("motor",))
 si2o = EpicsMotor('8idi:m48', name='si2o', labels=("motor",))
 #dsccdz = EpicsMotor('8idi:m68', name='dsccdz', labels=("motor",))
-# Macro Motor: SpecMotor(mne='si2vg', config_line='107', name='si2vg', macro_prefix='Slit2SoftV', labels=("motor",)) # read_mode=0
 nano = EpicsMotor('8idimono:m5', name='nano', labels=("motor",)) # read_mode=0
 
 # Scaler/counters configuration moved to 20-detectors.py

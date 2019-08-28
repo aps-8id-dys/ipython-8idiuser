@@ -9,6 +9,7 @@ Public Structures
    
     ~epidRecord
 
+:see: https://epics.anl.gov/bcda/synApps/std/epidRecord.html
 """
 
 #-----------------------------------------------------------------------------

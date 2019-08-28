@@ -215,7 +215,8 @@ class DM_Workflow:
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/angle",
-                    data=[[dm_pars.angle.value]])
+                    data=[[dm_pars.angle.value]],
+                    dtype='float64')
 
             elif dm_pars.geometry_num.value == 0: ##transmission geometry
                 f["/measurement/instrument/acquisition/xspec"] = [[-1]]

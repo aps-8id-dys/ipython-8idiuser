@@ -35,7 +35,7 @@ from apstools import utils as APS_utils
 
 __all__ = ["transformRecord", ]
 
-LIST_LETTERS_A_P = "A B C D E F G H I J K L M N O P".split()
+LIST_CHANNEL_LETTERS = "A B C D E F G H I J K L M N O P".split()
 
 
 class transformRecordChannel(Device):
@@ -49,7 +49,6 @@ class transformRecordChannel(Device):
     expression = FC(EpicsSignal,            '{self.prefix}.CLC{self._ch_letter}')
     output_link = FC(EpicsSignal,           '{self.prefix}.OUT{self._ch_letter}')
     output_link_valid = FC(EpicsSignalRO,   '{self.prefix}.O{self._ch_letter}V')
-    postfix_expression = FC(EpicsSignal,    '{self.prefix}.RPC{self._ch_letter}')
     
     def __init__(self, prefix, letter, **kwargs):
         self._ch_letter = letter
@@ -77,7 +76,7 @@ class transformRecord(EpicsRecordDeviceCommonAll):
     invalid_link_action = Cpt(EpicsSignalRO, ".IVLA")
     input_bitmap = Cpt(EpicsSignalRO, ".MAP")
 
-    hints = {'fields': APS_utils.itemizer("channels.%s", LIST_LETTERS_A_P)}
-    read_attrs = APS_utils.itemizer("channels.%s", LIST_LETTERS_A_P)
+    hints = {'fields': APS_utils.itemizer("channels.%s", LIST_CHANNEL_LETTERS)}
+    read_attrs = APS_utils.itemizer("channels.%s", LIST_CHANNEL_LETTERS)
 
-    channels = DDC(_channels(LIST_LETTERS_A_P))
+    channels = DDC(_channels(LIST_CHANNEL_LETTERS))

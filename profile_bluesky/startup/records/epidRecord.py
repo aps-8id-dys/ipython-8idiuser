@@ -43,6 +43,13 @@ class epidRecord(Device):
     high_limit = Component(EpicsSignal, ".DRVH")
     low_limit = Component(EpicsSignal, ".DRVL")
     
+    # TODO: additional fields common to all records (such as alarms)
+    description = Component(EpicsSignal, ".DESC")
+
+    # TODO: additional fields common to similar records (such as operating range)
+    units = Component(EpicsSignal, ".EGU")
+    precision = Component(EpicsSignal, ".PREC")
+    
     @property
     def value(self):
         return self.output_value.value

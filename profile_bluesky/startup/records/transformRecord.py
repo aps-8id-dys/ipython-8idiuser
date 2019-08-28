@@ -70,7 +70,7 @@ class transformRecord(EpicsRecordDeviceCommonAll):
     """
     units = Cpt(EpicsSignal, ".EGU")
     precision = Cpt(EpicsSignal, ".PREC")
-    version = Cpt(EpicsSignalRO, ".PREC")
+    version = Cpt(EpicsSignalRO, ".VERS")
 
     calc_option = Cpt(EpicsSignal, ".COPT")
     invalid_link_action = Cpt(EpicsSignalRO, ".IVLA")

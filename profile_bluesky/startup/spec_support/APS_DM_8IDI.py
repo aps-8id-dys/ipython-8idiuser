@@ -199,31 +199,31 @@ class DM_Workflow:
 
             if dm_pars.geometry_num.value == 1: ##reflection geometry
                 f.create_dataset("/measurement/instrument/acquisition/xspec",
-                    data=[[dm_pars.xspec.value]],
+                    data=[[float(dm_pars.xspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/zspec",
-                    data=[[dm_pars.zspec.value]],
+                    data=[[float(dm_pars.zspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdxspec",
-                    data=[[dm_pars.ccdxspec.value]],
+                    data=[[float(dm_pars.ccdxspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdzspec",
-                    data=[[dm_pars.ccdzspec.value]],
+                    data=[[float(dm_pars.ccdzspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/angle",
-                    data=[[dm_pars.angle.value]],
+                    data=[[float(dm_pars.angle.value)]],
                     dtype='float64')
 
             elif dm_pars.geometry_num.value == 0: ##transmission geometry
-                f["/measurement/instrument/acquisition/xspec"] = [[-1]]
-                f["/measurement/instrument/acquisition/zspec"] = [[-1]]
-                f["/measurement/instrument/acquisition/ccdxspec"] = [[-1]]
-                f["/measurement/instrument/acquisition/ccdzspec"] = [[-1]]
-                f["/measurement/instrument/acquisition/angle"] = [[-1]]
+                f["/measurement/instrument/acquisition/xspec"] = [[float(-1)]]
+                f["/measurement/instrument/acquisition/zspec"] = [[float(-1)]]
+                f["/measurement/instrument/acquisition/ccdxspec"] = [[float(-1)]]
+                f["/measurement/instrument/acquisition/ccdzspec"] = [[float(-1)]]
+                f["/measurement/instrument/acquisition/angle"] = [[float(-1)]]
 
             #/measurement/instrument/source_begin
             f.create_dataset("/measurement/instrument/source_begin/beam_intensity_incident",
@@ -379,12 +379,14 @@ class DM_Workflow:
                 v = abs(detector_specs["lld"])
             else:
                 v = 0
-            f.create_dataset("/measurement/instrument/detector/lld", data=[[v]], dtype='float64')
+            f.create_dataset("/measurement/instrument/detector/lld", 
+                             data=[[float(v)]], 
+                             dtype='float64')
 
             if detector_specs["lld"] > 0:
-                v = detector_specs["lld"]
+                v = float(detector_specs["lld"])
             else:
-                v = 0
+                v = 0.0
             f.create_dataset("/measurement/instrument/detector/sigma", data=[[v]], dtype='float64')
 
             f.create_dataset("/measurement/instrument/detector/gain", data=[[1]], dtype='uint32')

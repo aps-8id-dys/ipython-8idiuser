@@ -37,6 +37,18 @@ class epidRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
     
     :see: https://epics.anl.gov/bcda/synApps/std/epidRecord.html
     """
+    controlled_value_link = Component(EpicsSignal, ".INP")
+    controlled_value = Component(EpicsSignalRO, ".CVAL")
+
+    readback_trigger_link = Component(EpicsSignal, ".TRIG")
+    readback_trigger_link_value = Component(EpicsSignal, ".TVAL")
+
+    setpoint_location = Component(EpicsSignal, ".STPL")
+    setpoint_mode_select = Component(EpicsSignal, ".SMSL")
+
+    output_location = Component(EpicsSignal, ".OUTL")
+    feedback_on = Component(EpicsSignal, ".FBON")
+
     proportional_gain = Component(EpicsSignal, ".KP")
     integral_gain = Component(EpicsSignal, ".KI")
     derivative_gain = Component(EpicsSignal, ".KD")
@@ -50,6 +62,7 @@ class epidRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
 
     clock_ticks = Component(EpicsSignalRO, ".CT")
     time_difference = Component(EpicsSignal, ".DT")
+    minimum_delta_time = Component(EpicsSignal, ".MDT")
 
     # limits imposed by the record support:
     #     .LOPR <= .OVAL <= .HOPR

@@ -1,0 +1,29 @@
+to create a hdf batchinfo:
+
+python hdf_filename(with full path)
+
+##this will read the batchinfo stuff from SPEC and some EPICS registers
+##and will create hdf in the data exchange format
+
+##if the file exists, then this will exit (for now)
+
+
+
+
+rm -f ~/xpcsFit/foo.hdf
+rm -f ~/xpcsFit/foo1.hdf
+
+python /home/beams/8IDIUSER/Python_HDF5_DataExchange/Create_DataExchange_HDF5_8idi.py ~/xpcsFit/foo.hdf
+python ~/Python_HDF5_DataExchange/Append_Metadata_xpcs.py foo.hdf /home/8-id-i/partitionMapLibrary/2015-3/comm201510_qmap_Aerogel_FCCDq0.h5 foo1.hdf
+
+
+h5copy -i /net/wolf/data/xpcs8/2015-3/aline201510/cluster_results/G002_GAAuNP_GNF25_att2_FCCDq1_001_0001-10000.hdf -o foo1.hdf -s /exchange -d /exchange
+
+
+
+
+
+
+###outputdatafile[entry+"/output_data"] = entry_out
+outputdatafile = h5py.File(outputfilename, "w-")
+

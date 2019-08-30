@@ -7,7 +7,7 @@ Public Structures
 
 .. autosummary::
    
-    ~epidRecord
+    ~EpidRecord
 
 :see: https://epics.anl.gov/bcda/synApps/std/epidRecord.html
 """
@@ -28,10 +28,10 @@ from .common_fields import EpicsRecordDeviceCommonAll
 from .common_fields import EpicsRecordFloatFields
 
 
-__all__ = ["epidRecord", ]
+__all__ = ["EpidRecord", ]
 
 
-class epidRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
+class EpidRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
     """
     EPICS epid record support in ophyd
     

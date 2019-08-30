@@ -18,7 +18,7 @@ shutter = SimulatedApsPssShutterWithStatus(name="shutter")
 shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
 class ModifiedEpidRecord(EpidRecord):
-	clock_ticks = None
+    clock_ticks = None
 
 pid1 = ModifiedEpidRecord("8idi:pid1", name="pid1", labels=["pid",])
 pid2 = ModifiedEpidRecord("8idi:pid2", name="pid2", labels=["pid",])

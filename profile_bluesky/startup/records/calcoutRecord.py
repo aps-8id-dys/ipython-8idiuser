@@ -7,9 +7,9 @@ Public Structures
 
 .. autosummary::
    
-    ~userCalcoutDevice
-    ~calcoutRecord
-    ~calcoutRecordChannel
+    ~UserCalcoutDevice
+    ~CalcoutRecord
+    ~CalcoutRecordChannel
     ~calcout_setup_gaussian
     ~calcout_setup_lorentzian
     ~calcout_setup_incrementer
@@ -39,18 +39,18 @@ from apstools import utils as APS_utils
 
 
 __all__ = [
-	"userCalcoutDevice",
-	"calcoutRecord",
-	"calcoutRecordChannel",
+	"UserCalcoutDevice",
+	"CalcoutRecord",
+	"CalcoutRecordChannel",
     "calcout_setup_gaussian",
     "calcout_setup_lorentzian",
     "calcout_setup_incrementer",
 	]
 
-LIST_CHANNEL_LETTERS = "A B C D E F G H I J K L".split()
+CHANNEL_LETTERS_LIST = "A B C D E F G H I J K L".split()
 
 
-class calcoutRecordChannel(Device):
+class CalcoutRecordChannel(Device):
     """
     channel of a synApps calcout record: A-L
 
@@ -79,11 +79,11 @@ class calcoutRecordChannel(Device):
 def _channels(channel_list):
     defn = OrderedDict()
     for chan in channel_list:
-        defn[chan] = (calcoutRecordChannel, '', {'letter': chan})
+        defn[chan] = (CalcoutRecordChannel, '', {'letter': chan})
     return defn
 
 
-class calcoutRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
+class CalcoutRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
     """
     EPICS calcout record support in ophyd
 
@@ -112,9 +112,9 @@ class calcoutRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
     output_calculation_valid = Cpt(EpicsSignal, ".OCLV")
     output_delay_active = Cpt(EpicsSignal, ".DLYA")
 
-    channels = DDC(_channels(LIST_CHANNEL_LETTERS))
+    channels = DDC(_channels(CHANNEL_LETTERS_LIST))
 
-    read_attrs = APS_utils.itemizer("channels.%s", LIST_CHANNEL_LETTERS)
+    read_attrs = APS_utils.itemizer("channels.%s", CHANNEL_LETTERS_LIST)
     hints = {'fields': read_attrs}
 
     @property
@@ -145,13 +145,13 @@ class calcoutRecord(EpicsRecordFloatFields, EpicsRecordDeviceCommonAll):
 
         for letter in self.channels.read_attrs:
             channel = getattr(self.channels, letter)
-            if isinstance(channel, calcoutRecordChannel):
+            if isinstance(channel, CalcoutRecordChannel):
                 channel.reset()
-        self.hints = {'fields': ["channels.%s" % c for c in LIST_CHANNEL_LETTERS]}
-        self.read_attrs = ["channels.%s" % c for c in LIST_CHANNEL_LETTERS]
+        self.hints = {'fields': ["channels.%s" % c for c in CHANNEL_LETTERS_LIST]}
+        self.read_attrs = ["channels.%s" % c for c in CHANNEL_LETTERS_LIST]
 
 
-class userCalcoutDevice(Device):
+class UserCalcoutDevice(Device):
     """
     synApps XXX IOC setup of user calcouts: $(P):userCalcOut$(N)
 
@@ -162,16 +162,16 @@ class userCalcoutDevice(Device):
     """
 
     enable = Cpt(EpicsSignal, 'userCalcOutEnable')
-    calcout1 = Cpt(calcoutRecord, 'userCalcOut1')
-    calcout2 = Cpt(calcoutRecord, 'userCalcOut2')
-    calcout3 = Cpt(calcoutRecord, 'userCalcOut3')
-    calcout4 = Cpt(calcoutRecord, 'userCalcOut4')
-    calcout5 = Cpt(calcoutRecord, 'userCalcOut5')
-    calcout6 = Cpt(calcoutRecord, 'userCalcOut6')
-    calcout7 = Cpt(calcoutRecord, 'userCalcOut7')
-    calcout8 = Cpt(calcoutRecord, 'userCalcOut8')
-    calcout9 = Cpt(calcoutRecord, 'userCalcOut9')
-    calcout10 = Cpt(calcoutRecord, 'userCalcOut10')
+    calcout1 = Cpt(CalcoutRecord, 'userCalcOut1')
+    calcout2 = Cpt(CalcoutRecord, 'userCalcOut2')
+    calcout3 = Cpt(CalcoutRecord, 'userCalcOut3')
+    calcout4 = Cpt(CalcoutRecord, 'userCalcOut4')
+    calcout5 = Cpt(CalcoutRecord, 'userCalcOut5')
+    calcout6 = Cpt(CalcoutRecord, 'userCalcOut6')
+    calcout7 = Cpt(CalcoutRecord, 'userCalcOut7')
+    calcout8 = Cpt(CalcoutRecord, 'userCalcOut8')
+    calcout9 = Cpt(CalcoutRecord, 'userCalcOut9')
+    calcout10 = Cpt(CalcoutRecord, 'userCalcOut10')
 
     def reset(self):
         """set all fields to default values"""
@@ -193,7 +193,7 @@ def _setup_peak_calcout_(calc, desc, calcout, motor, center=0, width=1, scale=1,
     """internal: setup that is common to both Gaussian and Lorentzian calcout"""
     # to add a noisy background will need another calc
     assert(isinstance(motor, EpicsMotor))
-    assert(isinstance(calcout, calcoutRecord))
+    assert(isinstance(calcout, CalcoutRecord))
     assert(width > 0)
     assert(0.0 <= noise <= 1.0)
     calcout.reset()

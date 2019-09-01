@@ -7,8 +7,8 @@ Public Structures
 
 .. autosummary::
    
-    ~userTransformsDevice
-    ~transformRecord
+    ~UserTransformsDevice
+    ~TransformRecord
 """
 
 #-----------------------------------------------------------------------------
@@ -35,12 +35,12 @@ from apstools import utils as APS_utils
 
 
 __all__ = [
-    "transformRecord",
-    "userTransformsDevice",
+    "TransformRecord",
+    "UserTransformsDevice",
     ]
 
 
-LIST_CHANNEL_LETTERS = "A B C D E F G H I J K L M N O P".split()
+CHANNEL_LETTERS_LIST = "A B C D E F G H I J K L M N O P".split()
 
 
 class transformRecordChannel(Device):
@@ -83,7 +83,7 @@ def _channels(channel_list):
     return defn
 
 
-class transformRecord(EpicsRecordDeviceCommonAll):
+class TransformRecord(EpicsRecordDeviceCommonAll):
     """
     EPICS transform record support in ophyd
 
@@ -91,7 +91,7 @@ class transformRecord(EpicsRecordDeviceCommonAll):
 	   
 		~reset
     
-    :see: https://htmlpreview.github.io/?https://raw.githubusercontent.com/epics-modules/calc/R3-6-1/documentation/transformRecord.html#Fields
+    :see: https://htmlpreview.github.io/?https://raw.githubusercontent.com/epics-modules/calc/R3-6-1/documentation/TransformRecord.html#Fields
     """
     units = Cpt(EpicsSignal, ".EGU")
     precision = Cpt(EpicsSignal, ".PREC")
@@ -101,10 +101,10 @@ class transformRecord(EpicsRecordDeviceCommonAll):
     invalid_link_action = Cpt(EpicsSignalRO, ".IVLA")
     input_bitmap = Cpt(EpicsSignalRO, ".MAP")
 
-    read_attrs = APS_utils.itemizer("channels.%s", LIST_CHANNEL_LETTERS)
+    read_attrs = APS_utils.itemizer("channels.%s", CHANNEL_LETTERS_LIST)
     hints = {'fields': read_attrs}
 
-    channels = DDC(_channels(LIST_CHANNEL_LETTERS))
+    channels = DDC(_channels(CHANNEL_LETTERS_LIST))
     
     def reset(self):
         """set all fields to default values"""
@@ -118,11 +118,11 @@ class transformRecord(EpicsRecordDeviceCommonAll):
             channel = getattr(self.channels, letter)
             if isinstance(channel, transformRecordChannel):
                 channel.reset()
-        self.hints = {'fields': ["channels.%s" % c for c in LIST_CHANNEL_LETTERS]}
-        self.read_attrs = ["channels.%s" % c for c in LIST_CHANNEL_LETTERS]
+        self.hints = {'fields': ["channels.%s" % c for c in CHANNEL_LETTERS_LIST]}
+        self.read_attrs = ["channels.%s" % c for c in CHANNEL_LETTERS_LIST]
 
 
-class userTransformsDevice(Device):
+class UserTransformsDevice(Device):
     """
     synApps XXX IOC setup of userTransforms: $(P):userTran$(N)
 
@@ -133,16 +133,16 @@ class userTransformsDevice(Device):
     """
 
     enable = Cpt(EpicsSignal, 'userTranEnable')
-    transform1 = Cpt(transformRecord, 'userTran1')
-    transform2 = Cpt(transformRecord, 'userTran2')
-    transform3 = Cpt(transformRecord, 'userTran3')
-    transform4 = Cpt(transformRecord, 'userTran4')
-    transform5 = Cpt(transformRecord, 'userTran5')
-    transform6 = Cpt(transformRecord, 'userTran6')
-    transform7 = Cpt(transformRecord, 'userTran7')
-    transform8 = Cpt(transformRecord, 'userTran8')
-    transform9 = Cpt(transformRecord, 'userTran9')
-    transform10 = Cpt(transformRecord, 'userTran10')
+    transform1 = Cpt(TransformRecord, 'userTran1')
+    transform2 = Cpt(TransformRecord, 'userTran2')
+    transform3 = Cpt(TransformRecord, 'userTran3')
+    transform4 = Cpt(TransformRecord, 'userTran4')
+    transform5 = Cpt(TransformRecord, 'userTran5')
+    transform6 = Cpt(TransformRecord, 'userTran6')
+    transform7 = Cpt(TransformRecord, 'userTran7')
+    transform8 = Cpt(TransformRecord, 'userTran8')
+    transform9 = Cpt(TransformRecord, 'userTran9')
+    transform10 = Cpt(TransformRecord, 'userTran10')
 
     def reset(self):
         """set all fields to default values"""

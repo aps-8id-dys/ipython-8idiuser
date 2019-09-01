@@ -17,6 +17,9 @@ sd.baseline.append(undulator)
 shutter = SimulatedApsPssShutterWithStatus(name="shutter")
 shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
+crl = CompoundRefractiveLensDevice(name="crl")
+
+
 class ModifiedEpidRecord(EpidRecord):
     clock_ticks = None
 

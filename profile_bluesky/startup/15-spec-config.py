@@ -78,11 +78,9 @@ ccdx = EpicsMotor('8idi:m90', name='ccdx', labels=("motor",))
 fccdx = EpicsMotor('8idi:m25', name='fccdx', labels=("motor",))
 fccdz = EpicsMotor('8idi:m83', name='fccdz', labels=("motor",))
 foceye = EpicsMotor('8idi:m37', name='foceye', labels=("motor",))
-crlz = EpicsMotor('8idi:m62', name='crlz', labels=("motor",))
-crlpit = EpicsMotor('8idi:m67', name='crlpit', labels=("motor",))
-crlx = EpicsMotor('8idi:m65', name='crlx', labels=("motor",))
-crlyaw = EpicsMotor('8idi:m66', name='crlyaw', labels=("motor",))
-# line 80: MOT080 =    NONE:2/68   2000  1  2000  200   50  125    0 0x003     crly  crly
+
+# crl motors defined in crl object: 21-signals.py
+
 sa1zu = EpicsMotor('8ida:m11', name='sa1zu', labels=("motor",))
 sa1xu = EpicsMotor('8ida:m14', name='sa1xu', labels=("motor",))
 sa1zd = EpicsMotor('8ida:m15', name='sa1zd', labels=("motor",))

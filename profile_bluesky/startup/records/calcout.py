@@ -10,9 +10,9 @@ Public Structures
     ~UserCalcoutDevice
     ~CalcoutRecord
     ~CalcoutRecordChannel
-    ~calcout_setup_gaussian
-    ~calcout_setup_lorentzian
-    ~calcout_setup_incrementer
+    ~setup_gaussian_calcout
+    ~setup_incrementer_calcout
+    ~setup_lorentzian_calcout
 """
 
 #-----------------------------------------------------------------------------
@@ -42,9 +42,9 @@ __all__ = [
 	"UserCalcoutDevice",
 	"CalcoutRecord",
 	"CalcoutRecordChannel",
-    "calcout_setup_gaussian",
-    "calcout_setup_lorentzian",
-    "calcout_setup_incrementer",
+    "setup_gaussian_calcout",
+    "setup_lorentzian_calcout",
+    "setup_incrementer_calcout",
 	]
 
 CHANNEL_LETTERS_LIST = "A B C D E F G H I J K L".split()
@@ -211,7 +211,7 @@ def _setup_peak_calcout_(calc, desc, calcout, motor, center=0, width=1, scale=1,
     calcout.hints = {"fields": calcout.read_attrs}
 
 
-def calcout_setup_gaussian(calcout, motor, center=0, width=1, scale=1, noise=0.05):
+def setup_gaussian_calcout(calcout, motor, center=0, width=1, scale=1, noise=0.05):
     """setup calcout for noisy Gaussian"""
     _setup_peak_calcout_(
         "D*(0.95+E*RNDM)/exp(((A-b)/c)^2)",
@@ -224,7 +224,7 @@ def calcout_setup_gaussian(calcout, motor, center=0, width=1, scale=1, noise=0.0
         noise=noise)
 
 
-def calcout_setup_lorentzian(calcout, motor, center=0, width=1, scale=1, noise=0.05):
+def setup_lorentzian_calcout(calcout, motor, center=0, width=1, scale=1, noise=0.05):
     """setup calcout record for noisy Lorentzian"""
     _setup_peak_calcout_(
         "D*(0.95+E*RNDM)/(1+((A-b)/c)^2)", 
@@ -237,7 +237,7 @@ def calcout_setup_lorentzian(calcout, motor, center=0, width=1, scale=1, noise=0
         noise=noise)
 
 
-def calcout_setup_incrementer(calcout, scan=None, limit=100000):
+def setup_incrementer_calcout(calcout, scan=None, limit=100000):
     """setup calcout record as an incrementer"""
     # consider a noisy background, as well (needs a couple calcs)
     scan = scan or ".1 second"

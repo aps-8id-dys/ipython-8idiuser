@@ -3,7 +3,7 @@ logger.info(__file__)
 """signals"""
 
 sys.path.append(os.path.dirname(__file__))
-from records.epidRecord import EpidRecord
+from records.epid import EpidRecord
 
 # APS only:
 aps = APS_devices.ApsMachineParametersDevice(name="aps")

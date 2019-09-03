@@ -26,7 +26,7 @@ from . import detector_parameters
 
 
 def unix(command):
-    # TODO: use logging package
+    # TODO: replace with apstools.utils.unix() with apstools 1.1.14+
     sp = subprocess.Popen(
         command, 
         shell=True,

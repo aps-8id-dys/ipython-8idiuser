@@ -64,6 +64,7 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, f
             dm_pars.parent_folder, os.path.dirname(file_path),
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, det.get_plugin_file_name(),
+            # TODO: what else?
         )
 
         md = {
@@ -73,8 +74,14 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, f
         yield from bps.mv(scaler1.count, "Count")
         yield from bp.count([det], md=md)
 
-        # TODO: write the HDF5 file for the DM workflow
-        # TODO: kickoff the DM workflow
+        # FIXME: need correct filename here: hdf_with_fullpath
+        yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)
+        
+        # kickoff the DM workflow
+        # TODO: which one?
+        # TODO: should run in thread, does it?
+        #yield from dm_workflow.DataTransfer(hdf_with_fullpath)
+        #yield from dm_workflow.DataAnalysis(hdf_with_fullpath)
 
     return (yield from inner())
 

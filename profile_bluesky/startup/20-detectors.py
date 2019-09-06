@@ -17,7 +17,7 @@ class LocalScalerCH(ScalerCH):
         self.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
 
 
-scaler1 = ScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
+scaler1 = LocalScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
 
 _timeout = time.time() + 10
 while time.time() < _timeout:

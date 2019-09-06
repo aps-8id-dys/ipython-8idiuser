@@ -58,9 +58,12 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, f
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
-        # write metadata to the dm_pars (string registers)
+        # write metadata to the dm_pars (various registers)
         yield from bps.mv(
-            dm_pars.datafilename, file_name,    # TODO: ?
+            dm_pars.root_folder, file_path,
+            dm_pars.parent_folder, os.path.dirname(file_path),
+            dm_pars.data_folder, file_name,
+            dm_pars.datafilename, det.get_plugin_file_name(),
         )
 
         md = {

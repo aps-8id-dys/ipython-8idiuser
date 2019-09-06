@@ -28,7 +28,7 @@ class DataManagementMetadata(Device):
     beam_size_V = EpicsSignal("8idi:Slit3Vsize.VAL")    # TODO: defined elsewhere?
     specfile = EpicsSignal("8idi:StrReg1", string=True)
     root_folder = EpicsSignal("8idi:StrReg2", string=True)
-    parent_folder = EpicsSignal("8idi:StrReg3", string=True)
+    user_data_folder = EpicsSignal("8idi:StrReg3", string=True)
     data_folder = EpicsSignal("8idi:StrReg4", string=True)
     datafilename = EpicsSignal("8idi:StrReg5", string=True)
     beam_center_x = EpicsSignal("8idi:Reg11")

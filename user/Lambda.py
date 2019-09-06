@@ -1,10 +1,7 @@
 # get all the symbols from the IPython shell
 import IPython
-import os
 globals().update(IPython.get_ipython().user_ns)
 logger.info(__file__)
-#from bluesky import plan_stubs as bps
-#from bluesky import plan_preprocesors as bpp
 
 
 """
@@ -17,7 +14,7 @@ trigger area detector while monitoring the above params
 
 """
 
-def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
+def Lambda_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -72,7 +69,7 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, f
             "file_path": file_path
         }
         yield from bps.mv(scaler1.count, "Count")
-        yield from bp.count([det], md=md)
+        yield from bp.count([areadet], md=md)
 
         # FIXME: need correct filename here: hdf_with_fullpath
         yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)

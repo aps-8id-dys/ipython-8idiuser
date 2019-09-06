@@ -78,7 +78,15 @@ class SlitI5Device(Device):
     vcen = Component(EpicsMotor, '8idi:Slit5Vcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:Slit5Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit5Hcenter', labels=["motor", "slit"])
-    
 
+class SlitIpinkDevice(Device):  
+    """
+    Slitpink in 8-ID-I
+    """    
+    vgap = Component(EpicsMotor, '8idi:SlitpinkVsize', labels=["motor", "slit"])
+    vcen = Component(EpicsMotor, '8idi:SlitpinkVcenter', labels=["motor", "slit"])
+    hgap = Component(EpicsMotor, '8idi:SlitpinkHsize', labels=["motor", "slit"])
+    hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
+    
     
    

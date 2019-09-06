@@ -462,7 +462,6 @@ class DM_Workflow:
             f"----{datetime.datetime.now()}"
             )
         unix(cmd)
-        pass
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -495,7 +494,6 @@ class DM_Workflow:
             f"----{datetime.datetime.now()}"
             )
         unix(cmd)
-        pass
 
     def ListJobs(self):
         """
@@ -514,7 +512,6 @@ class DM_Workflow:
         print("*"*30)
         print(datetime.datetime.now())
         print("*"*30)
-        pass
 
 
 if __name__ == "__main__":
@@ -523,6 +520,6 @@ if __name__ == "__main__":
     
     dm_pars = None  # TODO: need an ophyd.Device
 
-    newObject = EigerHDF5(dm_pars)
-    newObject.create_hdf5_file(filename)
+    workflow = DM_Workflow(dm_pars)
+    workflow.create_hdf5_file(filename)
    

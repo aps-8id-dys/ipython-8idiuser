@@ -17,7 +17,7 @@ trigger area detector while monitoring the above params
 
 """
 
-def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11,num_images=100,file_name="A001"):
+def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -58,12 +58,20 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11,num_images=100,fil
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
+        # write metadata to the dm_pars (string registers)
+        yield from bps.mv(
+            dm_pars.datafilename, file_name,    # TODO: ?
+        )
+
         md = {
             "file_name": file_name,
             "file_path": file_path
         }
-        yield from bps.mv(scaler1.count,"Count")
+        yield from bps.mv(scaler1.count, "Count")
         yield from bp.count([det], md=md)
+
+        # TODO: write the HDF5 file for the DM workflow
+        # TODO: kickoff the DM workflow
 
     return (yield from inner())
 

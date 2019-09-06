@@ -44,3 +44,10 @@ import apstools.utils as APS_utils
 # import specific methods by name, we need to customize them sometimes
 from apstools.devices import SimulatedApsPssShutterWithStatus
 from apstools.filewriters import SpecWriterCallback, spec_comment
+
+# place .ipython/user directory on the path, enables ~"qdo" command:
+#    %run -i -m user.module
+_path = os.path.join(os.path.dirname(__file__), "user")
+if _path not in sys.path:
+	sys.path.append(_path)
+del _path

@@ -19,6 +19,7 @@ shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
 crl = CompoundRefractiveLensDevice(name="crl")
 monochromator = MonochromatorDevice(name="monochromator")
+sa1 = SlitA1Device(name="sa1")
 
 
 class ModifiedEpidRecord(EpidRecord):

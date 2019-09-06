@@ -17,23 +17,17 @@ trigger area detector while monitoring the above params
 
 """
 
-def Lambda_Acquire(acquire_time=0.1, acquire_period=0.11,num_images=100,file_name="A005"):
-    adlambda.cam.stage_sigs["num_images"] = num_images
-    adlambda.cam.stage_sigs["acquire_time"] = acquire_time
-    adlambda.cam.stage_sigs["acquire_period"] = acquire_period
-    adlambda.immout.stage_sigs["enable"] = 1
-    adlambda.immout.stage_sigs["blocking_callbacks"] = "Yes"
-    adlambda.immout.stage_sigs["parent.cam.array_callbacks"] = 1
+def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11,num_images=100,file_name="A001"):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
-    adlambda.immout.stage_sigs["file_path"] = file_path
-    adlambda.immout.stage_sigs["file_name"] = file_name
-    adlambda.immout.stage_sigs["num_capture"] = num_images
-    adlambda.immout.stage_sigs["file_number"] = 1
-    adlambda.immout.stage_sigs["file_format"] = "IMM_Cmprs"
-    adlambda.immout.stage_sigs["capture"] = 1
+    
+    # Ask the device to configure itself for this work.
+    # TODO: generalize the parameters
+    # no need to yield here, method does not have "yield from " calls
+    det.staging_setup_DM(file_path, file_name,
+            num_images, acquire_time, acquire_period)
 
     scaler1.stage_sigs["count_mode"] = "AutoCount"
     scaler1.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
@@ -72,7 +66,7 @@ def Lambda_Acquire(acquire_time=0.1, acquire_period=0.11,num_images=100,file_nam
             "file_path": file_path
         }
         yield from bps.mv(scaler1.count,"Count")
-        yield from bp.count([adlambda], md=md)
+        yield from bp.count([det], md=md)
 
     return (yield from inner())
 

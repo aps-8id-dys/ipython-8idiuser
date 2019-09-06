@@ -23,13 +23,11 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11,num_images=100,fil
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
     
-    # Ask the device to configure itself for this work.
+    # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
+    scaler1.staging_setup_DM(acquire_period)
     det.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)
-
-    scaler1.stage_sigs["count_mode"] = "AutoCount"
-    scaler1.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
    
     scaler1.select_channels(None) 
     monitored_things = [

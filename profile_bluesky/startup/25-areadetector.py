@@ -124,7 +124,12 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         Implement this method in _any_ Device that requires custom
         setup for the DM workflow.
         """
-        file_path, file_name, num_images, acquire_time, acquire_period = args
+        assert len(args) == 5
+        file_path = args[0]
+        file_name = args[1]
+        num_images = args[2]
+        acquire_time = args[3]
+        acquire_period = args[4]
 
         self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["acquire_time"] = acquire_time

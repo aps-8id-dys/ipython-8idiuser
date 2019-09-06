@@ -47,7 +47,4 @@ from apstools.filewriters import SpecWriterCallback, spec_comment
 
 # place .ipython/user directory on the path, enables ~"qdo" command:
 #    %run -i -m user.module
-_path = os.path.join(os.path.dirname(__file__), "user")
-if _path not in sys.path:
-	sys.path.append(_path)
-del _path
+sys.path.append(os.path.join(IPython.paths.get_ipython_dir(), "user"))

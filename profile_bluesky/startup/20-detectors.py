@@ -2,6 +2,21 @@ logger.info(__file__)
 
 """detectors (area detectors handled separately)"""
 
+class LocalScalerCH(ScalerCH):
+    
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the scaler's stage_sigs for acquisition with the DM workflow
+
+        Implement this method in _any_ Device that requires custom
+        setup for the DM workflow.
+        """
+        assert len(args) == 1
+        acquire_period = args[0]
+        self.stage_sigs["count_mode"] = "AutoCount"
+        self.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
+
+
 scaler1 = ScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
 
 _timeout = time.time() + 10
@@ -10,8 +25,8 @@ while time.time() < _timeout:
         break
     time.sleep(0.2)
 if time.time() > _timeout:
-	msg = "10s timeout expired waiting for scaler1 to connect"
-	raise RuntimeError(msg)
+    msg = "10s timeout expired waiting for scaler1 to connect"
+    raise RuntimeError(msg)
 del _timeout
 
 scaler1.select_channels(None)   # choose just the channels with EPICS names

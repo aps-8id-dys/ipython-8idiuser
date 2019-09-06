@@ -10,6 +10,7 @@ security/
 *.pyc
 *.pyo
 *~
+*.h5
 mViewer.log
 
 # eclipse IDE

@@ -62,10 +62,6 @@ si2hcen = EpicsMotor('8idi:Slit2Hcenter', name='si2hcen', labels=("motor",))
 ti4_x = EpicsMotor('8idi:TI4:x', name='ti4_x', labels=("motor",))
 ti4_z = EpicsMotor('8idi:TI4:y', name='ti4_z', labels=("motor",))
 shuttx = EpicsMotor('8idi:m1', name='shuttx', labels=("motor",))
-monoE = EpicsMotor('8idimono:sm2', name='monoE', labels=("motor",))
-monoth = EpicsMotor('8idimono:sm1', name='monoth', labels=("motor",))
-piezo = EpicsMotor('8idimono:m4', name='piezo', labels=("motor",))
-monopic = EpicsMotor('8idimono:m1', name='monopic', labels=("motor",))
 ccdz = EpicsMotor('8idi:m91', name='ccdz', labels=("motor",))
 alpha = EpicsMotor('8idi:sm2', name='alpha', labels=("motor",))
 ti4zu = EpicsMotor('8idi:m30', name='ti4zu', labels=("motor",))
@@ -107,6 +103,5 @@ si2b = EpicsMotor('8idi:m45', name='si2b', labels=("motor",))
 si2i = EpicsMotor('8idi:m47', name='si2i', labels=("motor",))
 si2o = EpicsMotor('8idi:m48', name='si2o', labels=("motor",))
 #dsccdz = EpicsMotor('8idi:m68', name='dsccdz', labels=("motor",))
-nano = EpicsMotor('8idimono:m5', name='nano', labels=("motor",)) # read_mode=0
 
 # Scaler/counters configuration moved to 20-detectors.py

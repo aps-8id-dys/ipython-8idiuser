@@ -23,7 +23,7 @@ def Lambda_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=10
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
-    det.staging_setup_DM(file_path, file_name,
+    areadet.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)
    
     scaler1.select_channels(None) 
@@ -60,7 +60,7 @@ def Lambda_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=10
             dm_pars.root_folder, file_path,
             dm_pars.parent_folder, os.path.dirname(file_path),
             dm_pars.data_folder, file_name,
-            dm_pars.datafilename, det.get_plugin_file_name(),
+            dm_pars.datafilename, areadet.get_plugin_file_name(),
             # TODO: what else?
         )
 

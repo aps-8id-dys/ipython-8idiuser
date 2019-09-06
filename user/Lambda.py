@@ -24,7 +24,6 @@ def Lambda_Acquire(det, acquire_time=0.1, acquire_period=0.11,num_images=100,fil
         file_path += os.path.sep
     
     # Ask the device to configure itself for this work.
-    # TODO: generalize the parameters
     # no need to yield here, method does not have "yield from " calls
     det.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)

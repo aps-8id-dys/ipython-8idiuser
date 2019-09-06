@@ -117,16 +117,15 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     gather = Component(GatherPlugin, "Gather1:")
     scatter = Component(ScatterPlugin, "Scatter1:")
     
-    def staging_setup_DM(self, file_path, file_name,
-            num_images, acquire_time, acquire_period):
+    def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
         
         Implement this method in _any_ Device that requires custom
         setup for the DM workflow.
-        
-        Note: might need to generalize the argument list here
         """
+        file_path, file_name, num_images, acquire_time, acquire_period = args
+
         self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["acquire_time"] = acquire_time
         self.cam.stage_sigs["acquire_period"] = acquire_period

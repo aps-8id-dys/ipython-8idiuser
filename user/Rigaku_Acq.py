@@ -17,7 +17,7 @@ UFXC = UFXC_Device(name = "UFXC")
 
 
 def unix(command):
-    # TODO: use logging package
+    # TODO: replace with apstools.utils.unix from release 1.1.4+
     sp = subprocess.Popen(
         command, 
         shell=True,
@@ -29,7 +29,7 @@ def unix(command):
     return out
 
 
-def UFXC_Acquire(batch_name = 'A001_Test'):
+def UFXC_Acquire(batch_name='A001_Test'):
 
     yield from bps.mv(UFXC.shutter_control, 'UFXC')
     cmd = f"echo FILE:F:{batch_name} | nc 164.54.116.83 10000"
@@ -50,8 +50,3 @@ def UFXC_Acquire(batch_name = 'A001_Test'):
     print(f"UFXC is ready to start the next DAQ: {UFXC.acquire_complete.value}")
 
     print(f"END of UFXC Measurement: {datetime.datetime.now()}")
-
-
-
-
-

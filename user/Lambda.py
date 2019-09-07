@@ -14,7 +14,10 @@ trigger area detector while monitoring the above params
 
 """
 
-def AD_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
+def AD_Acquire(areadet, 
+		acquire_time=0.1, acquire_period=0.11, 
+		num_images=100, file_name="A001",
+		submit_xpcs_job=True):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -74,11 +77,12 @@ def AD_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=100, f
         # FIXME: need correct filename here: hdf_with_fullpath
         yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)
         
-        # kickoff the DM workflow
-        # TODO: which one?
-        # TODO: should run in thread, does it?
-        #yield from dm_workflow.DataTransfer(hdf_with_fullpath)
-        #yield from dm_workflow.DataAnalysis(hdf_with_fullpath)
+        if submit_xpcs_job:
+			# kickoff the DM workflow
+			yield from dm_workflow.DataAnalysis(hdf_with_fullpath)
+		else:
+			# just transfer the data
+			yield from dm_workflow.DataTransfer(hdf_with_fullpath)
 
     return (yield from inner())
 

@@ -55,15 +55,35 @@ def AD_Acquire(areadet,
         scaler1_time,
     """
 
+    def make_hdf5_workflow_filename():
+        path = os.path.join(file_path, data_folder)	# TODO: verify
+        if path.startswith("/data"):
+			path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+        fname = (
+            file_name
+            f"_{dm_pars.data_begin.value:04d}"
+            f"_{dm_pars.data_end.value:04d}"
+        )
+        fullname = os.path.join(path, f"{fname}.hdf")
+        suffix = 0
+        while os.path.exists(fullname):
+			suffix += 1
+			fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+        if suffix > 0:
+			print(f"using modified file name: {fullname}")	# TODO: use logging
+        return fullname
+
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
-        # write metadata to the dm_pars (various registers)
+        # write pre-acquisition metadata to the dm_pars
         yield from bps.mv(
             dm_pars.root_folder, file_path,
             dm_pars.parent_folder, os.path.dirname(file_path),
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, areadet.get_plugin_file_name(),
+            dm_pars.source_begin_datetime, str(datetime.datetime.now()),
+            dm_pars.source_begin_current, aps.current.value,
             # TODO: what else?
         )
 
@@ -71,10 +91,17 @@ def AD_Acquire(areadet,
             "file_name": file_name,
             "file_path": file_path
         }
+        # do the scan
         yield from bps.mv(scaler1.count, "Count")
         yield from bp.count([areadet], md=md)
 
-        # FIXME: need correct filename here: hdf_with_fullpath
+        # write post-acquisition metadata to the dm_pars
+        yield from bps.mv(
+            dm_pars.source_end_datetime, str(datetime.datetime.now()),
+            dm_pars.source_end_current, aps.current.value,
+            # TODO: what else?
+        )
+        hdf_with_fullpath = make_hdf5_workflow_filename()
         yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)
         
         kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)

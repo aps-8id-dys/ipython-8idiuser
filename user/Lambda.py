@@ -56,9 +56,9 @@ def AD_Acquire(areadet,
     """
 
     def make_hdf5_workflow_filename():
-        path = os.path.join(file_path, data_folder)	# TODO: verify
+        path = os.path.join(file_path, data_folder) # TODO: verify
         if path.startswith("/data"):
-			path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+            path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
             file_name
             f"_{dm_pars.data_begin.value:04d}"
@@ -67,24 +67,50 @@ def AD_Acquire(areadet,
         fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
         while os.path.exists(fullname):
-			suffix += 1
-			fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+            suffix += 1
+            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
         if suffix > 0:
-			print(f"using modified file name: {fullname}")	# TODO: use logging
+            print(f"using modified file name: {fullname}")  # TODO: use logging
         return fullname
 
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
         # write pre-acquisition metadata to the dm_pars
-        yield from bps.mv(
+        det_pars = dm_workflow.detectors.masterDict[dm_pars.detNum]
+        yield from bps.mv(      # TODO: verify all this
             dm_pars.root_folder, file_path,
             dm_pars.parent_folder, os.path.dirname(file_path),
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, areadet.get_plugin_file_name(),
-            dm_pars.source_begin_datetime, str(datetime.datetime.now()),
+            # source begin values
+            dm_pars.source_begin_datetime, str(datetime.datetime.now()),  # TODO: format?
             dm_pars.source_begin_current, aps.current.value,
+            # parameters from detector database, Reg 101-110 in order
+            dm_pars.roi_x1, 0,
+            dm_pars.roi_x2, det_pars.ccdHardwareColSize-1,
+            dm_pars.roi_y1, 0,
+            dm_pars.roi_y2, det_pars.ccdHardwareRowSize-1,
+            dm_pars.cols, det_pars.ccdHardwareColSize,
+            dm_pars.rows, det_pars.ccdHardwareRowSize,
+            dm_pars.kinetics_state, 0,  # FIXME:
+            dm_pars.kinetics_window_size, 0,    # FIXME:
+            dm_pars.kinetics_top, 0,    # FIXME:
+            dm_pars.attenuation, Atten1.value,  # TODO: verify
+            # image parameters: Reg 111-120 in order
+            dm_pars.dark_begin, -1, # TODO: verify
+            dm_pars.dark_end, -1,   # TODO: verify
+            dm_pars.data_begin, 1,
+            dm_pars.data_end, num_images,
+            dm_pars.exposure_time, acquire_time,
+            dm_pars.exposure_period, acquire_period,
+            dm_pars.specscan_dark_number, -1,   # TODO: verify
+            dm_pars.specscan_data_number, 680,  # TODO: verify
+            dm_pars.stage_x, det_pars.dpix * det_pars.ccdHardwareColSize,   # TODO: verify
+            dm_pars.stage_z, det_pars.dpix * det_pars.ccdHardwareRowSize,   # TODO: verify
             # TODO: what else?
+            # TODO: StrReg 1-10 in order
+            # TODO: Reg 121-130 in order
         )
 
         md = {
@@ -97,7 +123,8 @@ def AD_Acquire(areadet,
 
         # write post-acquisition metadata to the dm_pars
         yield from bps.mv(
-            dm_pars.source_end_datetime, str(datetime.datetime.now()),
+            # source end values
+            dm_pars.source_end_datetime, str(datetime.datetime.now()),  # TODO: format?
             dm_pars.source_end_current, aps.current.value,
             # TODO: what else?
         )

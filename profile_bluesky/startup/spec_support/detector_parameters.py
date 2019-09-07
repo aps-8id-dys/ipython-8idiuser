@@ -31,6 +31,9 @@ class PythonDict:
     def returnMasterDict(self):
         return self.masterDict
 
+    def getDetectorByNumber(self, detNum):
+        return self.masterDict[detNum]
+
     def returnManufacturerDict(self):
         return self.manufacturerDict
     

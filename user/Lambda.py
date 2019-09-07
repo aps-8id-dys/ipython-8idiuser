@@ -74,7 +74,7 @@ def AD_Acquire(areadet,
         return fullname
 
     def update_metadata_prescan():
-        det_pars = dm_workflow.detectors.masterDict[dm_pars.detNum]
+        det_pars = dm_workflow.detectors.getDetectorByNumber(dm_pars.detNum)
         yield from bps.mv(      # TODO: verify all this
             dm_pars.root_folder, file_path,
             dm_pars.parent_folder, os.path.dirname(file_path),

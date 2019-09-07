@@ -14,7 +14,7 @@ trigger area detector while monitoring the above params
 
 """
 
-def Lambda_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
+def AD_Acquire(areadet, acquire_time=0.1, acquire_period=0.11, num_images=100, file_name="A001"):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):

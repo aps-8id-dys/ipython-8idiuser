@@ -461,7 +461,7 @@ class DM_Workflow:
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        unix(cmd)
+        return unix(cmd)
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -493,7 +493,7 @@ class DM_Workflow:
             f",{qmapfile_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        unix(cmd)
+        return unix(cmd)
 
     def ListJobs(self):
         """

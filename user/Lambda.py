@@ -83,10 +83,9 @@ def AD_Acquire(areadet,
     def kickoff_DM_workflow(hdf_workflow_file, analysis=True):
         # TODO: logging before starting workflow
         if analysis:
-            dm_workflow.DataAnalysis(hdf_workflow_file)
+            out, err = dm_workflow.DataAnalysis(hdf_workflow_file)
         else:
-            dm_workflow.DataTransfer(hdf_workflow_file)
-        # TODO: capture return value and log it
-        # TODO: logging after workflow finishes
+            out, err = dm_workflow.DataTransfer(hdf_workflow_file)
+        # TODO: log out & err after workflow finishes
 
     return (yield from inner())

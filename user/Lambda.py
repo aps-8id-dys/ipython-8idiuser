@@ -76,14 +76,15 @@ def AD_Acquire(areadet,
     def update_metadata_prescan():
         det_pars = dm_workflow.detectors.getDetectorByNumber(dm_pars.detNum)
         yield from bps.mv(      # TODO: verify all this
+            # StrReg 1-7 in order
+            # dm_pars.specfile, ?,   # FIXME:
             dm_pars.root_folder, file_path,
-            dm_pars.parent_folder, os.path.dirname(file_path),
+            dm_pars.user_data_folder, os.path.dirname(file_path),
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, areadet.get_plugin_file_name(),
-            # source begin values
             dm_pars.source_begin_datetime, str(datetime.datetime.now()),  # TODO: format?
             dm_pars.source_begin_current, aps.current.value,
-            # parameters from detector database, Reg 101-110 in order
+            # Reg 101-110 in order
             dm_pars.roi_x1, 0,
             dm_pars.roi_x2, det_pars.ccdHardwareColSize-1,
             dm_pars.roi_y1, 0,
@@ -94,7 +95,7 @@ def AD_Acquire(areadet,
             dm_pars.kinetics_window_size, 0,    # FIXME:
             dm_pars.kinetics_top, 0,    # FIXME:
             dm_pars.attenuation, Atten1.value,  # TODO: verify
-            # image parameters: Reg 111-120 in order
+            # Reg 111-120 in order
             dm_pars.dark_begin, -1, # TODO: verify
             dm_pars.dark_end, -1,   # TODO: verify
             dm_pars.data_begin, 1,
@@ -105,9 +106,12 @@ def AD_Acquire(areadet,
             dm_pars.specscan_data_number, 680,  # TODO: verify
             dm_pars.stage_x, det_pars.dpix * det_pars.ccdHardwareColSize,   # TODO: verify
             dm_pars.stage_z, det_pars.dpix * det_pars.ccdHardwareRowSize,   # TODO: verify
-            # TODO: what else?
-            # TODO: StrReg 1-10 in order
-            # TODO: Reg 121-130 in order
+            # Reg 123-127 in order
+            dm_pars.I0mon, I0Mon.value,   # TODO: verify
+            dm_pars.burst_mode_state, 0,   # FIXME: verify
+            dm_pars.number_of_bursts, 0,   # FIXME: verify
+            dm_pars.first_usable_burst, 0,   # FIXME: verify
+            dm_pars.last_usable_burst, 0,   # FIXME: verify
         )
 
     def update_metadata_postscan():
@@ -115,7 +119,6 @@ def AD_Acquire(areadet,
             # source end values
             dm_pars.source_end_datetime, str(datetime.datetime.now()),  # TODO: format?
             dm_pars.source_end_current, aps.current.value,
-            # TODO: what else?
         )
 
     @bpp.stage_decorator([scaler1])

@@ -73,7 +73,7 @@ def AD_Acquire(areadet,
             print(f"using modified file name: {fullname}")  # TODO: use logging
         return fullname
 
-    def prescan_update_metadata():
+    def update_metadata_prescan():
         det_pars = dm_workflow.detectors.masterDict[dm_pars.detNum]
         yield from bps.mv(      # TODO: verify all this
             dm_pars.root_folder, file_path,
@@ -110,7 +110,7 @@ def AD_Acquire(areadet,
             # TODO: Reg 121-130 in order
         )
 
-    def postscan_update_metadata():
+    def update_metadata_postscan():
         yield from bps.mv(
             # source end values
             dm_pars.source_end_datetime, str(datetime.datetime.now()),  # TODO: format?
@@ -121,8 +121,7 @@ def AD_Acquire(areadet,
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
-        # write pre-acquisition metadata to the dm_pars
-        yield from prescan_update_metadata()
+        yield from update_metadata_prescan()
 
         md = {
             "file_name": file_name,
@@ -132,8 +131,7 @@ def AD_Acquire(areadet,
         yield from bps.mv(scaler1.count, "Count")
         yield from bp.count([areadet], md=md)
 
-        # write post-acquisition metadata to the dm_pars
-        yield from postscan_update_metadata()
+        yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()
         yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)
         

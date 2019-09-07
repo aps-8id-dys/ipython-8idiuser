@@ -70,7 +70,7 @@ def AD_Acquire(areadet,
             suffix += 1
             fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
         if suffix > 0:
-            print(f"using modified file name: {fullname}")  # TODO: use logging
+            logger.info(f"using modified file name: {fullname}")
         return fullname
 
     def update_metadata_prescan():
@@ -140,11 +140,14 @@ def AD_Acquire(areadet,
 
     @APS_utils.run_in_thread
     def kickoff_DM_workflow(hdf_workflow_file, analysis=True):
-        # TODO: logging before starting workflow
+        logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
         if analysis:
             out, err = dm_workflow.DataAnalysis(hdf_workflow_file)
         else:
             out, err = dm_workflow.DataTransfer(hdf_workflow_file)
-        # TODO: log out & err after workflow finishes
+        logger.info("DM workflow done")
+        logger.info(out)
+        if len(err) > 0:
+			logger.error(err)
 
     return (yield from inner())

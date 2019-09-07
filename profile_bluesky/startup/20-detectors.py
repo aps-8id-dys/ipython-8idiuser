@@ -35,6 +35,7 @@ scaler1.select_channels(None)   # choose just the channels with EPICS names
 # counter: sec = SpecCounter(mne='sec', config_line='0', name='Seconds', unit='0', chan='0', pvname=8idi:scaler1.S1)
 # counter: pind1 = SpecCounter(mne='pind1', config_line='1', name='pind1', unit='0', chan='1', pvname=8idi:scaler1.S2)
 # counter: I0Mon = SpecCounter(mne='I0Mon', config_line='2', name='I0Mon', unit='0', chan='7', pvname=8idi:scaler1.S8)
+I0Mon = scaler1.channels.chan08.s
 # counter: pind2 = SpecCounter(mne='pind2', config_line='3', name='pind2', unit='0', chan='2', pvname=8idi:scaler1.S3)
 # counter: pind3 = SpecCounter(mne='pind3', config_line='4', name='pind3', unit='0', chan='3', pvname=8idi:scaler1.S4)
 # counter: pind4 = SpecCounter(mne='pind4', config_line='5', name='pind4', unit='0', chan='4', pvname=8idi:scaler1.S5)

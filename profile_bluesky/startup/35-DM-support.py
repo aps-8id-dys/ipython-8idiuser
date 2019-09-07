@@ -15,8 +15,8 @@ class DataManagementMetadata(Device):
     attenuation = EpicsSignal("8idi:Reg110")
     beam_center_x = EpicsSignal("8idi:Reg11")
     beam_center_y = EpicsSignal("8idi:Reg12")
-    beam_size_H = EpicsSignal("8idi:Slit2Hsize.VAL")    # TODO: defined elsewhere?
-    beam_size_V = EpicsSignal("8idi:Slit3Vsize.VAL")    # TODO: defined elsewhere?
+    # beam_size_H : see si2.hgap.value
+    # beam_size_V : see si2.vgap.value
     burst_mode_state = EpicsSignal("8idi:Reg124")
     ccdxspec = EpicsSignal("8idi:Reg18")
     ccdzspec = EpicsSignal("8idi:Reg17")
@@ -55,7 +55,7 @@ class DataManagementMetadata(Device):
     source_begin_beam_intensity_transmitted = EpicsSignal("8idi:Reg10")
     source_begin_current = EpicsSignal("8idi:Reg121")
     source_begin_datetime = EpicsSignal("8idi:StrReg6", string=True)
-    source_begin_energy = EpicsSignal("8idimono:sm2.RBV")    # TODO: defined elsewhere?
+    # source_begin_energy : see monochromator.energy.value
     source_end_current = EpicsSignal("8idi:Reg122")
     source_end_datetime = EpicsSignal("8idi:StrReg7", string=True)
     specfile = EpicsSignal("8idi:StrReg1", string=True)

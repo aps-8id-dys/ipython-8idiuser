@@ -164,14 +164,14 @@ class DM_Workflow:
                 data=[[dm_pars.attenuation.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[dm_pars.beam_size_H.value]])
+                data=[[si2.hgap.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[dm_pars.beam_size_V.value]])
+                data=[[si2.vgap.value]])
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
             f["/measurement/instrument/acquisition/root_folder"] = dm_pars.root_folder.value
-            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.parent_folder.value
+            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.user_data_folder.value
             f["/measurement/instrument/acquisition/data_folder"] = dm_pars.data_folder.value
             f["/measurement/instrument/acquisition/datafilename"] = dm_pars.datafilename.value
 

@@ -12,7 +12,7 @@ class CompoundRefractiveLensDevice(Device):
 
 
 class MonochromatorDevice(Device):
-    Energy = Component(EpicsMotor, '8idimono:sm2', labels=["motor", "mono", "optics"])
+    energy = Component(EpicsMotor, '8idimono:sm2', labels=["motor", "mono", "optics"])
     theta = Component(EpicsMotor, '8idimono:sm1', labels=["motor", "mono", "optics"])
     piezo = Component(EpicsMotor, '8idimono:m4', labels=["motor", "mono", "optics"])
     pico = Component(EpicsMotor, '8idimono:m1', labels=["motor", "mono", "optics"])

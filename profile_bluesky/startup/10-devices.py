@@ -102,19 +102,19 @@ class LS336_Loop(APS_devices.ProcessController):
     
     Each control loop is a separate process controller.
     """
-    signal = Component(EpicsSignalRO, "OUT{self.loop_number}:SP_RBV")
-    target = Component(EpicsSignal, "OUT{self.loop_number}:SP", kind="omitted")
-    units = Component(EpicsSignalWithRBV, kind="IN{self.loop_number}.Units")
+    signal = FormattedComponent(EpicsSignalRO, "OUT{self.loop_number}:SP_RBV")
+    target = FormattedComponent(EpicsSignal, "OUT{self.loop_number}:SP", kind="omitted")
+    units = FormattedComponent(EpicsSignalWithRBV, kind="IN{self.loop_number}.Units")
 
-    loop_name = Component(EpicsSignalRO, "IN{self.loop_number}:Name_RBV")
-    temperature = Component(EpicsSignalRO, "IN{self.loop_number}")
+    loop_name = FormattedComponent(EpicsSignalRO, "IN{self.loop_number}:Name_RBV")
+    temperature = FormattedComponent(EpicsSignalRO, "IN{self.loop_number}")
 
-    control = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:Cntrl")
-    manual = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:MOUT")
-    mode = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:Mode")
+    control = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:Cntrl")
+    manual = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:MOUT")
+    mode = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:Mode")
 
-    heater = Component(EpicsSignalRO, "HTR{self.loop_number}")
-    heater_range = Component(EpicsSignalWithRBV, "HTR{self.loop_number}:Range")
+    heater = FormattedComponent(EpicsSignalRO, "HTR{self.loop_number}")
+    heater_range = FormattedComponent(EpicsSignalWithRBV, "HTR{self.loop_number}:Range")
     
     def __init__(self, prefix, loop_number, *args, **kwargs):
         controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
@@ -122,7 +122,10 @@ class LS336_Loop(APS_devices.ProcessController):
         super().__init__(prefix, *args, **kwargs)
 
 
-class LS336Device(APS_synApps._common.EpicsRecordDeviceCommonAll):
+from apstools.synApps._common import EpicsRecordDeviceCommonAll
+
+
+class LS336Device(EpicsRecordDeviceCommonAll, Device):
     """
     support for Lakeshore 336 temperature controller
 

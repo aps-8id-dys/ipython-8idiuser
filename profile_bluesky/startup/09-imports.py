@@ -15,6 +15,7 @@ import uuid
 from ophyd import Component, Device, DeviceStatus, Signal
 from ophyd import EpicsMotor, MotorBundle
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV
+from ophyd import FormattedComponent 
 from ophyd.scaler import ScalerCH, ScalerChannel
 from ophyd.sim import SynSignal
 

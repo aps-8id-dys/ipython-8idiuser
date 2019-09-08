@@ -116,21 +116,37 @@ class LS336_Loop(APS_devices.ProcessController):
     heater = FormattedComponent(EpicsSignalRO, "{self.prefix}HTR{self.loop_number}")
     heater_range = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}HTR{self.loop_number}:Range")
     
-    def __init__(self, *args, loop_number="", **kwargs):
+    def __init__(self, *args, loop_number=None, **kwargs):
         self.controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
         self.loop_number = loop_number
         super().__init__(*args, **kwargs)
 
 
-from apstools.synApps._common import EpicsRecordDeviceCommonAll
+class LS336_PidControls(Device):
+    """
+    One PID loop on the LS336 temperature controller
+    """
+    P = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}P{self.loop_number}")
+    I = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}I{self.loop_number}")
+    D = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}D{self.loop_number}")
+    ramp_rate = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}RampR{self.loop_number}")
+    ramp_on = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OnRamp{self.loop_number}")
+
+    def __init__(self, *args, loop_number=None, **kwargs):
+        self.loop_number = loop_number
+        super().__init__(*args, **kwargs)
 
 
-class LS336Device(EpicsRecordDeviceCommonAll):
+class LS336Device(Device):
     """
     support for Lakeshore 336 temperature controller
 
     Basic set and read channels (there are 4 channels) and PID and ramping.
     This controller is a bit complicated as it has 1x 100W and 1x50W output. 
+    
+    Also, "{self.prefix}read" has the usual fields common to all records
+    (.SCAN & .PROC are important)
+    Also, the asyn record in "{self.prefix}serial" needs an interface.
     """
     # basic support for now
     # https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
@@ -139,6 +155,17 @@ class LS336Device(EpicsRecordDeviceCommonAll):
     loop3 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="3")
     loop4 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="4")
     
+    # PID controls
+    pid1 = FormattedComponent(LS336_PidControls, "{self.prefix}", loop_number="1")
+    pid2 = FormattedComponent(LS336_PidControls, "{self.prefix}", loop_number="2")
+    
+    # from apstools.synApps._common.EpicsRecordDeviceCommonAll
+    scanning_rate = Component(EpicsSignal, "read.SCAN")
+    process_record = Component(EpicsSignal, "read.PROC")
+    
+    # needed (not available) from apstools.synApps
+    # serial = Component(AsynRecord, "serial")      # TODO:
+
     @property
     def value(self):
         """designate one loop as the default signal to return"""

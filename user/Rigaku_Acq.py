@@ -17,7 +17,6 @@ UFXC = UFXC_Device(name = "UFXC")
 
 
 def unix(command):
-    # TODO: replace with apstools.utils.unix from release 1.1.4+
     sp = subprocess.Popen(
         command, 
         shell=True,
@@ -27,9 +26,18 @@ def unix(command):
         )
     out, err = sp.communicate()
     return out
+# replace with apstools.utils.unix from release 1.1.4+
+import apstools
+if apstools.__version__ < "1.1.4":
+    raise RuntimeError("update to apstools 1.1.4+")
+else:
+    logging.error("!!!!!!!!!! remove local definition of unix() !!!!!!!!!! ")
+    unix = APS_utils.unix
 
 
 def UFXC_Acquire(batch_name='A001_Test'):
+
+    # TODO: refactor like user.Lambda.AD_Acquire
 
     yield from bps.mv(UFXC.shutter_control, 'UFXC')
     cmd = f"echo FILE:F:{batch_name} | nc 164.54.116.83 10000"

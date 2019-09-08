@@ -102,30 +102,30 @@ class LS336_Loop(APS_devices.ProcessController):
     
     Each control loop is a separate process controller.
     """
-    signal = FormattedComponent(EpicsSignalRO, "OUT{self.loop_number}:SP_RBV")
-    target = FormattedComponent(EpicsSignal, "OUT{self.loop_number}:SP", kind="omitted")
-    units = FormattedComponent(EpicsSignalWithRBV, kind="IN{self.loop_number}.Units")
+    signal = FormattedComponent(EpicsSignalRO, "{self.prefix}OUT{self.loop_number}:SP_RBV")
+    target = FormattedComponent(EpicsSignal, "{self.prefix}OUT{self.loop_number}:SP", kind="omitted")
+    # units = FormattedComponent(EpicsSignalWithRBV, kind="{self.prefix}IN{self.loop_number}.Units")
 
-    loop_name = FormattedComponent(EpicsSignalRO, "IN{self.loop_number}:Name_RBV")
-    temperature = FormattedComponent(EpicsSignalRO, "IN{self.loop_number}")
+    loop_name = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}:Name_RBV")
+    temperature = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}")
 
-    control = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:Cntrl")
-    manual = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:MOUT")
-    mode = FormattedComponent(EpicsSignalWithRBV, "OUT{self.loop_number}:Mode")
+    control = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:Cntrl")
+    manual = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:MOUT")
+    mode = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:Mode")
 
-    heater = FormattedComponent(EpicsSignalRO, "HTR{self.loop_number}")
-    heater_range = FormattedComponent(EpicsSignalWithRBV, "HTR{self.loop_number}:Range")
+    heater = FormattedComponent(EpicsSignalRO, "{self.prefix}HTR{self.loop_number}")
+    heater_range = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}HTR{self.loop_number}:Range")
     
-    def __init__(self, prefix, loop_number, *args, **kwargs):
-        controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
+    def __init__(self, *args, loop_number="", **kwargs):
+        self.controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
         self.loop_number = loop_number
-        super().__init__(prefix, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 from apstools.synApps._common import EpicsRecordDeviceCommonAll
 
 
-class LS336Device(EpicsRecordDeviceCommonAll, Device):
+class LS336Device(EpicsRecordDeviceCommonAll):
     """
     support for Lakeshore 336 temperature controller
 
@@ -134,10 +134,10 @@ class LS336Device(EpicsRecordDeviceCommonAll, Device):
     """
     # basic support for now
     # https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
-    loop1 = Component(LS336_Loop, "", loop_number=1)
-    loop2 = Component(LS336_Loop, "", loop_number=2)
-    loop3 = Component(LS336_Loop, "", loop_number=3)
-    loop4 = Component(LS336_Loop, "", loop_number=4)
+    loop1 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="1")
+    loop2 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="2")
+    loop3 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="3")
+    loop4 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="4")
     
     @property
     def value(self):

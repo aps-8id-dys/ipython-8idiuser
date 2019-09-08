@@ -20,10 +20,13 @@ from apstools import utilities as APS_utils
 from bluesky import plan_stubs as bps
 import datetime
 import h5py
+import logging
 import math
 import subprocess 
 
 from . import detector_parameters
+
+logger = logging.getLogger(os.path.split(__file__)[-1])
 
 
 class DM_Workflow:
@@ -444,7 +447,7 @@ class DM_Workflow:
             f" filePath:{hdf_with_fullpath}"
             )
         self.TRANSFER_COMMAND = cmd;
-        print(
+        logger.info(
             "DM Workflow call is made for DATA transfer: "
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
@@ -475,8 +478,7 @@ class DM_Workflow:
             )
         self.ANALYSIS_COMMAND = cmd;
 
-        # TODO: use logging package
-        print(
+        logger.info(
             f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
             f",{qmapfile_with_fullpath}"
             f"----{datetime.datetime.now()}"
@@ -487,7 +489,8 @@ class DM_Workflow:
         """
         list current jobs in the workflow
         """
-        print("*"*30)
+        logger.info("*"*30)
+        # TODO: capture stdout from this process?
         command = (
             "source /home/dm/etc/dm.setup.sh; "
             "dm-list-processing-jobs"
@@ -495,11 +498,10 @@ class DM_Workflow:
             " | sort -r"
             " |head -n 10"
             )
-        # TODO: use logging package
-        APS_utils.unix(command);
-        print("*"*30)
-        print(datetime.datetime.now())
-        print("*"*30)
+        out, err = APS_utils.unix(command);
+        logger.info("*"*30)
+        logger.info(out)
+        logger.info("*"*30)
 
 
 if __name__ == "__main__":

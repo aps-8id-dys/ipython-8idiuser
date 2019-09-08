@@ -96,17 +96,47 @@ class SlitIpinkDevice(Device):
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
 
 
-class LS336Device(APS_devices.ProcessController):
-	"""
-	support for Lakeshore 336 temperature controller
+class LS336_Loop(APS_devices.ProcessController):
+    """
+    One control loop on the LS336 temperature controller
+    
+    Each control loop is a separate process controller.
+    """
+    signal = Component(EpicsSignalRO, "OUT{self.loop_number}:SP_RBV")
+    target = Component(EpicsSignal, "OUT{self.loop_number}:SP", kind="omitted")
+    units = Component(EpicsSignalWithRBV, kind="IN{self.loop_number}.Units")
 
-	Basic set and read channels (there are 4 channels) and PID and ramping.
-	This controller is a bit complicated as it has 1x 100W and 1x50W output. 
-	As a start, we only need the 100W output.
-	"""
-	# basic support for now
-	# https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
-	controller_name = "Lakeshore 336 Controller"
-	signal = Component(EpicsSignalRO, "OUT1:SP_RBV")
-	target = Component(EpicsSignal, "OUT1:SP", kind="omitted")
-	units = Component(Signal, kind="omitted", value="C")
+    loop_name = Component(EpicsSignalRO, "IN{self.loop_number}:Name_RBV")
+    temperature = Component(EpicsSignalRO, "IN{self.loop_number}")
+
+    control = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:Cntrl")
+    manual = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:MOUT")
+    mode = Component(EpicsSignalWithRBV, "OUT{self.loop_number}:Mode")
+
+    heater = Component(EpicsSignalRO, "HTR{self.loop_number}")
+    heater_range = Component(EpicsSignalWithRBV, "HTR{self.loop_number}:Range")
+    
+    def __init__(self, prefix, loop_number, *args, **kwargs):
+        controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
+        self.loop_number = loop_number
+        super().__init__(prefix, *args, **kwargs)
+
+
+class LS336Device(APS_synApps._common.EpicsRecordDeviceCommonAll):
+    """
+    support for Lakeshore 336 temperature controller
+
+    Basic set and read channels (there are 4 channels) and PID and ramping.
+    This controller is a bit complicated as it has 1x 100W and 1x50W output. 
+    """
+    # basic support for now
+    # https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
+    loop1 = Component(LS336_Loop, "", loop_number=1)
+    loop2 = Component(LS336_Loop, "", loop_number=2)
+    loop3 = Component(LS336_Loop, "", loop_number=3)
+    loop4 = Component(LS336_Loop, "", loop_number=4)
+    
+    @property
+    def value(self):
+        """designate one loop as the default signal to return"""
+        return self.loop1.signal

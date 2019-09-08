@@ -16,6 +16,7 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
+from apstools import utilities as APS_utils
 from bluesky import plan_stubs as bps
 import datetime
 import h5py
@@ -23,19 +24,6 @@ import math
 import subprocess 
 
 from . import detector_parameters
-
-
-def unix(command):
-    # TODO: replace with apstools.utils.unix() with apstools 1.1.14+
-    sp = subprocess.Popen(
-        command, 
-        shell=True,
-        stdin = subprocess.PIPE,
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE,
-        )
-    out, err = sp.communicate()
-    return out
 
 
 class DM_Workflow:
@@ -461,7 +449,7 @@ class DM_Workflow:
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        return unix(cmd)
+        return APS_utils.unix(cmd)
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -493,7 +481,7 @@ class DM_Workflow:
             f",{qmapfile_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        return unix(cmd)
+        return APS_utils.unix(cmd)
 
     def ListJobs(self):
         """
@@ -508,7 +496,7 @@ class DM_Workflow:
             " |head -n 10"
             )
         # TODO: use logging package
-        unix(command);
+        APS_utils.unix(command);
         print("*"*30)
         print(datetime.datetime.now())
         print("*"*30)

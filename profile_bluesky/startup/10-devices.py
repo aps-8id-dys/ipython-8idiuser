@@ -94,6 +94,19 @@ class SlitIpinkDevice(Device):
     vcen = Component(EpicsMotor, '8idi:SlitpinkVcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:SlitpinkHsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
-    
-    
-   
+
+
+class LS336Device(APS_devices.ProcessController):
+	"""
+	support for Lakeshore 336 temperature controller
+
+	Basic set and read channels (there are 4 channels) and PID and ramping.
+	This controller is a bit complicated as it has 1x 100W and 1x50W output. 
+	As a start, we only need the 100W output.
+	"""
+	# basic support for now
+	# https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
+	controller_name = "Lakeshore 336 Controller"
+	signal = Component(EpicsSignalRO, "OUT1:SP_RBV")
+	target = Component(EpicsSignal, "OUT1:SP", kind="omitted")
+	units = Component(Signal, kind="omitted", value="C")

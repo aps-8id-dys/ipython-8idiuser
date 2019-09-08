@@ -27,6 +27,8 @@ si4 = SlitI4Device(name="si4")
 si5 = SlitI5Device(name="si5")
 sipink = SlitIpinkDevice(name="sipink")
 
+tc4 = LS336Device("8idi:LS336:TC4:", name="tc4")
+
 
 class ModifiedEpidRecord(EpidRecord):
     clock_ticks = None

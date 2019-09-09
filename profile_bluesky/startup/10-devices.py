@@ -96,7 +96,7 @@ class SlitIpinkDevice(Device):
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
 
 
-class LS336_Loop(APS_devices.ProcessController):
+class LS336_LoopBase(APS_devices.ProcessController):
     """
     One control loop on the LS336 temperature controller
     
@@ -119,7 +119,7 @@ class LS336_Loop(APS_devices.ProcessController):
         super().__init__(*args, **kwargs)
 
 
-class LS336_LoopHeaterPidControls(LS336_Loop):
+class LS336_LoopMore(LS336_LoopBase):
     """
     Additional controls for loop1 and loop2: heater and pid
     """
@@ -140,28 +140,17 @@ from records.asyn import AsynRecord
 class LS336Device(Device):
     """
     support for Lakeshore 336 temperature controller
-
-    Basic set and read channels (there are 4 channels) and PID and ramping.
-    This controller is a bit complicated as it has 1x 100W and 1x50W output. 
-    
-    Also, "{self.prefix}read" has the usual fields common to all records
-    (.SCAN & .PROC are important)
-    Also, the asyn record in "{self.prefix}serial" needs an interface.
     """
-    # basic support for now
-    # https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
-    loop1 = FormattedComponent(LS336_LoopHeaterPidControls, "{self.prefix}", loop_number="1")
-    loop2 = FormattedComponent(LS336_LoopHeaterPidControls, "{self.prefix}", loop_number="2")
-    loop3 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="3")
-    loop4 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="4")
+    loop1 = FormattedComponent(LS336_LoopMore, "{self.prefix}", loop_number=1)
+    loop2 = FormattedComponent(LS336_LoopMore, "{self.prefix}", loop_number=2)
+    loop3 = FormattedComponent(LS336_LoopBase, "{self.prefix}", loop_number=3)
+    loop4 = FormattedComponent(LS336_LoopBase, "{self.prefix}", loop_number=4)
     
-    # from apstools.synApps._common.EpicsRecordDeviceCommonAll
+    # same names as apstools.synApps._common.EpicsRecordDeviceCommonAll
     scanning_rate = Component(EpicsSignal, "read.SCAN")
     process_record = Component(EpicsSignal, "read.PROC")
     
     read_all = Component(EpicsSignal, "readAll.PROC")
-    
-    # needed (not available) from apstools.synApps
     serial = Component(AsynRecord, "serial")
 
     @property

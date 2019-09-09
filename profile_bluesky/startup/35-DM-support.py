@@ -48,9 +48,9 @@ class DataManagementMetadata(Device):
     roi_y2 = EpicsSignal("8idi:Reg104")
     root_folder = EpicsSignal("8idi:StrReg2", string=True)
     rows = EpicsSignal("8idi:Reg106")
-    sample_pitch = EpicsSignal("8idi:m52.RBV")             # TODO: defined elsewhere?
-    sample_roll = EpicsSignal("8idi:m53.RBV")              # TODO: defined elsewhere?
-    sample_yaw = EpicsSignal("8idi:m51.RBV")               # TODO: defined elsewhere?
+    # sample_pitch : see samplestage.theta
+    # sample_roll : see samplestage.chi
+    # sample_yaw : see samplestage.phi
     source_begin_beam_intensity_incident = EpicsSignal("8idi:Reg9")
     source_begin_beam_intensity_transmitted = EpicsSignal("8idi:Reg10")
     source_begin_current = EpicsSignal("8idi:Reg121")
@@ -65,20 +65,28 @@ class DataManagementMetadata(Device):
     stage_z = EpicsSignal("8idi:Reg120")
     stage_zero_x = EpicsSignal("8idi:Reg13")
     stage_zero_z = EpicsSignal("8idi:Reg14")
-    temperature_A = EpicsSignal("8idi:LS336:TC4:IN1")    # TODO: defined elsewhere?
-    temperature_A_set = EpicsSignal("8idi:LS336:TC4:OUT1:SP")    # TODO: defined elsewhere?
-    temperature_B = EpicsSignal("8idi:LS336:TC4:IN1")    # TODO: defined elsewhere?
-    temperature_B_set = EpicsSignal("8idi:LS336:TC4:OUT1:SP")    # TODO: defined elsewhere?
-    translation_table_x = EpicsSignal("8idi:TI3:x.VAL")    # TODO: defined elsewhere?
-    translation_table_y = EpicsSignal("8idi:TI3:z.VAL")    # TODO: defined elsewhere?
-    translation_table_z = EpicsSignal("8idi:TI3:y.VAL")    # TODO: defined elsewhere?
-    translation_x = EpicsSignal("8idi:m54.RBV")            # TODO: defined elsewhere?
-    translation_y = EpicsSignal("8idi:m49.RBV")            # TODO: defined elsewhere?
-    translation_z = EpicsSignal("8idi:m50.RBV")            # TODO: defined elsewhere?
+
+    # temperature_A  : see lakeshore.loop1.temperature
+    # temperature_A_set : see lakeshore.loop1.target
+    # temperature_B : see lakeshore.loop2.temperature
+    # temperature_B_set  : see lakeshore.loop2.target
+
+    # translation_table_x : see samplestage.table.x
+    # translation_table_y = EpicsSignal("8idi:TI3:z.VAL")    # TODO: defined elsewhere?
+    # translation_table_z = EpicsSignal("8idi:TI3:y.VAL")    # TODO: defined elsewhere?
+    # translation_x = EpicsSignal("8idi:m54.RBV")            # TODO: defined elsewhere?
+    # translation_y = EpicsSignal("8idi:m49.RBV")            # TODO: defined elsewhere?
+    # translation_z = EpicsSignal("8idi:m50.RBV")            # TODO: defined elsewhere?
     user_data_folder = EpicsSignal("8idi:StrReg3", string=True)
     xspec = EpicsSignal("8idi:Reg15")
     zspec = EpicsSignal("8idi:Reg16")
 
 
+# What APS run cycle are we in?  Hackulate it.
+dt = datetime.now()
+aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
+
+xpcs_qmap_file = "Lambda_qmap.h5"		# TODO:
+
 dm_pars = DataManagementMetadata(name="dm_pars")
-dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars)
+dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)

@@ -31,6 +31,9 @@ del _timeout
 
 scaler1.select_channels(None)   # choose just the channels with EPICS names
 
+# TODO: like IOMon, do for the other channels in use
+# note that the chan=# is zero-based  so add 1 for scaler1 channel object name
+
 # This configuration moved from 15-spec-config.py
 # counter: sec = SpecCounter(mne='sec', config_line='0', name='Seconds', unit='0', chan='0', pvname=8idi:scaler1.S1)
 # counter: pind1 = SpecCounter(mne='pind1', config_line='1', name='pind1', unit='0', chan='1', pvname=8idi:scaler1.S2)

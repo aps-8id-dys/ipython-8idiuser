@@ -207,9 +207,9 @@ class SampleStage(Device):
     x = Component(EpicsMotor, '8idi:m54', labels=["motor", "sample"])
     y = Component(EpicsMotor, '8idi:m49', labels=["motor", "sample"])
     z = Component(EpicsMotor, '8idi:m50', labels=["motor", "sample"])
-    phi = Component(EpicsMotor, '8idi:m51', labels=["motor", "sample"])
-    theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])
-    chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])
+    phi = Component(EpicsMotor, '8idi:m51', labels=["motor", "sample"])     # yaw
+    theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])   # pitch
+    chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])     # roll
     table = Component(SampleStageTable, labels=["table",])
 
 

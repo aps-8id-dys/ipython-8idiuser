@@ -17,12 +17,16 @@ trigger area detector while monitoring the above params
 def AD_Acquire(areadet, 
         acquire_time=0.1, acquire_period=0.11, 
         num_images=100, file_name="A001",
-        submit_xpcs_job=True):
+        submit_xpcs_job=True.
+        atten=None):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
     
+    atten = atten or Atten1
+    assert atten in (Atten1, Atten2)
+
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
@@ -61,8 +65,8 @@ def AD_Acquire(areadet,
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
             file_name
-            f"_{dm_pars.data_begin.value:04d}"
-            f"_{dm_pars.data_end.value:04d}"
+            f"_{dm_pars.data_begin.value:04.0f}"
+            f"-{dm_pars.data_end.value:04.0f}"
         )
         fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
@@ -74,51 +78,53 @@ def AD_Acquire(areadet,
         return fullname
 
     def update_metadata_prescan():
-        det_pars = dm_workflow.detectors.getDetectorByNumber(dm_pars.detNum)
-        yield from bps.mv(      # TODO: verify all this
-            # StrReg 1-7 in order
-            # dm_pars.specfile, ?,   # FIXME:
+        detNum = int(dm_pars.detNum.value)
+        det_pars = dm_workflow.detectors.getDetectorByNumber(detNum)
+        yield from bps.mv(
+            # StrReg 2-7 in order
             dm_pars.root_folder, file_path,
-            dm_pars.user_data_folder, os.path.dirname(file_path),
+            dm_pars.user_data_folder, os.path.dirname(file_path),	# just last item in path
             dm_pars.data_folder, file_name,
-            dm_pars.datafilename, areadet.get_plugin_file_name(),
-            dm_pars.source_begin_datetime, str(datetime.datetime.now()),  # TODO: format?
+            dm_pars.datafilename, areadet.plugin_file_name,
+            dm_pars.source_begin_datetime, datetime.now().strftime("%c"),
+            # Reg 121
             dm_pars.source_begin_current, aps.current.value,
             # Reg 101-110 in order
             dm_pars.roi_x1, 0,
-            dm_pars.roi_x2, det_pars.ccdHardwareColSize-1,
+            dm_pars.roi_x2, det_pars["ccdHardwareColSize"]-1,
             dm_pars.roi_y1, 0,
-            dm_pars.roi_y2, det_pars.ccdHardwareRowSize-1,
-            dm_pars.cols, det_pars.ccdHardwareColSize,
-            dm_pars.rows, det_pars.ccdHardwareRowSize,
-            dm_pars.kinetics_state, 0,  # FIXME:
-            dm_pars.kinetics_window_size, 0,    # FIXME:
-            dm_pars.kinetics_top, 0,    # FIXME:
-            dm_pars.attenuation, Atten1.value,  # TODO: verify
+            dm_pars.roi_y2, det_pars["ccdHardwareRowSize"]-1,
+            dm_pars.cols, det_pars["ccdHardwareColSize"],
+            dm_pars.rows, det_pars["ccdHardwareRowSize"],
+            dm_pars.kinetics_state, 0,  				# FIXME: SPEC generated this
+            dm_pars.kinetics_window_size, 0,    		# FIXME:
+            dm_pars.kinetics_top, 0,    				# FIXME:
+            dm_pars.attenuation, atten.value,
             # Reg 111-120 in order
-            dm_pars.dark_begin, -1, # TODO: verify
-            dm_pars.dark_end, -1,   # TODO: verify
+            #dm_pars.dark_begin, -1, 			#  edit if detector needs this
+            #dm_pars.dark_end, -1,   			#  op cit
             dm_pars.data_begin, 1,
             dm_pars.data_end, num_images,
             dm_pars.exposure_time, acquire_time,
             dm_pars.exposure_period, acquire_period,
-            dm_pars.specscan_dark_number, -1,   # TODO: verify
-            dm_pars.specscan_data_number, 680,  # TODO: verify
-            dm_pars.stage_x, det_pars.dpix * det_pars.ccdHardwareColSize,   # TODO: verify
-            dm_pars.stage_z, det_pars.dpix * det_pars.ccdHardwareRowSize,   # TODO: verify
+            # dm_pars.specscan_dark_number, -1,   #  not used, detector takes no darks
+            dm_pars.stage_x, detu.x.position,
+            dm_pars.stage_z, detu.z.position,
             # Reg 123-127 in order
-            dm_pars.I0mon, I0Mon.value,   # TODO: verify
-            dm_pars.burst_mode_state, 0,   # FIXME: verify
-            dm_pars.number_of_bursts, 0,   # FIXME: verify
-            dm_pars.first_usable_burst, 0,   # FIXME: verify
-            dm_pars.last_usable_burst, 0,   # FIXME: verify
+            dm_pars.I0mon, I0Mon.value,
+            dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
+            dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
+            dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
+            dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
         )
 
     def update_metadata_postscan():
+        scan_id = 680	# TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
-            dm_pars.source_end_datetime, str(datetime.datetime.now()),  # TODO: format?
+            dm_pars.source_end_datetime, datetime.now().strftime("%c"),
             dm_pars.source_end_current, aps.current.value,
+            # TODO: scan's uuid : we need a StrReg for this
         )
 
     @bpp.stage_decorator([scaler1])
@@ -130,12 +136,14 @@ def AD_Acquire(areadet,
             "file_name": file_name,
             "file_path": file_path
         }
-        # do the scan
+        # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
+        # do the acquisition (the scan)
         yield from bp.count([areadet], md=md)
 
         yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()
+
         yield from dm_workflow.create_hdf5_file(hdf_with_fullpath, as_bluesky_plan=True)
         
         # no need to yield from since the function is not a plan

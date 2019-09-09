@@ -117,13 +117,15 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     gather = Component(GatherPlugin, "Gather1:")
     scatter = Component(ScatterPlugin, "Scatter1:")
     
-    def get_plugin_file_name(self):
+    @property
+    def plugin_file_name(self):
         """
         return the file name the plugin wrote
         
         Implement for the DM workflow.
         """
-        return self.immout.filepath_RBV.value
+        # cut the path from file name
+        return os.path.basename(self.immout.full_file_name.value)
     
     def staging_setup_DM(self, *args, **kwargs):
         """

@@ -63,12 +63,12 @@ class DM_Workflow:
 
     def __init__(self, 
                  dm_pars,
+                 aps_cycle,
+                 xpcs_qmap_file,
                  transfer="xpcs8-01",
                  analysis="xpcs8-02",
-                 qmap_path=None,
-                 xpcs_qmap_file=None):
+                 ):
         self.dm_pars = dm_pars
-        self.index = 0      # TODO: How is this used?
         self.detectors = detector_parameters.PythonDict()
 
         self.DM_WORKFLOW_DATA_TRANSFER = transfer
@@ -78,13 +78,8 @@ class DM_Workflow:
         self.TRANSFER_COMMAND = ""
         self.ANALYSIS_COMMAND = ""
         
-        self.QMAP_FOLDER_PATH = qmap_path or "" # TODO:
-        self.XPCS_QMAP_FILENAME = xpcs_qmap_file or "" # TODO:
-
-    # def begin(self, filename):
-    #     # TODO: Why is this method needed?
-    #     # Why not call create_hdf5_file() directly?
-    #     self.create_hdf5_file(filename)
+        self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
+        self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
     def create_hdf5_file(self, filename, as_bluesky_plan=False):
         """
@@ -110,10 +105,8 @@ class DM_Workflow:
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:
-
-            # Metadata
-#            dt = h5py.special_dtype(vlen=unicode)   # TODO: not used below, what does it do?
-#            data = 0
+			
+			# TODO: check for dm_pars replaced by stage/table and ".position"
 
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
@@ -282,9 +275,9 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        dm_pars.sample_pitch.value, # m52
-                        dm_pars.sample_roll.value,  # m53
-                        dm_pars.sample_yaw.value,   # m51
+                        samplestage.theta.position, # m52 - pitch
+                        samplestage.chi.position,  # m53 - roll
+                        samplestage.phi.position,   # m51 - yaw
                         ]
                     ]
                 )
@@ -490,8 +483,6 @@ class DM_Workflow:
         """
         list current jobs in the workflow
         """
-        logger.info("*"*30)
-        # TODO: capture stdout from this process?
         command = (
             "source /home/dm/etc/dm.setup.sh; "
             "dm-list-processing-jobs"

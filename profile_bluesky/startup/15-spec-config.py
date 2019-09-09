@@ -2,11 +2,11 @@ logger.info(__file__)
 
 """converted from SPEC config file using apstools.migration.spec2ophyd"""
 
-flyz = EpicsMotor('8idiAERO:aero:c0:m1', name='flyz', labels=("motor",))
+#flyz = EpicsMotor('8idiAERO:aero:c0:m1', name='flyz', labels=("motor",))
 # line 1: MOT001 =    NONE:2/64   2000  1  2000  200   50  125    0 0x003  StrainN  StrainN
 tth = EpicsMotor('8idi:sm1', name='tth', labels=("motor",))
-pind1z = EpicsMotor('8idi:m3', name='pind1z', labels=("motor",))
-pind2z = EpicsMotor('8idi:m4', name='pind2z', labels=("motor",))
+#pind1z = EpicsMotor('8idi:m3', name='pind1z', labels=("motor",))
+#pind2z = EpicsMotor('8idi:m4', name='pind2z', labels=("motor",))
 tth_act = EpicsMotor('8idi:m63', name='tth_act', labels=("motor",))
 bstop = EpicsMotor('8idi:m27', name='bstop', labels=("motor",))
 alpha = EpicsMotor('8idi:sm2', name='alpha', labels=("motor",))
@@ -14,13 +14,8 @@ tthAPD = EpicsMotor('8idi:sm3', name='tthAPD', labels=("motor",))
 foceye = EpicsMotor('8idi:m37', name='foceye', labels=("motor",))
 
 # What is si6?
-si6vgap = EpicsMotor('8idi:Slit6Vsize', name='si6vgap', labels=("motor",))
-si6vcen = EpicsMotor('8idi:Slit6Vcenter', name='si6vcen', labels=("motor",))
-si6hgap = EpicsMotor('8idi:Slit6Hsize', name='si6hgap', labels=("motor",))
-si6hcen = EpicsMotor('8idi:Slit6Hcenter', name='si6hcen', labels=("motor",))
+#si6vgap = EpicsMotor('8idi:Slit6Vsize', name='si6vgap', labels=("motor",))
+#si6vcen = EpicsMotor('8idi:Slit6Vcenter', name='si6vcen', labels=("motor",))
+#si6hgap = EpicsMotor('8idi:Slit6Hsize', name='si6hgap', labels=("motor",))
+#si6hcen = EpicsMotor('8idi:Slit6Hcenter', name='si6hcen', labels=("motor",))
 # Why is this ti4 different from the others?
-ti4zu = EpicsMotor('8idi:m30', name='ti4zu', labels=("motor",))
-ti4zdo = EpicsMotor('8idi:m31', name='ti4zdo', labels=("motor",))
-ti4zdi = EpicsMotor('8idi:m32', name='ti4zdi', labels=("motor",))
-ti4xu = EpicsMotor('8idi:m28', name='ti4xu', labels=("motor",))
-ti4xd = EpicsMotor('8idi:m29', name='ti4xd', labels=("motor",))

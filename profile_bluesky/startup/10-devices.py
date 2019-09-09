@@ -11,21 +11,24 @@ class CompoundRefractiveLensDevice(Device):
     yaw = Component(EpicsMotor, '8idi:m66', labels=["motor", "crl", "optics"])
 
 
+class MonochromatorTableDevice(Device):
+    """
+    Table TI-1 in 8-ID-I
+    """
+    x = Component(EpicsMotor, '8idi:TI1:x', labels=["motor", "mono", "optics", "table"])
+    z = Component(EpicsMotor, '8idi:TI1:y', labels=["motor", "mono", "optics", "table"])
+
+
 class MonochromatorDevice(Device):
     energy = Component(EpicsMotor, '8idimono:sm2', labels=["motor", "mono", "optics"])
     theta = Component(EpicsMotor, '8idimono:sm1', labels=["motor", "mono", "optics"])
     piezo = Component(EpicsMotor, '8idimono:m4', labels=["motor", "mono", "optics"])
     pico = Component(EpicsMotor, '8idimono:m1', labels=["motor", "mono", "optics"])
     nano = Component(EpicsMotor, '8idimono:m5', labels=["motor", "mono", "optics"])
-    x = Component(EpicsMotor, '8idi:TI1:x', labels=["motor", "mono", "optics", "table"])
-    z = Component(EpicsMotor, '8idi:TI1:y', labels=["motor", "mono", "optics", "table"])
+    table = Component(MonochromatorTableDevice, labels=["mono", "optics", "table"])
 
-<<<<<<< Updated upstream
-class SlitA1Device(Device):  
-=======
-    
+
 class WBslitDevice(Device):  
->>>>>>> Stashed changes
     """
     White Beam Slit in 8-ID-A
     """
@@ -86,6 +89,7 @@ class SlitI5Device(Device):
     hgap = Component(EpicsMotor, '8idi:Slit5Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit5Hcenter', labels=["motor", "slit"])
 
+
 class SlitIpinkDevice(Device):  
     """
     Slitpink in 8-ID-I
@@ -95,10 +99,7 @@ class SlitIpinkDevice(Device):
     hgap = Component(EpicsMotor, '8idi:SlitpinkHsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
     
-    
-<<<<<<< Updated upstream
-   
-=======
+
 class FOEpinholeDevice(Device):  
     """
     Optics Table 1 in 8-ID-A which holds the 270 um pin hole for heat load reduction
@@ -113,7 +114,7 @@ class FOEmirrorDevice(Device):
     """    
     x = Component(EpicsMotor, '8ida:TA2:x', labels=["motor", "table"])
     z = Component(EpicsMotor, '8ida:TA2:y', labels=["motor", "table"])
-    fine = Component(EpicsMotor, '8ida:sm9', labels=["motor", "table"])
+    theta = Component(EpicsMotor, '8ida:sm9', labels=["motor", "table"])
 
 
 class BeamSplittingMonochromatorDevice(Device):  
@@ -130,25 +131,21 @@ class TableOptics(Device):
     """    
     x = Component(EpicsMotor, '8idi:TI2:x', labels=["motor", "table"])
     z = Component(EpicsMotor, '8idi:TI2:y', labels=["motor", "table"])
-    
-    
-class TI3(Device):  
-    """
-    Optics Table 3 in 8-ID-I
-    """    
-    x = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table"])
-    y = Component(EpicsMotor, '8idi:m16', labels=["motor", "table"])  # ? Why is ti3 the only one that has a y stage?
-    z = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table"])
-    
-
-class TI4(Device):  
+   
+ 
+class FlightPathTable(Device):  
     """
     Optics Table 4 in 8-ID-I
     """    
     x = Component(EpicsMotor, '8idi:TI4:x', labels=["motor", "table"])
     z = Component(EpicsMotor, '8idi:TI4:y', labels=["motor", "table"])
-    
-    
+    zu = Component(EpicsMotor, '8idi:m30', labels=["motor", ])
+    zdo = Component(EpicsMotor, '8idi:m31', labels=["motor", ])
+    zdi = Component(EpicsMotor, '8idi:m32', labels=["motor", ])
+    xu = Component(EpicsMotor, '8idi:m28', labels=["motor", ])
+    xd = Component(EpicsMotor, '8idi:m29', labels=["motor", ])
+ 
+
 class BeWindow(Device):  
     """
     Beryllium Window 8-ID-I
@@ -157,7 +154,7 @@ class BeWindow(Device):
     z = Component(EpicsMotor, '8idi:m11', labels=["motor", "optics"])
 
         
-class Shutter(Device):  
+class ShutterStage(Device):  
     """
     Shutter Stage at 8-ID-I
     """    
@@ -181,29 +178,31 @@ class DetStageDownstream(Device):
     z = Component(EpicsMotor, '8idi:m83', labels=["motor", "det"])
 
     
-#class Piezo(Device):  
+#class SamplePiezo(Device):  
 #    """
 #    Piezo stage at the sample?
 #    """    
 #    x = Component(EpicsMotor, '8idi:m69', labels=["motor", "sample"])
 #    z = Component(EpicsMotor, '8idi:m70', labels=["motor", "sample"])
 
-    
->>>>>>> Stashed changes
 
-class SampleStageUpstream(Device):
+class SampleStageTable(Device):
     """
-    Sample stages 
+    Sample stage table TI-3
     """
-
-    samx = EpicsMotor('8idi:m54', name='samx', labels=("motor",))
-    samy = EpicsMotor('8idi:m49', name='samy', labels=("motor",))
-    samz = EpicsMotor('8idi:m50', name='samz', labels=("motor",))
-    samth = EpicsMotor('8idi:m51', name='samth', labels=("motor",))
-    sampit = EpicsMotor('8idi:m52', name='sampit', labels=("motor",))
-    samchi = EpicsMotor('8idi:m53', name='samchi', labels=("motor",))
-    tablex = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table"])
-    tabley = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table"])  # ? Why is ti3 the only one that has a y stage?
-    tablez = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table"])
+    x = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table", "sample"])
+    y = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table", "sample"])
+    z = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table", "sample"])
 
 
+class SampleStage(Device):
+    """
+    Sample stage 
+    """
+    x = Component(EpicsMotor, '8idi:m54', labels=["motor", "sample"])
+    y = Component(EpicsMotor, '8idi:m49', labels=["motor", "sample"])
+    z = Component(EpicsMotor, '8idi:m50', labels=["motor", "sample"])
+    phi = Component(EpicsMotor, '8idi:m51', labels=["motor", "sample"])
+    theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])
+    chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])
+    table = Component(SampleStageTable, labels=["table",])

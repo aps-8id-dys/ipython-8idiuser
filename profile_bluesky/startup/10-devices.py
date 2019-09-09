@@ -113,28 +113,25 @@ class LS336_Loop(APS_devices.ProcessController):
     manual = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:MOUT")
     mode = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:Mode")
 
-    heater = FormattedComponent(EpicsSignalRO, "{self.prefix}HTR{self.loop_number}")
-    heater_range = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}HTR{self.loop_number}:Range")
-    
     def __init__(self, *args, loop_number=None, **kwargs):
         self.controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
         self.loop_number = loop_number
         super().__init__(*args, **kwargs)
 
 
-class LS336_PidControls(Device):
+class LS336_LoopHeaterPidControls(LS336_Loop):
     """
-    One PID loop on the LS336 temperature controller
+    Additional controls for loop1 and loop2: heater and pid
     """
-    P = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}P{self.loop_number}")
-    I = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}I{self.loop_number}")
-    D = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}D{self.loop_number}")
+    # only on loops 1 & 2
+    heater = FormattedComponent(EpicsSignalRO, "{self.prefix}HTR{self.loop_number}")
+    heater_range = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}HTR{self.loop_number}:Range")
+
+    pid_P = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}P{self.loop_number}")
+    pid_I = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}I{self.loop_number}")
+    pid_D = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}D{self.loop_number}")
     ramp_rate = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}RampR{self.loop_number}")
     ramp_on = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OnRamp{self.loop_number}")
-
-    def __init__(self, *args, loop_number=None, **kwargs):
-        self.loop_number = loop_number
-        super().__init__(*args, **kwargs)
 
 
 class LS336Device(Device):
@@ -150,18 +147,16 @@ class LS336Device(Device):
     """
     # basic support for now
     # https://github.com/aps-8id-trr/ipython-8idiuser/issues/33
-    loop1 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="1")
-    loop2 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="2")
+    loop1 = FormattedComponent(LS336_LoopHeaterPidControls, "{self.prefix}", loop_number="1")
+    loop2 = FormattedComponent(LS336_LoopHeaterPidControls, "{self.prefix}", loop_number="2")
     loop3 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="3")
     loop4 = FormattedComponent(LS336_Loop, "{self.prefix}", loop_number="4")
-    
-    # PID controls
-    pid1 = FormattedComponent(LS336_PidControls, "{self.prefix}", loop_number="1")
-    pid2 = FormattedComponent(LS336_PidControls, "{self.prefix}", loop_number="2")
     
     # from apstools.synApps._common.EpicsRecordDeviceCommonAll
     scanning_rate = Component(EpicsSignal, "read.SCAN")
     process_record = Component(EpicsSignal, "read.PROC")
+    
+    read_all = Component(EpicsSignal, "readAll.PROC")
     
     # needed (not available) from apstools.synApps
     # serial = Component(AsynRecord, "serial")      # TODO:

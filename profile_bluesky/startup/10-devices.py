@@ -134,7 +134,7 @@ class LS336_LoopHeaterPidControls(LS336_Loop):
     ramp_on = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OnRamp{self.loop_number}")
 
 
-from .records.asyn import AsynRecord
+from records.asyn import AsynRecord
 
 
 class LS336Device(Device):

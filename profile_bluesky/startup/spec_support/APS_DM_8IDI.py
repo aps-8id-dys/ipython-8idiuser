@@ -236,25 +236,25 @@ class DM_Workflow:
             f.create_dataset("/measurement/sample/thickness", data=[[1.0]])
             
             f.create_dataset("/measurement/sample/temperature_A",
-                data=[[dm_pars.temperature_A.value]])
+                data=[[lakeshore.loop1.temperature.value]])
 
             f.create_dataset("/measurement/sample/temperature_B",
-                data=[[dm_pars.temperature_B.value]])
+                data=[[lakeshore.loop2.temperature.value]])
 
             f.create_dataset("/measurement/sample/temperature_A_set",
-                data=[[dm_pars.temperature_A_set.value]])
+                data=[[lakeshore.loop1.signal.value]])
             # data=[[dm_pars.pid1.value]])
 
             f.create_dataset("/measurement/sample/temperature_B_set",
-                data=[[dm_pars.temperature_B_set.value]])
+                data=[[lakeshore.loop2.signal.value ]])
 
             f.create_dataset(
                 "/measurement/sample/translation",
                 data=[
                     [
-                        dm_pars.translation_x.value,
-                        dm_pars.translation_y.value,
-                        dm_pars.translation_z.value,
+                        samplestage.x.position,
+                        samplestage.y.position,
+                        samplestage.z.position,
                         ]
                     ]
                 )
@@ -264,10 +264,10 @@ class DM_Workflow:
                 "/measurement/sample/translation_table",
                 data=[
                     [
-                        dm_pars.translation_table_x.value,
-                        dm_pars.translation_table_y.value,
-                        dm_pars.translation_table_z.value,
-                        ]
+                        samplestage.table.x.position,
+                        samplestage.table.y.position,
+                        samplestage.table.z.position,
+                         ]
                     ]
                 )
 

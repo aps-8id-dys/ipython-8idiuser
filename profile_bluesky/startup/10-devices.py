@@ -41,6 +41,7 @@ class WBslitDevice(Device):
     zd = Component(EpicsMotor, '8ida:m15', labels=["motor", "slit"])
     xd = Component(EpicsMotor, '8ida:m16', labels=["motor", "slit"])
 
+
 class SlitI1Device(Device):  
     """
     Slit1 in 8-ID-I
@@ -50,7 +51,8 @@ class SlitI1Device(Device):
     vcen = Component(EpicsMotor, '8idi:Slit1Vcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:Slit1Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit1Hcenter', labels=["motor", "slit"])
-    
+
+
 class SlitI2Device(Device):  
     """
     Slit2 in 8-ID-I
@@ -59,7 +61,8 @@ class SlitI2Device(Device):
     vcen = Component(EpicsMotor, '8idi:Slit2Vcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:Slit2Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit2Hcenter', labels=["motor", "slit"])    
-    
+
+
 class SlitI3Device(Device):  
     """
     Slit3 in 8-ID-I
@@ -68,7 +71,8 @@ class SlitI3Device(Device):
     vcen = Component(EpicsMotor, '8idi:Slit3Vcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:Slit3Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit3Hcenter', labels=["motor", "slit"])    
-    
+
+
 class SlitI4Device(Device):  
     """
     Slit4 in 8-ID-I
@@ -77,7 +81,8 @@ class SlitI4Device(Device):
     vcen = Component(EpicsMotor, '8idi:Slit4Vcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:Slit4Hsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:Slit4Hcenter', labels=["motor", "slit"])    
-    
+
+
 class SlitI5Device(Device):  
     """
     Slit5 in 8-ID-I
@@ -98,7 +103,7 @@ class SlitIpinkDevice(Device):
     vcen = Component(EpicsMotor, '8idi:SlitpinkVcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:SlitpinkHsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
-    
+
 
 class FOEpinholeDevice(Device):  
     """
@@ -206,3 +211,66 @@ class SampleStage(Device):
     theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])
     chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])
     table = Component(SampleStageTable, labels=["table",])
+
+
+class LS336_LoopBase(APS_devices.ProcessController):
+    """
+    One control loop on the LS336 temperature controller
+    
+    Each control loop is a separate process controller.
+    """
+    signal = FormattedComponent(EpicsSignalRO, "{self.prefix}OUT{self.loop_number}:SP_RBV")
+    target = FormattedComponent(EpicsSignal, "{self.prefix}OUT{self.loop_number}:SP", kind="omitted")
+    units = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}IN{self.loop_number}:Units", kind="omitted")
+
+    loop_name = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}:Name_RBV")
+    temperature = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}")
+
+    control = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:Cntrl")
+    manual = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:MOUT")
+    mode = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OUT{self.loop_number}:Mode")
+
+    def __init__(self, *args, loop_number=None, **kwargs):
+        self.controller_name = f"Lakeshore 336 Controller Loop {loop_number}"
+        self.loop_number = loop_number
+        super().__init__(*args, **kwargs)
+
+
+class LS336_LoopMore(LS336_LoopBase):
+    """
+    Additional controls for loop1 and loop2: heater and pid
+    """
+    # only on loops 1 & 2
+    heater = FormattedComponent(EpicsSignalRO, "{self.prefix}HTR{self.loop_number}")
+    heater_range = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}HTR{self.loop_number}:Range")
+
+    pid_P = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}P{self.loop_number}")
+    pid_I = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}I{self.loop_number}")
+    pid_D = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}D{self.loop_number}")
+    ramp_rate = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}RampR{self.loop_number}")
+    ramp_on = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OnRamp{self.loop_number}")
+
+
+from records.asyn import AsynRecord
+
+
+class LS336Device(Device):
+    """
+    support for Lakeshore 336 temperature controller
+    """
+    loop1 = FormattedComponent(LS336_LoopMore, "{self.prefix}", loop_number=1)
+    loop2 = FormattedComponent(LS336_LoopMore, "{self.prefix}", loop_number=2)
+    loop3 = FormattedComponent(LS336_LoopBase, "{self.prefix}", loop_number=3)
+    loop4 = FormattedComponent(LS336_LoopBase, "{self.prefix}", loop_number=4)
+    
+    # same names as apstools.synApps._common.EpicsRecordDeviceCommonAll
+    scanning_rate = Component(EpicsSignal, "read.SCAN")
+    process_record = Component(EpicsSignal, "read.PROC")
+    
+    read_all = Component(EpicsSignal, "readAll.PROC")
+    serial = Component(AsynRecord, "serial")
+
+    @property
+    def value(self):
+        """designate one loop as the default signal to return"""
+        return self.loop1.signal.value

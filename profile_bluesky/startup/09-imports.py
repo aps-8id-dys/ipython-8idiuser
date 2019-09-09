@@ -15,6 +15,7 @@ import uuid
 from ophyd import Component, Device, DeviceStatus, Signal
 from ophyd import EpicsMotor, MotorBundle
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV
+from ophyd import FormattedComponent 
 from ophyd.scaler import ScalerCH, ScalerChannel
 from ophyd.sim import SynSignal
 
@@ -37,7 +38,7 @@ import apstools.callbacks as APS_callbacks
 import apstools.devices as APS_devices
 import apstools.filewriters as APS_filewriters
 import apstools.plans as APS_plans
-import apstools.synApps_ophyd as APS_synApps_ophyd
+import apstools.synApps as APS_synApps
 import apstools.suspenders as APS_suspenders
 import apstools.utils as APS_utils
 
@@ -47,7 +48,6 @@ from apstools.filewriters import SpecWriterCallback, spec_comment
 
 # place .ipython/user directory on the path, enables ~"qdo" command:
 #    %run -i -m user.module
-_path = os.path.join(os.path.dirname(__file__), "user")
-if _path not in sys.path:
-	sys.path.append(_path)
-del _path
+from IPython.paths import get_ipython_dir
+sys.path.append(os.path.join(get_ipython_dir(), "user"))
+sys.path.append(os.path.join(os.path.dirname(__file__)))

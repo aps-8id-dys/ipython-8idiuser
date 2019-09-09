@@ -3,7 +3,6 @@ logger.info(__file__)
 """signals"""
 
 sys.path.append(os.path.dirname(__file__))
-from records.epid import EpidRecord
 
 # APS only:
 aps = APS_devices.ApsMachineParametersDevice(name="aps")
@@ -36,8 +35,10 @@ shutterstage = ShutterStage(name="shutterstage")
 detu = DetStageUpstream(name="detu")
 detd = DetStageDownstream(name="detd")
 samplestage = SampleStage(name="samplestage")
+lakeshore = LS336Device("8idi:LS336:TC4:", name="lakeshore", labels=["heater", "Lakeshore"])
 
-class ModifiedEpidRecord(EpidRecord):
+
+class ModifiedEpidRecord(APS_synApps.EpidRecord):
     clock_ticks = None
 
 pid1 = ModifiedEpidRecord("8idi:pid1", name="pid1", labels=["pid",])

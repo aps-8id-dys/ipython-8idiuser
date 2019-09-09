@@ -11,17 +11,26 @@ class CompoundRefractiveLensDevice(Device):
     yaw = Component(EpicsMotor, '8idi:m66', labels=["motor", "crl", "optics"])
 
 
+class MonochromatorTableDevice(Device):
+    """
+    Table TI-1 in 8-ID-I
+    """
+    x = Component(EpicsMotor, '8idi:TI1:x', labels=["motor", "mono", "optics", "table"])
+    z = Component(EpicsMotor, '8idi:TI1:y', labels=["motor", "mono", "optics", "table"])
+
+
 class MonochromatorDevice(Device):
     energy = Component(EpicsMotor, '8idimono:sm2', labels=["motor", "mono", "optics"])
     theta = Component(EpicsMotor, '8idimono:sm1', labels=["motor", "mono", "optics"])
     piezo = Component(EpicsMotor, '8idimono:m4', labels=["motor", "mono", "optics"])
     pico = Component(EpicsMotor, '8idimono:m1', labels=["motor", "mono", "optics"])
     nano = Component(EpicsMotor, '8idimono:m5', labels=["motor", "mono", "optics"])
+    table = Component(MonochromatorTableDevice, labels=["mono", "optics", "table"])
 
 
-class SlitA1Device(Device):  
+class WBslitDevice(Device):  
     """
-    Slit1 in 8-ID-A
+    White Beam Slit in 8-ID-A
     """
     vgap = Component(EpicsMotor, '8ida:Slit1Vsize', labels=["motor", "slit"])
     vcen = Component(EpicsMotor, '8ida:Slit1Vcenter', labels=["motor", "slit"])
@@ -94,6 +103,114 @@ class SlitIpinkDevice(Device):
     vcen = Component(EpicsMotor, '8idi:SlitpinkVcenter', labels=["motor", "slit"])
     hgap = Component(EpicsMotor, '8idi:SlitpinkHsize', labels=["motor", "slit"])
     hcen = Component(EpicsMotor, '8idi:SlitpinkHcenter', labels=["motor", "slit"])
+
+
+class FOEpinholeDevice(Device):  
+    """
+    Optics Table 1 in 8-ID-A which holds the 270 um pin hole for heat load reduction
+    """    
+    x = Component(EpicsMotor, '8ida:TA1:x', labels=["motor", "table"]) 
+    z = Component(EpicsMotor, '8ida:TA1:y', labels=["motor", "table"])
+  
+
+class FOEmirrorDevice(Device):  
+    """
+    Optics Table 2 in 8-ID-A which holds the First optical element Mirror
+    """    
+    x = Component(EpicsMotor, '8ida:TA2:x', labels=["motor", "table"])
+    z = Component(EpicsMotor, '8ida:TA2:y', labels=["motor", "table"])
+    theta = Component(EpicsMotor, '8ida:sm9', labels=["motor", "table"])
+
+
+class BeamSplittingMonochromatorDevice(Device):  
+    """
+    I/E Beam-splitting Silicon monochromator in 8-ID-D
+    """    
+    x = Component(EpicsMotor, '8idd:m1', labels=["motor", "optics"])
+    z = Component(EpicsMotor, '8idd:m2', labels=["motor", "optics"])
+
+
+class TableOptics(Device):  
+    """
+    Optics Table 2 in 8-ID-I which holds optics and slits
+    """    
+    x = Component(EpicsMotor, '8idi:TI2:x', labels=["motor", "table"])
+    z = Component(EpicsMotor, '8idi:TI2:y', labels=["motor", "table"])
+   
+ 
+class FlightPathTable(Device):  
+    """
+    Optics Table 4 in 8-ID-I
+    """    
+    x = Component(EpicsMotor, '8idi:TI4:x', labels=["motor", "table"])
+    z = Component(EpicsMotor, '8idi:TI4:y', labels=["motor", "table"])
+    zu = Component(EpicsMotor, '8idi:m30', labels=["motor", ])
+    zdo = Component(EpicsMotor, '8idi:m31', labels=["motor", ])
+    zdi = Component(EpicsMotor, '8idi:m32', labels=["motor", ])
+    xu = Component(EpicsMotor, '8idi:m28', labels=["motor", ])
+    xd = Component(EpicsMotor, '8idi:m29', labels=["motor", ])
+ 
+
+class BeWindow(Device):  
+    """
+    Beryllium Window 8-ID-I
+    """    
+    x = Component(EpicsMotor, '8idi:m17', labels=["motor", "optics"])
+    z = Component(EpicsMotor, '8idi:m11', labels=["motor", "optics"])
+
+        
+class ShutterStage(Device):  
+    """
+    Shutter Stage at 8-ID-I
+    """    
+    x = Component(EpicsMotor, '8idi:m1', labels=["motor", "shutter"])
+    z = Component(EpicsMotor, '8idi:m2', labels=["motor", "shutter"])
+    
+            
+class DetStageUpstream(Device):  
+    """
+    Upstream detector stage at 4 m (the old 'ccdx' and 'ccdz')
+    """    
+    x = Component(EpicsMotor, '8idi:m90', labels=["motor", "det"])
+    z = Component(EpicsMotor, '8idi:m91', labels=["motor", "det"])
+  
+
+class DetStageDownstream(Device):  
+    """
+    Downstream detector stage at 8 m (the old 'fccdx' and 'fccdz')
+    """    
+    x = Component(EpicsMotor, '8idi:m25', labels=["motor", "det"])
+    z = Component(EpicsMotor, '8idi:m83', labels=["motor", "det"])
+
+    
+#class SamplePiezo(Device):  
+#    """
+#    Piezo stage at the sample?
+#    """    
+#    x = Component(EpicsMotor, '8idi:m69', labels=["motor", "sample"])
+#    z = Component(EpicsMotor, '8idi:m70', labels=["motor", "sample"])
+
+
+class SampleStageTable(Device):
+    """
+    Sample stage table TI-3
+    """
+    x = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table", "sample"])
+    y = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table", "sample"])
+    z = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table", "sample"])
+
+
+class SampleStage(Device):
+    """
+    Sample stage 
+    """
+    x = Component(EpicsMotor, '8idi:m54', labels=["motor", "sample"])
+    y = Component(EpicsMotor, '8idi:m49', labels=["motor", "sample"])
+    z = Component(EpicsMotor, '8idi:m50', labels=["motor", "sample"])
+    phi = Component(EpicsMotor, '8idi:m51', labels=["motor", "sample"])
+    theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])
+    chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])
+    table = Component(SampleStageTable, labels=["table",])
 
 
 class LS336_LoopBase(APS_devices.ProcessController):

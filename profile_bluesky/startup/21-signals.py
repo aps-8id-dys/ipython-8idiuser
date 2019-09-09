@@ -18,15 +18,24 @@ shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
 crl = CompoundRefractiveLensDevice(name="crl")
 monochromator = MonochromatorDevice(name="monochromator")
-sa1 = SlitA1Device(name="sa1")
+WBslit = WBslitDevice(name="WBslit")
 si1 = SlitI1Device(name="si1")
 si2 = SlitI2Device(name="si2")
 si3 = SlitI3Device(name="si3")
 si4 = SlitI4Device(name="si4")
 si5 = SlitI5Device(name="si5")
 sipink = SlitIpinkDevice(name="sipink")
-
-tc4 = LS336Device("8idi:LS336:TC4:", name="tc4", labels=["heater", "Lakeshore"])
+foepinhole = FOEpinholeDevice(name="foepinhole")
+foemirror = FOEmirrorDevice(name="foemirror")
+diamond = BeamSplittingMonochromatorDevice(name="diamond")
+opticstable = TableOptics(name="opticstable")
+flightpathtable = FlightPathTable(name="flightpathtable")
+bewindow = BeWindow(name="bewindow")
+shutterstage = ShutterStage(name="shutterstage")
+detu = DetStageUpstream(name="detu")
+detd = DetStageDownstream(name="detd")
+samplestage = SampleStage(name="samplestage")
+lakeshore = LS336Device("8idi:LS336:TC4:", name="lakeshore", labels=["heater", "Lakeshore"])
 
 
 class ModifiedEpidRecord(APS_synApps.EpidRecord):

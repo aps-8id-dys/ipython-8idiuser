@@ -215,17 +215,22 @@ class DetStageDownstream(Device):
 #    z = Component(EpicsMotor, '8idi:m70', labels=["motor", "sample"])
 
     
+class TableSampleStageUpstream(Device):
+    x = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table"])
+    y = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table"])  # ? Why is ti3 the only one that has a y stage?
+    z = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table"])
+
+    
 class SampleStageUpstream(Device):
     """
-    Sample stages 
+    Sample stage
     """
 
-    samx = EpicsMotor('8idi:m54', name='samx', labels=("motor",))
-    samy = EpicsMotor('8idi:m49', name='samy', labels=("motor",))
-    samz = EpicsMotor('8idi:m50', name='samz', labels=("motor",))
-    samth = EpicsMotor('8idi:m51', name='samth', labels=("motor",))
-    sampit = EpicsMotor('8idi:m52', name='sampit', labels=("motor",))
-    samchi = EpicsMotor('8idi:m53', name='samchi', labels=("motor",))
-    tablex = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table"])
-    tabley = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table"])  # ? Why is ti3 the only one that has a y stage?
-    tablez = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table"])
+    x = Component(EpicsMotor, '8idi:m54', labels=("motor",))
+    y = Component(EpicsMotor, '8idi:m49', labels=("motor",))
+    z = Component(EpicsMotor, '8idi:m50', labels=("motor",))
+    theta = Component(EpicsMotor, '8idi:m51', labels=("motor",))
+    pitch = Component(EpicsMotor, '8idi:m52', labels=("motor",))
+    chi = Component(EpicsMotor, '8idi:m53', labels=("motor",))
+
+    table = Component(TableSampleStageUpstream, labels=("table",))

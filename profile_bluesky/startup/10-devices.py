@@ -190,3 +190,20 @@ class DetStageDownstream(Device):
 
     
 >>>>>>> Stashed changes
+
+class SampleStageUpstream(Device):
+    """
+    Sample stages 
+    """
+
+    samx = EpicsMotor('8idi:m54', name='samx', labels=("motor",))
+    samy = EpicsMotor('8idi:m49', name='samy', labels=("motor",))
+    samz = EpicsMotor('8idi:m50', name='samz', labels=("motor",))
+    samth = EpicsMotor('8idi:m51', name='samth', labels=("motor",))
+    sampit = EpicsMotor('8idi:m52', name='sampit', labels=("motor",))
+    samchi = EpicsMotor('8idi:m53', name='samchi', labels=("motor",))
+    tablex = Component(EpicsMotor, '8idi:TI3:x', labels=["motor", "table"])
+    tabley = Component(EpicsMotor, '8idi:TI3:z', labels=["motor", "table"])  # ? Why is ti3 the only one that has a y stage?
+    tablez = Component(EpicsMotor, '8idi:TI3:y', labels=["motor", "table"])
+
+

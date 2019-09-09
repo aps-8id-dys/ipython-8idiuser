@@ -104,7 +104,7 @@ class LS336_Loop(APS_devices.ProcessController):
     """
     signal = FormattedComponent(EpicsSignalRO, "{self.prefix}OUT{self.loop_number}:SP_RBV")
     target = FormattedComponent(EpicsSignal, "{self.prefix}OUT{self.loop_number}:SP", kind="omitted")
-    # units = FormattedComponent(EpicsSignalWithRBV, kind="{self.prefix}IN{self.loop_number}.Units")
+    units = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}IN{self.loop_number}:Units", kind="omitted")
 
     loop_name = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}:Name_RBV")
     temperature = FormattedComponent(EpicsSignalRO, "{self.prefix}IN{self.loop_number}")

@@ -16,12 +16,13 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
-from apstools import utilities as APS_utils
+from apstools import utils as APS_utils
 from bluesky import plan_stubs as bps
 import datetime
 import h5py
 import logging
 import math
+import os
 import subprocess 
 
 from . import detector_parameters

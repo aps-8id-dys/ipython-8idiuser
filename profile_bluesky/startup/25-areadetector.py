@@ -101,13 +101,13 @@ class Plugin_HDF5_EPICS_Names(
 class Lambda750kAreaDetector(SingleTrigger, AreaDetector): 
     cam = ADComponent(Lambda750kCam, "cam1:")
     image = Component(ImagePlugin, suffix="image1:")
-    hdf1 = Component(
-        Plugin_HDF5_EPICS_Names,
-        suffix='HDF1:', 
-        root = DATABROKER_ROOT_PATH,
-        write_path_template = AD_HDF5_IOC_WRITE_PATH,
-        read_path_template = AD_HDF5_DB_READ_PATH,
-    )
+    #hdf1 = Component(
+    #    Plugin_HDF5_EPICS_Names,
+    #    suffix='HDF1:', 
+    #    root = DATABROKER_ROOT_PATH,
+    #    write_path_template = AD_HDF5_IOC_WRITE_PATH,
+    #    read_path_template = AD_HDF5_DB_READ_PATH,
+    #)
     immjoin = Component(ImmJoinPlugin, "IMMJoin:")
     imm0 = Component(IMMFilePlugin, "IMM0:")
     imm1 = Component(IMMFilePlugin, "IMM1:")
@@ -118,12 +118,12 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     scatter = Component(ScatterPlugin, "Scatter1:")
     
     def get_plugin_file_name(self):
-		"""
-		return the file name the plugin wrote
+        """
+        return the file name the plugin wrote
         
         Implement for the DM workflow.
-		"""
-		return self.immout.filepath_RBV.value
+        """
+        return self.immout.filepath_RBV.value
     
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -161,7 +161,7 @@ try:
         )
 
     adlambda.read_attrs += "immjoin imm0 imm1 imm2 imm3 immout gather scatter".split()
-    adlambda.read_attrs.append("hdf1")
+    #adlambda.read_attrs.append("hdf1")
     # suggestions for setting HDF5 plugin defaults
     # adlambda.hdf1.file_path.put(AD_HDF5_IOC_WRITE_PATH)
     # adlambda.hdf1.file_name.put("bluesky")

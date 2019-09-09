@@ -206,4 +206,3 @@ class SampleStage(Device):
     theta = Component(EpicsMotor, '8idi:m52', labels=["motor", "sample"])
     chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])
     table = Component(SampleStageTable, labels=["table",])
-

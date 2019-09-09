@@ -134,6 +134,9 @@ class LS336_LoopHeaterPidControls(LS336_Loop):
     ramp_on = FormattedComponent(EpicsSignalWithRBV, "{self.prefix}OnRamp{self.loop_number}")
 
 
+from .records.asyn import AsynRecord
+
+
 class LS336Device(Device):
     """
     support for Lakeshore 336 temperature controller
@@ -159,7 +162,7 @@ class LS336Device(Device):
     read_all = Component(EpicsSignal, "readAll.PROC")
     
     # needed (not available) from apstools.synApps
-    # serial = Component(AsynRecord, "serial")      # TODO:
+    serial = Component(AsynRecord, "serial")
 
     @property
     def value(self):

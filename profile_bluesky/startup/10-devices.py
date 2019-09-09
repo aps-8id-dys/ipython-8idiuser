@@ -273,4 +273,4 @@ class LS336Device(Device):
     @property
     def value(self):
         """designate one loop as the default signal to return"""
-        return self.loop1.signal
+        return self.loop1.signal.value

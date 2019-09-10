@@ -2,8 +2,6 @@ logger.info(__file__)
 
 """signals"""
 
-sys.path.append(os.path.dirname(__file__))
-
 # APS only:
 aps = APS_devices.ApsMachineParametersDevice(name="aps")
 sd.baseline.append(aps)

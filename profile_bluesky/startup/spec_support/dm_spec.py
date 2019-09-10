@@ -3,7 +3,10 @@
 APS Data Management workflow support for SPEC
 """
 
+import datetime
 import epics
+
+from . import APS_DM_8IDI
 
 
 class DataManagementMetadata:
@@ -79,3 +82,13 @@ class DataManagementMetadata:
     user_data_folder = epics.PV("8idi:StrReg3", string=True)
     xspec = epics.PV("8idi:Reg15")
     zspec = epics.PV("8idi:Reg16")
+
+
+# What APS run cycle are we in?  Hackulate it.
+dt = datetime.datetime.now()
+aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
+
+xpcs_qmap_file = "Lambda_qmap.h5"		# TODO:
+
+dm_pars = DataManagementMetadata(name="dm_pars")
+dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)

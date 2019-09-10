@@ -16,26 +16,15 @@ class UFXC_Device(Device):
 UFXC = UFXC_Device(name = "UFXC")
 
 
-def unix(command):
-    # TODO: use logging package
-    sp = subprocess.Popen(
-        command, 
-        shell=True,
-        stdin = subprocess.PIPE,
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE,
-        )
-    out, err = sp.communicate()
-    return out
+def UFXC_Acquire(batch_name='A001_Test'):
 
-
-def UFXC_Acquire(batch_name = 'A001_Test'):
+    # TODO: refactor like user.Lambda.AD_Acquire
 
     yield from bps.mv(UFXC.shutter_control, 'UFXC')
     cmd = f"echo FILE:F:{batch_name} | nc 164.54.116.83 10000"
-    exitcode = unix(cmd)    # FIXME: blocking code!!!
+    exitcode = APS_utils.unix(cmd)    # FIXME: blocking code!!!
     # If exitcode not equal b'', then an error has occurred
-    print(f"START of UFXC Measurement: {datetime.datetime.now()}")
+    logger.info(f"START of UFXC Measurement: {datetime.datetime.now()}")
 
     yield from bps.mv(UFXC.acquire_start, 1)
     yield from bps.sleep(0.1)
@@ -43,15 +32,10 @@ def UFXC_Acquire(batch_name = 'A001_Test'):
        
     yield from bps.sleep(0.2)
 
-    print("Waiting for UFXC to finish DAQ and ready for next Daq")
+    logger.info("Waiting for UFXC to finish DAQ and ready for next Daq")
 
     while UFXC.acquire_complete.get() not in (1, 'High'):
         yield from bps.sleep(0.01)  # FIXME: use a status object instead
-    print(f"UFXC is ready to start the next DAQ: {UFXC.acquire_complete.value}")
+    logger.info(f"UFXC is ready to start the next DAQ: {UFXC.acquire_complete.value}")
 
-    print(f"END of UFXC Measurement: {datetime.datetime.now()}")
-
-
-
-
-
+    logger.info(f"END of UFXC Measurement: {datetime.datetime.now()}")

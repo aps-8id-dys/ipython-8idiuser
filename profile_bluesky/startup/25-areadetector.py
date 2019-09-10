@@ -116,6 +116,43 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     immout = Component(IMMFilePlugin, "IMMout:")
     gather = Component(GatherPlugin, "Gather1:")
     scatter = Component(ScatterPlugin, "Scatter1:")
+    
+    @property
+    def plugin_file_name(self):
+        """
+        return the file name the plugin wrote
+        
+        Implement for the DM workflow.
+        """
+        # cut the path from file name
+        return os.path.basename(self.immout.full_file_name.value)
+    
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the detector's stage_sigs for acquisition with the DM workflow
+        
+        Implement this method in _any_ Device that requires custom
+        setup for the DM workflow.
+        """
+        assert len(args) == 5
+        file_path = args[0]
+        file_name = args[1]
+        num_images = args[2]
+        acquire_time = args[3]
+        acquire_period = args[4]
+
+        self.cam.stage_sigs["num_images"] = num_images
+        self.cam.stage_sigs["acquire_time"] = acquire_time
+        self.cam.stage_sigs["acquire_period"] = acquire_period
+        self.immout.stage_sigs["enable"] = 1
+        self.immout.stage_sigs["blocking_callbacks"] = "Yes"
+        self.immout.stage_sigs["parent.cam.array_callbacks"] = 1
+        self.immout.stage_sigs["file_path"] = file_path
+        self.immout.stage_sigs["file_name"] = file_name
+        self.immout.stage_sigs["num_capture"] = num_images
+        self.immout.stage_sigs["file_number"] = 1
+        self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
+        self.immout.stage_sigs["capture"] = 1
 
 
 try:

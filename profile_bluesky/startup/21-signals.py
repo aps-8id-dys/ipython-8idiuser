@@ -37,6 +37,9 @@ detd = DetStageDownstream(name="detd")
 samplestage = SampleStage(name="samplestage")
 lakeshore = LS336Device("8idi:LS336:TC4:", name="lakeshore", labels=["heater", "Lakeshore"])
 
+T_A = lakeshore.loop1.temperature
+T_SET = lakeshore.loop1.target
+
 
 class ModifiedEpidRecord(APS_synApps.EpidRecord):
     clock_ticks = None

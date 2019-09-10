@@ -50,4 +50,4 @@ from apstools.filewriters import SpecWriterCallback, spec_comment
 #    %run -i -m user.module
 from IPython.paths import get_ipython_dir
 sys.path.append(os.path.join(get_ipython_dir(), "user"))
-sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(__file__))

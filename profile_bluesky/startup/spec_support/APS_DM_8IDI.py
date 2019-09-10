@@ -16,26 +16,18 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
+from apstools import utils as APS_utils
 from bluesky import plan_stubs as bps
 import datetime
 import h5py
+import logging
 import math
+import os
 import subprocess 
 
 from . import detector_parameters
 
-
-def unix(command):
-    # TODO: replace with apstools.utils.unix() with apstools 1.1.14+
-    sp = subprocess.Popen(
-        command, 
-        shell=True,
-        stdin = subprocess.PIPE,
-        stdout = subprocess.PIPE,
-        stderr = subprocess.PIPE,
-        )
-    out, err = sp.communicate()
-    return out
+logger = logging.getLogger(os.path.split(__file__)[-1])
 
 
 class DM_Workflow:
@@ -71,12 +63,12 @@ class DM_Workflow:
 
     def __init__(self, 
                  dm_pars,
+                 aps_cycle,
+                 xpcs_qmap_file,
                  transfer="xpcs8-01",
                  analysis="xpcs8-02",
-                 qmap_path=None,
-                 xpcs_qmap_file=None):
+                 ):
         self.dm_pars = dm_pars
-        self.index = 0      # TODO: How is this used?
         self.detectors = detector_parameters.PythonDict()
 
         self.DM_WORKFLOW_DATA_TRANSFER = transfer
@@ -86,13 +78,8 @@ class DM_Workflow:
         self.TRANSFER_COMMAND = ""
         self.ANALYSIS_COMMAND = ""
         
-        self.QMAP_FOLDER_PATH = qmap_path or "" # TODO:
-        self.XPCS_QMAP_FILENAME = xpcs_qmap_file or "" # TODO:
-
-    # def begin(self, filename):
-    #     # TODO: Why is this method needed?
-    #     # Why not call create_hdf5_file() directly?
-    #     self.create_hdf5_file(filename)
+        self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
+        self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
     def create_hdf5_file(self, filename, as_bluesky_plan=False):
         """
@@ -118,10 +105,8 @@ class DM_Workflow:
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:
-
-            # Metadata
-#            dt = h5py.special_dtype(vlen=unicode)   # TODO: not used below, what does it do?
-#            data = 0
+			
+			# TODO: check for dm_pars replaced by stage/table and ".position"
 
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
@@ -164,14 +149,14 @@ class DM_Workflow:
                 data=[[dm_pars.attenuation.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[dm_pars.beam_size_H.value]])
+                data=[[si2.hgap.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[dm_pars.beam_size_V.value]])
+                data=[[si2.vgap.value]])
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
             f["/measurement/instrument/acquisition/root_folder"] = dm_pars.root_folder.value
-            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.parent_folder.value
+            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.user_data_folder.value
             f["/measurement/instrument/acquisition/data_folder"] = dm_pars.data_folder.value
             f["/measurement/instrument/acquisition/datafilename"] = dm_pars.datafilename.value
 
@@ -251,25 +236,25 @@ class DM_Workflow:
             f.create_dataset("/measurement/sample/thickness", data=[[1.0]])
             
             f.create_dataset("/measurement/sample/temperature_A",
-                data=[[dm_pars.temperature_A.value]])
+                data=[[lakeshore.loop1.temperature.value]])
 
             f.create_dataset("/measurement/sample/temperature_B",
-                data=[[dm_pars.temperature_B.value]])
+                data=[[lakeshore.loop2.temperature.value]])
 
             f.create_dataset("/measurement/sample/temperature_A_set",
-                data=[[dm_pars.temperature_A_set.value]])
+                data=[[lakeshore.loop1.signal.value]])
             # data=[[dm_pars.pid1.value]])
 
             f.create_dataset("/measurement/sample/temperature_B_set",
-                data=[[dm_pars.temperature_B_set.value]])
+                data=[[lakeshore.loop2.signal.value ]])
 
             f.create_dataset(
                 "/measurement/sample/translation",
                 data=[
                     [
-                        dm_pars.translation_x.value,
-                        dm_pars.translation_y.value,
-                        dm_pars.translation_z.value,
+                        samplestage.x.position,
+                        samplestage.y.position,
+                        samplestage.z.position,
                         ]
                     ]
                 )
@@ -279,10 +264,10 @@ class DM_Workflow:
                 "/measurement/sample/translation_table",
                 data=[
                     [
-                        dm_pars.translation_table_x.value,
-                        dm_pars.translation_table_y.value,
-                        dm_pars.translation_table_z.value,
-                        ]
+                        samplestage.table.x.position,
+                        samplestage.table.y.position,
+                        samplestage.table.z.position,
+                         ]
                     ]
                 )
 
@@ -290,9 +275,9 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        dm_pars.sample_pitch.value, # m52
-                        dm_pars.sample_roll.value,  # m53
-                        dm_pars.sample_yaw.value,   # m51
+                        samplestage.theta.position, # m52 - pitch
+                        samplestage.chi.position,  # m53 - roll
+                        samplestage.phi.position,   # m51 - yaw
                         ]
                     ]
                 )
@@ -456,13 +441,12 @@ class DM_Workflow:
             f" filePath:{hdf_with_fullpath}"
             )
         self.TRANSFER_COMMAND = cmd;
-        print(
+        logger.info(
             "DM Workflow call is made for DATA transfer: "
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        unix(cmd)
-        pass
+        return APS_utils.unix(cmd)
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -488,20 +472,17 @@ class DM_Workflow:
             )
         self.ANALYSIS_COMMAND = cmd;
 
-        # TODO: use logging package
-        print(
+        logger.info(
             f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
             f",{qmapfile_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        unix(cmd)
-        pass
+        return APS_utils.unix(cmd)
 
     def ListJobs(self):
         """
         list current jobs in the workflow
         """
-        print("*"*30)
         command = (
             "source /home/dm/etc/dm.setup.sh; "
             "dm-list-processing-jobs"
@@ -509,12 +490,10 @@ class DM_Workflow:
             " | sort -r"
             " |head -n 10"
             )
-        # TODO: use logging package
-        unix(command);
-        print("*"*30)
-        print(datetime.datetime.now())
-        print("*"*30)
-        pass
+        out, err = APS_utils.unix(command);
+        logger.info("*"*30)
+        logger.info(out)
+        logger.info("*"*30)
 
 
 if __name__ == "__main__":
@@ -523,6 +502,6 @@ if __name__ == "__main__":
     
     dm_pars = None  # TODO: need an ophyd.Device
 
-    newObject = EigerHDF5(dm_pars)
-    newObject.create_hdf5_file(filename)
+    workflow = DM_Workflow(dm_pars)
+    workflow.create_hdf5_file(filename)
    

@@ -17,7 +17,7 @@ trigger area detector while monitoring the above params
 def AD_Acquire(areadet, 
         acquire_time=0.1, acquire_period=0.11, 
         num_images=100, file_name="A001",
-        submit_xpcs_job=True.
+        submit_xpcs_job=True,
         atten=None):
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
@@ -64,7 +64,7 @@ def AD_Acquire(areadet,
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
-            file_name
+            f"_{file_name}"
             f"_{dm_pars.data_begin.value:04.0f}"
             f"-{dm_pars.data_end.value:04.0f}"
         )
@@ -83,7 +83,7 @@ def AD_Acquire(areadet,
         yield from bps.mv(
             # StrReg 2-7 in order
             dm_pars.root_folder, file_path,
-            dm_pars.user_data_folder, os.path.dirname(file_path),	# just last item in path
+            dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, areadet.plugin_file_name,
             dm_pars.source_begin_datetime, datetime.now().strftime("%c"),
@@ -96,13 +96,13 @@ def AD_Acquire(areadet,
             dm_pars.roi_y2, det_pars["ccdHardwareRowSize"]-1,
             dm_pars.cols, det_pars["ccdHardwareColSize"],
             dm_pars.rows, det_pars["ccdHardwareRowSize"],
-            dm_pars.kinetics_state, 0,  				# FIXME: SPEC generated this
-            dm_pars.kinetics_window_size, 0,    		# FIXME:
-            dm_pars.kinetics_top, 0,    				# FIXME:
+            dm_pars.kinetics_state, 0,                  # FIXME: SPEC generated this
+            dm_pars.kinetics_window_size, 0,            # FIXME:
+            dm_pars.kinetics_top, 0,                    # FIXME:
             dm_pars.attenuation, atten.value,
             # Reg 111-120 in order
-            #dm_pars.dark_begin, -1, 			#  edit if detector needs this
-            #dm_pars.dark_end, -1,   			#  op cit
+            #dm_pars.dark_begin, -1,            #  edit if detector needs this
+            #dm_pars.dark_end, -1,              #  op cit
             dm_pars.data_begin, 1,
             dm_pars.data_end, num_images,
             dm_pars.exposure_time, acquire_time,
@@ -119,7 +119,7 @@ def AD_Acquire(areadet,
         )
 
     def update_metadata_postscan():
-        scan_id = 680	# TODO: get from RE.md["scan_id"] or equal
+        scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
             dm_pars.source_end_datetime, datetime.now().strftime("%c"),
@@ -159,6 +159,6 @@ def AD_Acquire(areadet,
         logger.info("DM workflow done")
         logger.info(out)
         if len(err) > 0:
-			logger.error(err)
+            logger.error(err)
 
     return (yield from inner())

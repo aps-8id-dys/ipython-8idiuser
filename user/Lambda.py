@@ -11,7 +11,6 @@ define file plugin immout params such as file path,file name, num_images, file_n
 configure scaler channels for monitoring some scalers and devices such as temperature
 
 trigger area detector while monitoring the above params
-
 """
 
 def AD_Acquire(areadet, 
@@ -61,6 +60,10 @@ def AD_Acquire(areadet,
         scaler1_time,
     """
 
+    @property
+    def timestamp_now():
+        return datetime.datetime.now().strftime("%c").strip()
+
     def make_hdf5_workflow_filename():
         path = os.path.join(file_path, file_name)
         if path.startswith("/data"):
@@ -104,11 +107,10 @@ def AD_Acquire(areadet,
         )
         logger.info("dm_pars.datafilename")
 
-        #~ yield from bps.mv(
-            #~ # FIXME: does not return!  Writing to waveform PV is the problem, set() does not return
-            #~ dm_pars.source_begin_datetime, datetime.datetime.now().strftime("%c"),
-        #~ )
-        #~ logger.info("dm_pars.source_begin_datetime")
+        yield from bps.mv(
+            dm_pars.source_begin_datetime, timestamp_now,
+        )
+        logger.info("dm_pars.source_begin_datetime")
 
         yield from bps.mv(
             # Reg 121
@@ -155,7 +157,7 @@ def AD_Acquire(areadet,
         scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
-            # dm_pars.source_end_datetime, datetime.datetime.now().strftime("%c"),
+            dm_pars.source_end_datetime, timestamp_now,
             dm_pars.source_end_current, aps.current.value,
             # TODO: scan's uuid : we need a StrReg for this
         )

@@ -32,7 +32,7 @@ def newSpecFile(title, scan_id=1):
     3. appends file extension
     """
     global specwriter
-    mmdd = str(datetime.now()).split()[0][5:].replace("-", "_")
+    mmdd = str(datetime.datetime.now()).split()[0][5:].replace("-", "_")
     clean = APS_utils.cleanupText(title)
     fname = "%s_%s.dat" % (mmdd, clean)
     if os.path.exists(fname):

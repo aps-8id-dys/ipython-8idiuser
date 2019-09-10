@@ -1,7 +1,5 @@
 logger.info(__file__)
 
-from datetime import datetime
-
 # Set up default metadata
 
 RE.md['beamline_id'] = 'APS TRR 8-ID-I'

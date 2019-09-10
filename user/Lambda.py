@@ -86,7 +86,7 @@ def AD_Acquire(areadet,
             dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
             dm_pars.data_folder, file_name,
             dm_pars.datafilename, areadet.plugin_file_name,
-            dm_pars.source_begin_datetime, datetime.now().strftime("%c"),
+            dm_pars.source_begin_datetime, datetime.datetime.now().strftime("%c"),
             # Reg 121
             dm_pars.source_begin_current, aps.current.value,
             # Reg 101-110 in order
@@ -122,7 +122,7 @@ def AD_Acquire(areadet,
         scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
-            dm_pars.source_end_datetime, datetime.now().strftime("%c"),
+            dm_pars.source_end_datetime, datetime.datetime.now().strftime("%c"),
             dm_pars.source_end_current, aps.current.value,
             # TODO: scan's uuid : we need a StrReg for this
         )

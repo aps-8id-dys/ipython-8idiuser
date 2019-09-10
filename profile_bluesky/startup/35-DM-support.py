@@ -83,7 +83,7 @@ class DataManagementMetadata(Device):
 
 
 # What APS run cycle are we in?  Hackulate it.
-dt = datetime.now()
+dt = datetime.datetime.now()
 aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
 xpcs_qmap_file = "Lambda_qmap.h5"		# TODO:

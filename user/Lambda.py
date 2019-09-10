@@ -62,7 +62,7 @@ def AD_Acquire(areadet,
     """
 
     def make_hdf5_workflow_filename():
-        path = os.path.join(file_path, file_name) # TODO: verify
+        path = os.path.join(file_path, file_name)
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (

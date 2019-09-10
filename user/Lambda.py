@@ -19,10 +19,12 @@ def AD_Acquire(areadet,
         num_images=100, file_name="A001",
         submit_xpcs_job=True,
         atten=None):
+    logger.info("AD_Acquire starting")
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
+    logger.info(f"file_path = {file_path}")
     
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
@@ -60,7 +62,7 @@ def AD_Acquire(areadet,
     """
 
     def make_hdf5_workflow_filename():
-        path = os.path.join(file_path, data_folder) # TODO: verify
+        path = os.path.join(file_path, file_name) # TODO: verify
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
@@ -80,13 +82,35 @@ def AD_Acquire(areadet,
     def update_metadata_prescan():
         detNum = int(dm_pars.detNum.value)
         det_pars = dm_workflow.detectors.getDetectorByNumber(detNum)
+        logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
             dm_pars.root_folder, file_path,
+        )
+        logger.info("dm_pars.root_folder")
+
+        yield from bps.mv(
             dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+        )
+        logger.info("dm_pars.user_data_folder")
+
+        yield from bps.mv(
             dm_pars.data_folder, file_name,
+        )
+        logger.info("dm_pars.data_folder")
+
+        yield from bps.mv(
             dm_pars.datafilename, areadet.plugin_file_name,
-            dm_pars.source_begin_datetime, datetime.datetime.now().strftime("%c"),
+        )
+        logger.info("dm_pars.datafilename")
+
+        #~ yield from bps.mv(
+            #~ # FIXME: does not return!  Writing to waveform PV is the problem, set() does not return
+            #~ dm_pars.source_begin_datetime, datetime.datetime.now().strftime("%c"),
+        #~ )
+        #~ logger.info("dm_pars.source_begin_datetime")
+
+        yield from bps.mv(
             # Reg 121
             dm_pars.source_begin_current, aps.current.value,
             # Reg 101-110 in order
@@ -100,6 +124,10 @@ def AD_Acquire(areadet,
             dm_pars.kinetics_window_size, 0,            # FIXME:
             dm_pars.kinetics_top, 0,                    # FIXME:
             dm_pars.attenuation, atten.value,
+        )
+        logger.info("Reg 121, 101-110 done")
+
+        yield from bps.mv(
             # Reg 111-120 in order
             #dm_pars.dark_begin, -1,            #  edit if detector needs this
             #dm_pars.dark_end, -1,              #  op cit
@@ -110,6 +138,10 @@ def AD_Acquire(areadet,
             # dm_pars.specscan_dark_number, -1,   #  not used, detector takes no darks
             dm_pars.stage_x, detu.x.position,
             dm_pars.stage_z, detu.z.position,
+        )
+        logger.info("Reg 111-120 done")
+
+        yield from bps.mv(
             # Reg 123-127 in order
             dm_pars.I0mon, I0Mon.value,
             dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
@@ -117,12 +149,13 @@ def AD_Acquire(areadet,
             dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
             dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
         )
+        logger.info("Reg 123-127 done")
 
     def update_metadata_postscan():
         scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
-            dm_pars.source_end_datetime, datetime.datetime.now().strftime("%c"),
+            # dm_pars.source_end_datetime, datetime.datetime.now().strftime("%c"),
             dm_pars.source_end_current, aps.current.value,
             # TODO: scan's uuid : we need a StrReg for this
         )
@@ -130,7 +163,9 @@ def AD_Acquire(areadet,
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def inner():
+        logger.info("before update_metadata_prescan()")
         yield from update_metadata_prescan()
+        logger.info("after update_metadata_prescan()")
 
         md = {
             "file_name": file_name,
@@ -138,8 +173,14 @@ def AD_Acquire(areadet,
         }
         # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
+        logger.info("scaler should be autocounting now")
+
         # do the acquisition (the scan)
+        logger.info("before count()")
         yield from bp.count([areadet], md=md)
+        logger.info("after count()")
+        # TODO: also need to wait for adlambda.immout.capture.value  = 0
+        # note: capture is turned off when cam acquires all images, should wait
 
         yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()
@@ -161,4 +202,5 @@ def AD_Acquire(areadet,
         if len(err) > 0:
             logger.error(err)
 
+    logger.info("calling inner()")
     return (yield from inner())

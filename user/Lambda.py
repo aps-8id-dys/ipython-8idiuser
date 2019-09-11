@@ -68,7 +68,7 @@ def AD_Acquire(areadet,
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
-            f"_{file_name}"
+            f"{file_name}"
             f"_{dm_pars.data_begin.value:04.0f}"
             f"-{dm_pars.data_end.value:04.0f}"
         )

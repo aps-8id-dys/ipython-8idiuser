@@ -16,10 +16,8 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
-# get all the symbols from the IPython shell
-import IPython
-globals().update(IPython.get_ipython().user_ns)
-
+from apstools import utils as APS_utils
+from bluesky import plan_stubs as bps
 import datetime
 import h5py
 import logging
@@ -83,7 +81,11 @@ class DM_Workflow:
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
         self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
-    def create_hdf5_file(self, filename, as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, 
+			 si2,
+			 samplestage,
+			 lakeshore,
+			 as_bluesky_plan=False):
         """
         write metadata from EPICS PVs to new HDF5 file
         

@@ -60,7 +60,6 @@ def AD_Acquire(areadet,
         scaler1_time,
     """
 
-    @property
     def timestamp_now():
         return datetime.datetime.now().strftime("%c").strip()
 
@@ -108,7 +107,7 @@ def AD_Acquire(areadet,
         logger.info("dm_pars.datafilename")
 
         yield from bps.mv(
-            dm_pars.source_begin_datetime, timestamp_now,
+            dm_pars.source_begin_datetime, timestamp_now(),
         )
         logger.info("dm_pars.source_begin_datetime")
 
@@ -157,7 +156,7 @@ def AD_Acquire(areadet,
         scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
         yield from bps.mv(
             # source end values
-            dm_pars.source_end_datetime, timestamp_now,
+            dm_pars.source_end_datetime, timestamp_now(),
             dm_pars.source_end_current, aps.current.value,
             # TODO: scan's uuid : we need a StrReg for this
         )

@@ -65,8 +65,8 @@ class DM_Workflow:
                  dm_pars,
                  aps_cycle,
                  xpcs_qmap_file,
-                 transfer="xpcs8-01",
-                 analysis="xpcs8-02",
+                 transfer="xpcs8-01-Lambda",
+                 analysis="xpcs8-02-Lambda",
                  ):
         self.dm_pars = dm_pars
         self.detectors = detector_parameters.PythonDict()

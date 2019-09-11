@@ -149,10 +149,10 @@ class DM_Workflow:
                 data=[[dm_pars.attenuation.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[si2.hgap.value]])
+                data=[[si2.hgap.position]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[si2.vgap.value]])
+                data=[[si2.vgap.position]])
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
             f["/measurement/instrument/acquisition/root_folder"] = dm_pars.root_folder.value

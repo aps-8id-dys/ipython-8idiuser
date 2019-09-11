@@ -85,6 +85,7 @@ class DM_Workflow:
 			 si2,
 			 samplestage,
 			 lakeshore,
+			 monochromator,
 			 as_bluesky_plan=False):
         """
         write metadata from EPICS PVs to new HDF5 file
@@ -225,7 +226,8 @@ class DM_Workflow:
                 data=[[dm_pars.source_begin_current.value]])
         
             f.create_dataset("/measurement/instrument/source_begin/energy",
-                data=[[dm_pars.source_begin_energy.value]])
+                	     # TODO: dm_pars.source_begin_energy.value
+			     data=[[monochromator.energy.value]])
 
             f["/measurement/instrument/source_begin/datetime"] = dm_pars.source_begin_datetime.value
 

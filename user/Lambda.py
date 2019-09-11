@@ -190,6 +190,7 @@ def AD_Acquire(areadet,
                                                 si2,
                                                 samplestage,
                                                 lakeshore,
+                                                monochromator,
                                                 as_bluesky_plan=True)
         
         # no need to yield from since the function is not a plan

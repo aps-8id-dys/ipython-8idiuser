@@ -160,8 +160,23 @@ class DM_Workflow:
                 data=[[si2.vgap.position]])
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
+
+	    # FIXME: root folder should not have the file name in it
+		"""
+		In [4]: dm_pars.root_folder.value
+		Out[4]: '/home/8-id-i/2019-2/jemian_201908/A024/'
+		pick "/home/8-id-i/2019-2/jemian_201908"
+		"""
             f["/measurement/instrument/acquisition/root_folder"] = dm_pars.root_folder.value
-            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.user_data_folder.value
+
+	    # FIXME: parent_folder should be last directory of  user_data_folder
+		"""
+		In [1]: dm_pars.user_data_folder.value
+		Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
+		pick "jemian_201908" part
+		"""
+
+	    f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.user_data_folder.value
             f["/measurement/instrument/acquisition/data_folder"] = dm_pars.data_folder.value
             f["/measurement/instrument/acquisition/datafilename"] = dm_pars.datafilename.value
 

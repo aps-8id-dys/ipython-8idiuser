@@ -227,7 +227,7 @@ class DM_Workflow:
         
             f.create_dataset("/measurement/instrument/source_begin/energy",
                 	     # TODO: dm_pars.source_begin_energy.value
-			     data=[[monochromator.energy.value]])
+			     data=[[monochromator.energy.position]])
 
             f["/measurement/instrument/source_begin/datetime"] = dm_pars.source_begin_datetime.value
 

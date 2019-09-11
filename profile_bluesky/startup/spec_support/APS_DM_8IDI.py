@@ -16,8 +16,10 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
-from apstools import utils as APS_utils
-from bluesky import plan_stubs as bps
+# get all the symbols from the IPython shell
+import IPython
+globals().update(IPython.get_ipython().user_ns)
+
 import datetime
 import h5py
 import logging

@@ -1,10 +1,9 @@
 #!/bin/env python
 
 """
-print metadata PV values as a table
+print metadata PV values as a table, use ophyd
 """
 
-from bluesky import RunEngine
 from ophyd import Component, Device, EpicsSignal
 from pyRestTable import Table
 import time
@@ -23,7 +22,7 @@ class StrReg(NumReg):
     signal = Component(EpicsSignal, ".VAL", string=True)
 
 
-class MetadataTable:
+class Metadata:
     string_registers_max = 50
     number_registers_max = 150
     strings = []
@@ -67,7 +66,7 @@ class MetadataTable:
 
 
 def main():
-    md = MetadataTable()
+    md = Metadata()
     t0 = time.time()
     while not md.connected:
         # check all PVs connected

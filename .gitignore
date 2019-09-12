@@ -12,6 +12,7 @@ security/
 *~
 *.h5
 mViewer.log
+.vscode
 
 # eclipse IDE
 .project

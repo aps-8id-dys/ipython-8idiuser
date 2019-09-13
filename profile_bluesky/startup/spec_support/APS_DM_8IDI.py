@@ -168,20 +168,21 @@ class DM_Workflow:
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
 
+            # dm_pars.root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/'
+            # dm_pars.data_subfolder: 'A186_DOHE04_Yb010_att0_Uq0_00150'
+            # root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/A186_DOHE04_Yb010_att0_Uq0_00150/'
             root_folder = os.path.join(
                 dm_pars.root_folder.value,
                 dm_pars.data_subfolder.value
             ).rstrip("/") + "/"  # ensure one and only one trailing `/`
             f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
-            # FIXME: parent_folder should be last directory of  user_data_folder
-            """
-            In [1]: dm_pars.user_data_folder.value
-            Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
-            pick "jemian_201908" part
-            """
+            # In [1]: dm_pars.user_data_folder.value
+            # Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
+            # pick "jemian_201908" part
+            parent_folder = dm_pars.user_data_folder.value.split("/")[-2]
+            f["/measurement/instrument/acquisition/parent_folder"] = parent_folder
 
-            f["/measurement/instrument/acquisition/parent_folder"] = dm_pars.user_data_folder.value
             f["/measurement/instrument/acquisition/data_folder"] = dm_pars.data_folder.value
             f["/measurement/instrument/acquisition/datafilename"] = dm_pars.datafilename.value
 

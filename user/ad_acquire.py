@@ -169,8 +169,8 @@ def AD_Acquire(areadet,
             # source end values
             dm_pars.source_end_datetime, timestamp_now(),
             dm_pars.source_end_current, aps.current.value,
-            dm_pars.uid, db[-1].start["uid"],   # TODO: need StrReg
-            dm_pars.scan_id, RE.md["scan_id"],  # TODO: need Reg
+            dm_pars.uid, db[-1].start["uid"],
+            dm_pars.scan_id, RE.md["scan_id"],
         )
 
     @bpp.stage_decorator([scaler1])
@@ -192,8 +192,6 @@ def AD_Acquire(areadet,
         logger.info("before count()")
         yield from bp.count([areadet], md=md)
         logger.info("after count()")
-        # TODO: also need to wait for adlambda.immout.capture.value  = 0
-        # note: capture is turned off when cam acquires all images, should wait
 
         yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()

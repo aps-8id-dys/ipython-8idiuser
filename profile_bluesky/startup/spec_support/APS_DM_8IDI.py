@@ -171,7 +171,7 @@ class DM_Workflow:
             root_folder = os.path.join(
                 dm_pars.root_folder.value,
                 dm_pars.data_subfolder.value
-            )
+            ).rstrip("/") + "/"  # ensure one and only one trailing `/`
             f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
             # FIXME: parent_folder should be last directory of  user_data_folder

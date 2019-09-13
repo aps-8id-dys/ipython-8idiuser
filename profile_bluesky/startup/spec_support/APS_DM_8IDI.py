@@ -17,7 +17,6 @@ These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.
 """
 
 from apstools import utils as APS_utils
-from bluesky import plan_stubs as bps
 import datetime
 import h5py
 import logging
@@ -96,7 +95,7 @@ class DM_Workflow:
             xpcs_qmap_file = os.path.splitext(xpcs_qmap_file)[0] + ext
         self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
-    def create_hdf5_file(self, filename, as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, **kwargs):
         """
         write metadata from EPICS PVs to new HDF5 file
         
@@ -104,16 +103,8 @@ class DM_Workflow:
         
         filename : str
             name of the HDF5 file to be written
-        
-        as_bluesky_plan : bool
-            If ``True``, yield a bluesky Message, default: ``False``
         """
         dm_pars = self.dm_pars
-        
-        if as_bluesky_plan:
-            # make this a bluesky plan, MUST yield at least one Message
-            # This is the only statement here that makes this a bluesky plan
-            yield from bps.null()
 
         # Gets Python Dict stored in other file
         masterDict = self.detectors.getMasterDict()

@@ -162,12 +162,15 @@ def AD_Acquire(areadet,
         logger.info("Reg 123-127 done")
 
     def update_metadata_postscan():
-        scan_id = 680   # TODO: get from RE.md["scan_id"] or equal
+        # since we inherited ALL the user's namespace, we have RE and db
+        scan_id = RE.md["scan_id"]
+        uid = db[-1].start["uid"]
         yield from bps.mv(
             # source end values
             dm_pars.source_end_datetime, timestamp_now(),
             dm_pars.source_end_current, aps.current.value,
-            # TODO: scan's uuid : we need a StrReg for this
+            dm_pars.uid, db[-1].start["uid"],   # TODO: need StrReg
+            dm_pars.scan_id, RE.md["scan_id"],  # TODO: need Reg
         )
 
     @bpp.stage_decorator([scaler1])

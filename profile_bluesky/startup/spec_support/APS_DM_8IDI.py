@@ -314,8 +314,8 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        dm_pars.sample_pitch.value
-                        dm_pars.sample_roll.value
+                        dm_pars.sample_pitch.value,
+                        dm_pars.sample_roll.value,
                         dm_pars.sample_yaw.value
                         ]
                     ]

@@ -177,25 +177,12 @@ class DM_Workflow:
                     dm_pars.root_folder.value,
                     dm_pars.data_subfolder.value
                 )
-            # FIXME: root folder should not have the file name in it
             """
-            In [4]: dm_pars.root_folder.value
-            Out[4]: '/home/8-id-i/2019-2/jemian_201908/A024/'
-            acquisition/root_folder = f"/home/8-id-i/2019-2/jemian_201908"
-            
-            fairly new development:
-            if detNum = "the new Rigaku's number":
-            add to acquisition/root_folder += f"/A024/{dm_pars.data_subfolder.value}"
-            extra dirs (which are in StrReg10: data_subfolder)
-
-            In [7]: !caget -S 8idi:StrReg10
-            8idi:StrReg10 A186_DOHE04_Yb010_att0_Uq0_00150
-
             note that to be compatible, we add this all the time (NOW)
             and set it to empty string when no extra directories are to be added.
             Another dataset in the hdf5 workflow file holds that
             """
-            f["/measurement/instrument/acquisition/root_folder"] = dm_pars.root_folder.value
+            f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
             # FIXME: parent_folder should be last directory of  user_data_folder
             """

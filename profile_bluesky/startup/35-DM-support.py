@@ -11,6 +11,8 @@ class DataManagementMetadata(Device):
     """
     signals for the APS Data Management service
     """
+    #        dm_pars.uid, db[-1].start["uid"],   # TODO: need StrReg
+    #        dm_pars.scan_id, RE.md["scan_id"],  # TODO: need Reg
     angle = Component(EpicsSignal, "8idi:Reg19")
     attenuation = Component(EpicsSignal, "8idi:Reg110")
     beam_center_x = Component(EpicsSignal, "8idi:Reg11")

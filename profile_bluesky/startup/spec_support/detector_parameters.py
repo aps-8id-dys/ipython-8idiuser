@@ -10,7 +10,7 @@ class PythonDict:
     Detector properties, as defined in matlab file
     """
     def __init__(self):
-        self.masterDict = self.describe_detectors()
+        self.masterDict = self._parse_matlab_detectors_()
 
         self.manufacturerDict = {
             # 1: "Direct Detection CCD in slow mode",
@@ -28,19 +28,19 @@ class PythonDict:
         for k, v in self.masterDict.items():
             v["manufacturer"] = self._getManufacturer_(k)
 
-    def returnMasterDict(self):
-        return self.masterDict
-
     def getDetectorByNumber(self, detNum):
         return self.masterDict[detNum]
 
-    def returnManufacturerDict(self):
+    def getManufacturerDict(self):
         return self.manufacturerDict
     
     def _getManufacturer_(self, detNum):
         return self.manufacturerDict.get(detNum, "UNKNOWN")
 
-    def describe_detectors(self):
+    def getMasterDict(self):
+        return self.masterDict
+
+    def _parse_matlab_detectors_(self):
         "Converts matlab code into a python dictionary"
         
         masterDict = {}

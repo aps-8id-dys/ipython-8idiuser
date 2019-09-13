@@ -5,12 +5,7 @@ logger.info(__file__)
 
 
 """
-define cam params such as acquire time, period, num images, camera mode
-define file plugin immout params such as file path,file name, num_images, file_number, capture
-
-configure scaler channels for monitoring some scalers and devices such as temperature
-
-trigger area detector while monitoring the above params
+bluesky data acquisition plans
 """
 
 def AD_Acquire(areadet, 
@@ -18,6 +13,20 @@ def AD_Acquire(areadet,
         num_images=100, file_name="A001",
         submit_xpcs_job=True,
         atten=None):
+    """
+    acquisition sequence initiating data management workflow
+
+    outline of acquisition sequence:
+
+    * define cam params such as acquire time, period, 
+      num images, camera mode
+    * define file plugin immout params such as file path,
+      file name, num_images, file_number, capture
+    * configure scaler channels for monitoring some 
+      scalers and devices such as temperature
+    * trigger area detector while monitoring the 
+      above params
+    """
     logger.info("AD_Acquire starting")
     path = "/home/8-id-i/2019-2/jemian_201908"
     file_path = os.path.join(path,file_name)

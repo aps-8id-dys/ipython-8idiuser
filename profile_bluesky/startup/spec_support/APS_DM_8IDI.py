@@ -54,6 +54,7 @@ class DM_Workflow:
     ==================  ===========================================
     method              docstring
     ==================  ===========================================
+    set_xpcs_qmap_file  (re)define the name of HDF5 workflow file
     create_hdf5_file    Reads camera data from EPICS PVs and writes to an hdf5 file
     DataTransfer        initiate data transfer
     DataAnalysis        initiate data analysis
@@ -79,14 +80,23 @@ class DM_Workflow:
         self.ANALYSIS_COMMAND = ""
         
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
+        self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
+
+    def set_xpcs_qmap_file(self, xpcs_qmap_file):
+        """
+        (re)define the name of HDF5 workflow file
+        
+        PARAMETERS
+        
+        xpcs_qmap_file : str
+            name of the HDF5 workflow file to be written
+        """
+        ext = ".h5"
+        if not xpcs_qmap_file.endswith(ext):
+            xpcs_qmap_file = os.path.splitext(xpcs_qmap_file)[0] + ext
         self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
-    def create_hdf5_file(self, filename, 
-			 si2,
-			 samplestage,
-			 lakeshore,
-			 monochromator,
-			 as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, as_bluesky_plan=False):
         """
         write metadata from EPICS PVs to new HDF5 file
         
@@ -110,9 +120,6 @@ class DM_Workflow:
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:
-			
-			# TODO: check for dm_pars replaced by stage/table and ".position"
-
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
                 data=[[dm_pars.hdf_metadata_version.value]]) #same as batchinfo_ver for now
@@ -154,10 +161,10 @@ class DM_Workflow:
                 data=[[dm_pars.attenuation.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[si2.hgap.position]])
+                data=[[dm_pars.beam_size_H.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[si2.vgap.position]])
+                data=[[dm_pars.beam_size_V.value]])
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
 
@@ -253,8 +260,7 @@ class DM_Workflow:
                 data=[[dm_pars.source_begin_current.value]])
         
             f.create_dataset("/measurement/instrument/source_begin/energy",
-                	     # TODO: dm_pars.source_begin_energy.value
-			     data=[[monochromator.energy.position]])
+			     data=[[dm_pars.source_begin_energy.value]])
 
             f["/measurement/instrument/source_begin/datetime"] = dm_pars.source_begin_datetime.value
 
@@ -269,25 +275,25 @@ class DM_Workflow:
             f.create_dataset("/measurement/sample/thickness", data=[[1.0]])
             
             f.create_dataset("/measurement/sample/temperature_A",
-                data=[[lakeshore.loop1.temperature.value]])
+                data=[[dm_pars.temperature_A.value]])
 
             f.create_dataset("/measurement/sample/temperature_B",
-                data=[[lakeshore.loop2.temperature.value]])
+                data=[[dm_pars.temperature_B.value]])
 
             f.create_dataset("/measurement/sample/temperature_A_set",
-                data=[[lakeshore.loop1.signal.value]])
+                data=[[dm_pars.temperature_A_set.value]])
             # data=[[dm_pars.pid1.value]])
 
             f.create_dataset("/measurement/sample/temperature_B_set",
-                data=[[lakeshore.loop2.signal.value ]])
+                data=[[dm_pars.temperature_B_set.value ]])
 
             f.create_dataset(
                 "/measurement/sample/translation",
                 data=[
                     [
-                        samplestage.x.position,
-                        samplestage.y.position,
-                        samplestage.z.position,
+                        dm_pars.translation_x.value,
+                        dm_pars.translation_y.value,
+                        dm_pars.translation_z.value,
                         ]
                     ]
                 )
@@ -297,9 +303,9 @@ class DM_Workflow:
                 "/measurement/sample/translation_table",
                 data=[
                     [
-                        samplestage.table.x.position,
-                        samplestage.table.y.position,
-                        samplestage.table.z.position,
+                        dm_pars.translation_table_x.value,
+                        dm_pars.translation_table_y.value,
+                        dm_pars.translation_table_z.value,
                          ]
                     ]
                 )
@@ -308,9 +314,9 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        samplestage.theta.position, # m52 - pitch
-                        samplestage.chi.position,  # m53 - roll
-                        samplestage.phi.position,   # m51 - yaw
+                        dm_pars.sample_pitch.value
+                        dm_pars.sample_roll.value
+                        dm_pars.sample_yaw.value
                         ]
                     ]
                 )
@@ -529,12 +535,12 @@ class DM_Workflow:
         logger.info("*"*30)
 
 
-if __name__ == "__main__":
-    import sys
-    filename = sys.argv[1]  # caller must provide a filename
-    
-    dm_pars = None  # TODO: need an ophyd.Device
-
-    workflow = DM_Workflow(dm_pars)
-    workflow.create_hdf5_file(filename)
+# if __name__ == "__main__":
+#     import sys
+#     filename = sys.argv[1]  # caller must provide a filename
+#
+#     dm_pars = None  # TO DO: need an ophyd.Device for testing
+#
+#     workflow = DM_Workflow(dm_pars)
+#     workflow.create_hdf5_file(filename)
    

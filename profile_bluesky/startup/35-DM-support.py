@@ -15,8 +15,8 @@ class DataManagementMetadata(Device):
     attenuation = Component(EpicsSignal, "8idi:Reg110")
     beam_center_x = Component(EpicsSignal, "8idi:Reg11")
     beam_center_y = Component(EpicsSignal, "8idi:Reg12")
-    # beam_size_H : see si2.hgap.value
-    # beam_size_V : see si2.vgap.value
+    beam_size_H = Component(EpicsSignal, "8idi:Reg151")
+    beam_size_V = Component(EpicsSignal, "8idi:Reg152")
     burst_mode_state = Component(EpicsSignal, "8idi:Reg124")
     ccdxspec = Component(EpicsSignal, "8idi:Reg18")
     ccdzspec = Component(EpicsSignal, "8idi:Reg17")
@@ -42,21 +42,23 @@ class DataManagementMetadata(Device):
     last_usable_burst = Component(EpicsSignal, "8idi:Reg127")
     number_of_bursts = Component(EpicsSignal, "8idi:Reg125")
     ## pid1 = Component(EpicsSignal, "8idi:pid1.VAL")
+    pid1_set = Component(EpicsSignal, "8idi:Reg167")
+    pid2_set = Component(EpicsSignal, "8idi:Reg168")
     roi_x1 = Component(EpicsSignal, "8idi:Reg101")
     roi_x2 = Component(EpicsSignal, "8idi:Reg102")
     roi_y1 = Component(EpicsSignal, "8idi:Reg103")
     roi_y2 = Component(EpicsSignal, "8idi:Reg104")
     root_folder = Component(EpicsSignal, "8idi:StrReg2", string=True)
     rows = Component(EpicsSignal, "8idi:Reg106")
-    # sample_pitch : see samplestage.theta
-    # sample_roll : see samplestage.chi
-    # sample_yaw : see samplestage.phi
+    sample_pitch = Component(EpicsSignal, "8idi:Reg164")
+    sample_roll = Component(EpicsSignal, "8idi:Reg165")
+    sample_yaw = Component(EpicsSignal, "8idi:Reg166")
     scan_id = Component(EpicsSignal, "8idi:Reg169", string=True)
     source_begin_beam_intensity_incident = Component(EpicsSignal, "8idi:Reg9")
     source_begin_beam_intensity_transmitted = Component(EpicsSignal, "8idi:Reg10")
     source_begin_current = Component(EpicsSignal, "8idi:Reg121")
     source_begin_datetime = Component(EpicsSignal, "8idi:StrReg6", string=True)
-    # source_begin_energy : see monochromator.energy.value
+    source_begin_energy = Component(EpicsSignal, "8idi:Reg153")
     source_end_current = Component(EpicsSignal, "8idi:Reg122")
     source_end_datetime = Component(EpicsSignal, "8idi:StrReg7", string=True)
     specfile = Component(EpicsSignal, "8idi:StrReg1", string=True)
@@ -67,17 +69,19 @@ class DataManagementMetadata(Device):
     stage_zero_x = Component(EpicsSignal, "8idi:Reg13")
     stage_zero_z = Component(EpicsSignal, "8idi:Reg14")
 
-    # temperature_A  : see lakeshore.loop1.temperature
-    # temperature_A_set : see lakeshore.loop1.target
-    # temperature_B : see lakeshore.loop2.temperature
-    # temperature_B_set  : see lakeshore.loop2.target
+    temperature_A = Component(EpicsSignal, "8idi:Reg154")
+    temperature_B = Component(EpicsSignal, "8idi:Reg155")
+    temperature_A_set = Component(EpicsSignal, "8idi:Reg156")
+    temperature_B_set = Component(EpicsSignal, "8idi:Reg157")
 
-    # translation_table_x : see samplestage.table.x
-    # translation_table_y = Component(EpicsSignal, "8idi:TI3:z.VAL")    # TODO: defined elsewhere?
-    # translation_table_z = Component(EpicsSignal, "8idi:TI3:y.VAL")    # TODO: defined elsewhere?
-    # translation_x = Component(EpicsSignal, "8idi:m54.RBV")            # TODO: defined elsewhere?
-    # translation_y = Component(EpicsSignal, "8idi:m49.RBV")            # TODO: defined elsewhere?
-    # translation_z = Component(EpicsSignal, "8idi:m50.RBV")            # TODO: defined elsewhere?
+    translation_table_x = Component(EpicsSignal, "8idi:Reg161")
+    translation_table_y = Component(EpicsSignal, "8idi:Reg162")
+    translation_table_z = Component(EpicsSignal, "8idi:Reg163")
+
+    translation_x = Component(EpicsSignal, "8idi:Reg158")
+    translation_y = Component(EpicsSignal, "8idi:Reg159")
+    translation_z = Component(EpicsSignal, "8idi:Reg160")
+
     uid = Component(EpicsSignal, "8idi:StrReg11", string=True)
     user_data_folder = Component(EpicsSignal, "8idi:StrReg3", string=True)
     xspec = Component(EpicsSignal, "8idi:Reg15")
@@ -88,7 +92,7 @@ class DataManagementMetadata(Device):
 dt = datetime.datetime.now()
 aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
-xpcs_qmap_file = "Lambda_qmap.h5"		# TODO:
+xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
 
 dm_pars = DataManagementMetadata(name="dm_pars")
 dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)

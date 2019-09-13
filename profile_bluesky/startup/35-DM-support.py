@@ -28,6 +28,7 @@ class DataManagementMetadata(Device):
     data_end = Component(EpicsSignal, "8idi:Reg114")
     datafilename = Component(EpicsSignal, "8idi:StrReg5", string=True)
     data_folder = Component(EpicsSignal, "8idi:StrReg4", string=True)
+    data_subfolder = Component(EpicsSignal, "8idi:StrReg10", string=True)
     detector_distance = Component(EpicsSignal, "8idi:Reg5")
     detNum = Component(EpicsSignal, "8idi:Reg2")
     exposure_period = Component(EpicsSignal, "8idi:Reg116")

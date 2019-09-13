@@ -24,7 +24,7 @@ class StrReg(NumReg):
 
 class Metadata:
     string_registers_max = 50
-    number_registers_max = 150
+    number_registers_max = 200
     strings = []
     numbers = []
 

@@ -11,8 +11,6 @@ class DataManagementMetadata(Device):
     """
     signals for the APS Data Management service
     """
-    #        dm_pars.uid, db[-1].start["uid"],   # TODO: need StrReg
-    #        dm_pars.scan_id, RE.md["scan_id"],  # TODO: need Reg
     angle = Component(EpicsSignal, "8idi:Reg19")
     attenuation = Component(EpicsSignal, "8idi:Reg110")
     beam_center_x = Component(EpicsSignal, "8idi:Reg11")
@@ -53,6 +51,7 @@ class DataManagementMetadata(Device):
     # sample_pitch : see samplestage.theta
     # sample_roll : see samplestage.chi
     # sample_yaw : see samplestage.phi
+    scan_id = Component(EpicsSignal, "8idi:Reg169", string=True)
     source_begin_beam_intensity_incident = Component(EpicsSignal, "8idi:Reg9")
     source_begin_beam_intensity_transmitted = Component(EpicsSignal, "8idi:Reg10")
     source_begin_current = Component(EpicsSignal, "8idi:Reg121")
@@ -79,6 +78,7 @@ class DataManagementMetadata(Device):
     # translation_x = Component(EpicsSignal, "8idi:m54.RBV")            # TODO: defined elsewhere?
     # translation_y = Component(EpicsSignal, "8idi:m49.RBV")            # TODO: defined elsewhere?
     # translation_z = Component(EpicsSignal, "8idi:m50.RBV")            # TODO: defined elsewhere?
+    uid = Component(EpicsSignal, "8idi:StrReg11", string=True)
     user_data_folder = Component(EpicsSignal, "8idi:StrReg3", string=True)
     xspec = Component(EpicsSignal, "8idi:Reg15")
     zspec = Component(EpicsSignal, "8idi:Reg16")

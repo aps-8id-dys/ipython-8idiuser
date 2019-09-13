@@ -168,20 +168,10 @@ class DM_Workflow:
 
             f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
 
-            root_folder = os.path.dirname(dm_pars.root_folder.value.rstrip("/"))
-            RIGAKU500K_NoGap_detNum = 46
-            manufacturers = self.detectors.getManufacturerDict()
-            assert manufacturers[RIGAKU500K_NoGap_detNum] == "RIGAKU500K_NoGap"
-            if dm_pars.detNum.value == RIGAKU500K_NoGap_detNum:
-                root_folder = os.path.join(
-                    dm_pars.root_folder.value,
-                    dm_pars.data_subfolder.value
-                )
-            """
-            note that to be compatible, we add this all the time (NOW)
-            and set it to empty string when no extra directories are to be added.
-            Another dataset in the hdf5 workflow file holds that
-            """
+            root_folder = os.path.join(
+                dm_pars.root_folder.value,
+                dm_pars.data_subfolder.value
+            )
             f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
             # FIXME: parent_folder should be last directory of  user_data_folder

@@ -72,24 +72,6 @@ def AD_Acquire(areadet,
     def timestamp_now():
         return datetime.datetime.now().strftime("%c").strip()
 
-    def make_hdf5_workflow_filename():
-        path = file_path
-        if path.startswith("/data"):
-            path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
-        fname = (
-            f"{file_name}"
-            f"_{dm_pars.data_begin.value:04.0f}"
-            f"-{dm_pars.data_end.value:04.0f}"
-        )
-        fullname = os.path.join(path, f"{fname}.hdf")
-        suffix = 0
-        while os.path.exists(fullname):
-            suffix += 1
-            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
-        if suffix > 0:
-            logger.info(f"using modified file name: {fullname}")
-        return fullname
-
     def update_metadata_prescan():
         detNum = int(dm_pars.detNum.value)
         det_pars = dm_workflow.detectors.getDetectorByNumber(detNum)
@@ -98,27 +80,27 @@ def AD_Acquire(areadet,
             # StrReg 2-7 in order
             dm_pars.root_folder, file_path,
         )
-        logger.info("dm_pars.root_folder")
+        logger.debug("dm_pars.root_folder")
 
         yield from bps.mv(
             dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
         )
-        logger.info("dm_pars.user_data_folder")
+        logger.debug("dm_pars.user_data_folder")
 
         yield from bps.mv(
             dm_pars.data_folder, file_name,
         )
-        logger.info("dm_pars.data_folder")
+        logger.debug("dm_pars.data_folder")
 
         yield from bps.mv(
             dm_pars.datafilename, areadet.plugin_file_name,
         )
-        logger.info("dm_pars.datafilename")
+        logger.debug("dm_pars.datafilename")
 
         yield from bps.mv(
             dm_pars.source_begin_datetime, timestamp_now(),
         )
-        logger.info("dm_pars.source_begin_datetime")
+        logger.debug("dm_pars.source_begin_datetime")
 
         yield from bps.mv(
             # Reg 121
@@ -135,7 +117,7 @@ def AD_Acquire(areadet,
             dm_pars.kinetics_top, 0,                    # FIXME:
             dm_pars.attenuation, atten.value,
         )
-        logger.info("Reg 121, 101-110 done")
+        logger.debug("Reg 121, 101-110 done")
 
         yield from bps.mv(
             # Reg 111-120 in order
@@ -149,7 +131,7 @@ def AD_Acquire(areadet,
             dm_pars.stage_x, detu.x.position,
             dm_pars.stage_z, detu.z.position,
         )
-        logger.info("Reg 111-120 done")
+        logger.debug("Reg 111-120 done")
 
         yield from bps.mv(
             # Reg 123-127 in order
@@ -159,7 +141,7 @@ def AD_Acquire(areadet,
             dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
             dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
         )
-        logger.info("Reg 123-127 done")
+        logger.debug("Reg 123-127 done")
 
     def update_metadata_postscan():
         # since we inherited ALL the user's namespace, we have RE and db
@@ -194,24 +176,10 @@ def AD_Acquire(areadet,
         logger.info("after count()")
 
         yield from update_metadata_postscan()
-        hdf_with_fullpath = make_hdf5_workflow_filename()
 
-        dm_workflow.create_hdf5_file(hdf_with_fullpath)
-        
-        # no need to yield from since the function is not a plan
-        kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)
-
-    @APS_utils.run_in_thread
-    def kickoff_DM_workflow(hdf_workflow_file, analysis=True):
-        logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
-        if analysis:
-            out, err = dm_workflow.DataAnalysis(hdf_workflow_file)
-        else:
-            out, err = dm_workflow.DataTransfer(hdf_workflow_file)
-        logger.info("DM workflow done")
-        logger.info(out)
-        if len(err) > 0:
-            logger.error(err)
+        logger.info("before starting data management workflow")
+        dm_workflow.start_workflow(analysis=submit_xpcs_job)
+        logger.info("after starting data management workflow")
 
     logger.info("calling inner()")
     return (yield from inner())

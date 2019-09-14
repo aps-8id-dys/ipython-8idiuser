@@ -160,9 +160,9 @@ class DataManagementMetadata(DMDBase):
 dt = datetime.datetime.now()
 aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
-xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
+xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
 
-dm_pars = DataManagementMetadata()
-dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)
+registers = DataManagementMetadata()
+workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)
 
-# demo: print(dm_pars.getTable())
+# demo: print(registers.getTable())

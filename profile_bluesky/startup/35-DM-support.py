@@ -93,7 +93,7 @@ class DataManagementMetadata(Device):
 dt = datetime.datetime.now()
 aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
-xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
+xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
 
-dm_pars = DataManagementMetadata(name="dm_pars")
-dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)
+registers = DataManagementMetadata(name="registers")
+workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)

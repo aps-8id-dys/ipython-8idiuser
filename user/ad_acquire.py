@@ -73,73 +73,73 @@ def AD_Acquire(areadet,
         return datetime.datetime.now().strftime("%c").strip()
 
     def update_metadata_prescan():
-        detNum = int(dm_pars.detNum.value)
-        det_pars = dm_workflow.detectors.getDetectorByNumber(detNum)
+        detNum = int(registers.detNum.value)
+        det_pars = workflow.detectors.getDetectorByNumber(detNum)
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
-            dm_pars.root_folder, file_path,
+            registers.root_folder, file_path,
         )
-        logger.debug("dm_pars.root_folder")
+        logger.debug("registers.root_folder")
 
         yield from bps.mv(
-            dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            registers.user_data_folder, os.path.dirname(file_path),   # just last item in path
         )
-        logger.debug("dm_pars.user_data_folder")
+        logger.debug("registers.user_data_folder")
 
         yield from bps.mv(
-            dm_pars.data_folder, file_name,
+            registers.data_folder, file_name,
         )
-        logger.debug("dm_pars.data_folder")
+        logger.debug("registers.data_folder")
 
         yield from bps.mv(
-            dm_pars.datafilename, areadet.plugin_file_name,
+            registers.datafilename, areadet.plugin_file_name,
         )
-        logger.debug("dm_pars.datafilename")
+        logger.debug("registers.datafilename")
 
         yield from bps.mv(
-            dm_pars.source_begin_datetime, timestamp_now(),
+            registers.source_begin_datetime, timestamp_now(),
         )
-        logger.debug("dm_pars.source_begin_datetime")
+        logger.debug("registers.source_begin_datetime")
 
         yield from bps.mv(
             # Reg 121
-            dm_pars.source_begin_current, aps.current.value,
+            registers.source_begin_current, aps.current.value,
             # Reg 101-110 in order
-            dm_pars.roi_x1, 0,
-            dm_pars.roi_x2, det_pars["ccdHardwareColSize"]-1,
-            dm_pars.roi_y1, 0,
-            dm_pars.roi_y2, det_pars["ccdHardwareRowSize"]-1,
-            dm_pars.cols, det_pars["ccdHardwareColSize"],
-            dm_pars.rows, det_pars["ccdHardwareRowSize"],
-            dm_pars.kinetics_state, 0,                  # FIXME: SPEC generated this
-            dm_pars.kinetics_window_size, 0,            # FIXME:
-            dm_pars.kinetics_top, 0,                    # FIXME:
-            dm_pars.attenuation, atten.value,
+            registers.roi_x1, 0,
+            registers.roi_x2, det_pars["ccdHardwareColSize"]-1,
+            registers.roi_y1, 0,
+            registers.roi_y2, det_pars["ccdHardwareRowSize"]-1,
+            registers.cols, det_pars["ccdHardwareColSize"],
+            registers.rows, det_pars["ccdHardwareRowSize"],
+            registers.kinetics_state, 0,                  # FIXME: SPEC generated this
+            registers.kinetics_window_size, 0,            # FIXME:
+            registers.kinetics_top, 0,                    # FIXME:
+            registers.attenuation, atten.value,
         )
         logger.debug("Reg 121, 101-110 done")
 
         yield from bps.mv(
             # Reg 111-120 in order
-            #dm_pars.dark_begin, -1,            #  edit if detector needs this
-            #dm_pars.dark_end, -1,              #  op cit
-            dm_pars.data_begin, 1,
-            dm_pars.data_end, num_images,
-            dm_pars.exposure_time, acquire_time,
-            dm_pars.exposure_period, acquire_period,
-            # dm_pars.specscan_dark_number, -1,   #  not used, detector takes no darks
-            dm_pars.stage_x, detu.x.position,
-            dm_pars.stage_z, detu.z.position,
+            #registers.dark_begin, -1,            #  edit if detector needs this
+            #registers.dark_end, -1,              #  op cit
+            registers.data_begin, 1,
+            registers.data_end, num_images,
+            registers.exposure_time, acquire_time,
+            registers.exposure_period, acquire_period,
+            # registers.specscan_dark_number, -1,   #  not used, detector takes no darks
+            registers.stage_x, detu.x.position,
+            registers.stage_z, detu.z.position,
         )
         logger.debug("Reg 111-120 done")
 
         yield from bps.mv(
             # Reg 123-127 in order
-            dm_pars.I0mon, I0Mon.value,
-            dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
+            registers.I0mon, I0Mon.value,
+            registers.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
+            registers.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
+            registers.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
+            registers.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
         )
         logger.debug("Reg 123-127 done")
 
@@ -149,10 +149,10 @@ def AD_Acquire(areadet,
         uid = db[-1].start["uid"]
         yield from bps.mv(
             # source end values
-            dm_pars.source_end_datetime, timestamp_now(),
-            dm_pars.source_end_current, aps.current.value,
-            dm_pars.uid, db[-1].start["uid"],
-            dm_pars.scan_id, RE.md["scan_id"],
+            registers.source_end_datetime, timestamp_now(),
+            registers.source_end_current, aps.current.value,
+            registers.uid, db[-1].start["uid"],
+            registers.scan_id, RE.md["scan_id"],
         )
 
     @bpp.stage_decorator([scaler1])
@@ -178,7 +178,7 @@ def AD_Acquire(areadet,
         yield from update_metadata_postscan()
 
         logger.info("before starting data management workflow")
-        dm_workflow.start_workflow(analysis=submit_xpcs_job)
+        workflow.start_workflow(analysis=submit_xpcs_job)
         logger.info("after starting data management workflow")
 
     logger.info("calling inner()")

@@ -196,8 +196,7 @@ def AD_Acquire(areadet,
         yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()
 
-        dm_workflow.create_hdf5_file(
-            hdf_with_fullpath, as_bluesky_plan=True)
+        dm_workflow.create_hdf5_file(hdf_with_fullpath)
         
         # no need to yield from since the function is not a plan
         kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)

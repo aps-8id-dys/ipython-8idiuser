@@ -152,6 +152,11 @@ class DataManagementMetadata(DMDBase):
 
     uid = MyPV("8idi:StrReg11", string=True)
     user_data_folder = MyPV("8idi:StrReg3", string=True)
+
+    workflow_caller = MyPV("8idi:StrReg12", string=True)
+    workflow_helper_alive = MyPV("8idi:Reg171")
+    workflow_start = MyPV("8idi:Reg170")
+
     xspec = MyPV("8idi:Reg15")
     zspec = MyPV("8idi:Reg16")
 

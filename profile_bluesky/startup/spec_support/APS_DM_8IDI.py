@@ -143,6 +143,58 @@ class DM_Workflow:
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
         self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
 
+    def make_hdf5_workflow_filename(self):
+        """
+        decide absolute file name for the APS data management workflow
+        """
+        path = dm_pars.root_folder.value
+        if path.startswith("/data"):
+            path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+        fname = (
+            f"{dm_pars.data_folder.value}"
+            f"_{dm_pars.data_begin.value:04.0f}"
+            f"-{dm_pars.data_end.value:04.0f}"
+        )
+        fullname = os.path.join(path, f"{fname}.hdf")
+        suffix = 0
+        while os.path.exists(fullname):
+            suffix += 1
+            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+        if suffix > 0:
+            logger.info(f"using modified file name: {fullname}")
+        return fullname
+
+    def start_workflow(self, analysis=True):
+        """
+        commence the APS data management workflow
+        
+        PARAMETERS
+        
+        hdf_workflow_file : str
+            name of the HDF5 workflow file to be written
+        
+        analysis : bool
+            If True (default): use DataAnalysis workflow.
+            If False: use DataTransfer workflow.
+        """
+        hdf_workflow_file = self.make_hdf5_workflow_filename()
+        logger.debug(f"creating hdf_workflow_file = {hdf_workflow_file}")
+        self.create_hdf5_file(hdf_workflow_file)
+
+        @run_in_thread
+        def kickoff_DM_workflow():
+            logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
+            if analysis:
+                out, err = self.DataAnalysis(hdf_workflow_file)
+            else:
+                out, err = self.DataTransfer(hdf_workflow_file)
+            logger.info("DM workflow done")
+            logger.info(out)
+            if len(err) > 0:
+                logger.error(err)
+        
+        kickoff_DM_workflow()
+
     def set_xpcs_qmap_file(self, xpcs_qmap_file):
         """
         (re)define the name of HDF5 workflow file

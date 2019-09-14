@@ -112,15 +112,17 @@ class DM_Workflow:
     xpcs_qmap_file : str, optional
         XPCS qmap file name (XPCS_QMAP_FILENAME)
 
-    ==================  ===========================================
-    method              docstring
-    ==================  ===========================================
-    set_xpcs_qmap_file  (re)define the name of HDF5 workflow file
-    create_hdf5_file    Reads camera data from EPICS PVs and writes to an hdf5 file
-    DataTransfer        initiate data transfer
-    DataAnalysis        initiate data analysis
-    ListJobs            list current jobs in the workflow
-    ==================  ===========================================
+    ======================  ===========================================
+    method                  docstring
+    ======================  ===========================================
+    get_workflow_filename   decide absolute file name for the APS data management workflow
+    start_workflow          commence the APS data management workflow
+    set_xpcs_qmap_file      (re)define the name of HDF5 workflow file
+    create_hdf5_file        Reads camera data from EPICS PVs and writes to an hdf5 file
+    DataTransfer            initiate data transfer
+    DataAnalysis            initiate data analysis
+    ListJobs                list current jobs in the workflow
+    ======================  ===========================================
     """
 
     def __init__(self, 
@@ -143,10 +145,11 @@ class DM_Workflow:
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
         self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
 
-    def make_hdf5_workflow_filename(self):
+    def get_workflow_filename(self):
         """
         decide absolute file name for the APS data management workflow
         """
+        dm_pars = self.dm_pars
         path = dm_pars.root_folder.value
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
@@ -177,7 +180,7 @@ class DM_Workflow:
             If True (default): use DataAnalysis workflow.
             If False: use DataTransfer workflow.
         """
-        hdf_workflow_file = self.make_hdf5_workflow_filename()
+        hdf_workflow_file = self.get_workflow_filename()
         logger.debug(f"creating hdf_workflow_file = {hdf_workflow_file}")
         self.create_hdf5_file(hdf_workflow_file)
 
@@ -625,14 +628,3 @@ class DM_Workflow:
         logger.info("*"*30)
         logger.info(out)
         logger.info("*"*30)
-
-
-# if __name__ == "__main__":
-#     import sys
-#     filename = sys.argv[1]  # caller must provide a filename
-#
-#     dm_pars = None  # TO DO: need an ophyd.Device for testing
-#
-#     workflow = DM_Workflow(dm_pars)
-#     workflow.create_hdf5_file(filename)
-   

@@ -161,13 +161,16 @@ class DataManagementMetadata(DMDBase):
     zspec = MyPV("8idi:Reg16")
 
 
-# What APS run cycle are we in?  Hackulate it.
-dt = datetime.datetime.now()
-aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
+@property
+def aps_cycle():
+    """Hackulate the name of the current APS run cycle"""
+    dt = datetime.datetime.now()
+    return f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
-xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
 
-registers = DataManagementMetadata()
-workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)
+class WorkflowHelper:
 
-# demo: print(registers.getTable())
+    def __init__(self):
+        self.xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
+        self.registers = DataManagementMetadata()
+        self.workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)

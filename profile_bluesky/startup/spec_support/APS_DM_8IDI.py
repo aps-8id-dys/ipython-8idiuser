@@ -16,17 +16,79 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
-from apstools import utils as APS_utils
 import datetime
 import h5py
 import logging
 import math
 import os
-import subprocess 
+import subprocess
+import threading
 
 from . import detector_parameters
 
 logger = logging.getLogger(os.path.split(__file__)[-1])
+
+
+def unix(command, raises=True):
+    """
+    run a UNIX command, returns (stdout, stderr)
+
+    from apstools.utils.unix()
+
+    PARAMETERS
+    
+    command: str
+        UNIX command to be executed
+    raises: bool
+        If `True`, will raise exceptions as needed,
+        default: `True`
+    """
+    if sys.platform not in ("linux", "linux2"):
+        emsg = f"Cannot call unix() when OS={sys.platform}"
+        raise RuntimeError(emsg)
+
+    process = subprocess.Popen(
+        command, 
+        shell=True,
+        stdin = subprocess.PIPE,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        )
+
+    stdout, stderr = process.communicate()
+
+    if len(stderr) > 0:
+        emsg = f"unix({command}) returned error:\n{stderr}"
+        logger.error(emsg)
+        if raises:
+            raise RuntimeError(emsg)
+
+    return stdout, stderr
+
+
+def run_in_thread(func):
+    """
+    (decorator) run ``func`` in thread
+
+    from apstools.utils.run_in_thread()
+    
+    USAGE::
+
+       @run_in_thread
+       def progress_reporting():
+           logger.debug("progress_reporting is starting")
+           # ...
+       
+       #...
+       progress_reporting()   # runs in separate thread
+       #...
+
+    """
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+    return wrapper
 
 
 class DM_Workflow:
@@ -463,7 +525,7 @@ class DM_Workflow:
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        return APS_utils.unix(cmd)
+        return unix(cmd)
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -494,7 +556,7 @@ class DM_Workflow:
             f",{qmapfile_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        return APS_utils.unix(cmd)
+        return unix(cmd)
 
     def ListJobs(self):
         """
@@ -507,7 +569,7 @@ class DM_Workflow:
             " | sort -r"
             " |head -n 10"
             )
-        out, err = APS_utils.unix(command);
+        out, err = unix(command);
         logger.info("*"*30)
         logger.info(out)
         logger.info("*"*30)

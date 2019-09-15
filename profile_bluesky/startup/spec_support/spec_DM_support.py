@@ -1,6 +1,40 @@
+#!/bin/env python
 
 """
 support for APS data management
+
+USAGE:
+
+This is a companion program to be run when SPEC is run 
+for data acquisition.  It may be started before or
+after SPEC is started but must be running before triggering
+the APS data management workflow.
+
+1. `spec_DM_support.py &`
+2. run SPEC
+
+In SPEC, check that helper is running by watching `workflow_ticker`
+(`epics_get("8idi:Reg171")`) for 1 second or so.  Should increment ~10/s.
+Sample checkup code for SPEC::
+
+    def helper_checkup `{
+        v0 = epics_get("8idi:Reg171")
+        sleep 1
+        dv = epics_get("8idi:Reg171") - v0
+        # my SPEC syntax here is sketchy
+        if abs(dv) > 8: print("helper is running")
+        else:  print("helper is NOT running")
+    }`
+
+Trigger the workflow (write HDF5 file and call unix commands) from SPEC:
+
+1. write all the metadata registers
+2. write the qmap file (the old way for now)
+3. epics_put("8idi:StrReg12", "SPEC")
+4. epics_put("8idi:Reg172", submit_xpcs_job)  # 1:analysis, 0:transfer
+5. epics_put("8idi:Reg170", 1)  # start
+6. poll until epics_get("8idi:Reg170") == 0
+7. epics_put("8idi:StrReg12", "")
 """
 
 import datetime

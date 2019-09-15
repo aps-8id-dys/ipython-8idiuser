@@ -40,13 +40,16 @@ Trigger the workflow (write HDF5 file and call unix commands) from SPEC:
 import datetime
 import epics
 import logging
+import os
 import pyRestTable
+import stdlogpj     # pip install stdlogpj
 import time
 
 from . import APS_DM_8IDI
 
-# TODO: setup logger
-# logger.info(__file__)
+
+logger = stdlogpj.standard_logging_setup(
+    "spec_DM_support", "workflow_helper")
 
 
 class MyPV(object):
@@ -221,9 +224,9 @@ class WorkflowHelper:
             self.registers.xpcs_qmap_file.value)
 
         # local attributes to control the polling loop
-        self.increment_modulo = 10000
+        self.increment_modulo = 10000   # 0 <= ticker < increment_modulo
         self.increment_interval = 0.1 # seconds
-        self.loop_sleep = 0.005 # seconds
+        self.loop_sleep = self.increment_interval/10 # seconds
     
     def incrementTicker(self):
         """increment the ticker to show process is working"""
@@ -241,6 +244,7 @@ class WorkflowHelper:
           - set workflow_start back to 0
           - caller should set workflow_caller back to "" until next time
         """
+        logger.info("workflow helper starting")
         t_next_increment = time.time()
 
         while True:
@@ -256,10 +260,10 @@ class WorkflowHelper:
                 self.workflow.set_xpcs_qmap_file(
                     self.registers.xpcs_qmap_file.value)    # in case this changed
                 
-                # TODO: logger.info("before starting data management workflow")
+                logger.info("before starting data management workflow")
                 self.workflow.start_workflow(
                     analysis=self.registers.workflow_submit_xpcs_job.value)
-                # TODO: logger.info("after starting data management workflow")
+                logger.info("after starting data management workflow")
                 self.registers.workflow_start.put(0)
 
             time.sleep(self.loop_sleep)
@@ -267,7 +271,6 @@ class WorkflowHelper:
 
 def main():
     helper = WorkflowHelper()
-    # TODO: logger.info("workflow helper starting")
     helper.runPollingLoop()
 
 

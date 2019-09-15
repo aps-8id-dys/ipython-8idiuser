@@ -1,4 +1,3 @@
-# logger.info(__file__)
 
 """
 support for APS data management
@@ -6,9 +5,14 @@ support for APS data management
 
 import datetime
 import epics
+import logging
 import pyRestTable
+import time
 
 from . import APS_DM_8IDI
+
+# TODO: setup logger
+# logger.info(__file__)
 
 
 class MyPV(object):
@@ -154,8 +158,11 @@ class DataManagementMetadata(DMDBase):
     user_data_folder = MyPV("8idi:StrReg3", string=True)
 
     workflow_caller = MyPV("8idi:StrReg12", string=True)
-    workflow_helper_alive = MyPV("8idi:Reg171")
+    workflow_ticker = MyPV("8idi:Reg171")
     workflow_start = MyPV("8idi:Reg170")
+    workflow_submit_xpcs_job = MyPV("8idi:Reg172")
+
+    xpcs_qmap_file = MyPV("8idi:StrReg13", string=True)
 
     xspec = MyPV("8idi:Reg15")
     zspec = MyPV("8idi:Reg16")
@@ -171,6 +178,62 @@ def aps_cycle():
 class WorkflowHelper:
 
     def __init__(self):
-        self.xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
+        # connect metadata register PVs
         self.registers = DataManagementMetadata()
-        self.workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)
+        self.workflow = APS_DM_8IDI.DM_Workflow(
+            registers, 
+            aps_cycle, 
+            self.registers.xpcs_qmap_file.value)
+
+        self.increment_modulo = 10000
+        self.increment_interval = 0.1 # seconds
+        self.loop_sleep = 0.005 # seconds
+    
+    def incrementTicker(self):
+        """increment the ticker to show process is working"""
+        n = max(int(self.registers.workflow_ticker.value), 0)
+        self.registers.workflow_ticker.put((n + 1) % self.increment_modulo)
+
+    def startWatching(self):
+        """
+        watch for signal ('workflow_start') to start data management workflow
+
+        * Increment 'workflow_ticker' at 10 Hz (see self.increment_interval)
+        * Ensure 0 <= 'workflow_ticker' < self.increment_modulo
+        * when workflow_start!=0 and workflow_caller="spec",
+          - run the workflow starter
+          - set workflow_start back to 0
+          - caller should set workflow_caller back to "" until next time
+        """
+        t_next_increment = time.time()
+
+        while True:
+            t_now = time.time()
+            if t_now >= t_next_increment:
+                t_next_increment = t_now + self.increment_interval
+                self.incrementTicker()
+
+            if (self.registers.workflow_start.value != 0
+                and 
+                self.registers.workflow_caller.value.lower() == "spec"
+            ):
+                self.workflow.set_xpcs_qmap_file(
+                    self.registers.xpcs_qmap_file.value)    # in case this changed
+                
+                # TODO: logger.info("before starting data management workflow")
+                self.workflow.start_workflow(
+                    analysis=self.registers.workflow_submit_xpcs_job.value)
+                # TODO: logger.info("after starting data management workflow")
+                self.registers.workflow_start.put(0)
+
+            time.sleep(self.loop_sleep)
+
+
+def main():
+    helper = WorkflowHelper()
+    # TODO: logger.info("workflow helper starting")
+    helper.startWatching()
+
+
+if __name__ == "__main__":
+    main()

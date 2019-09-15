@@ -87,8 +87,11 @@ class DataManagementMetadata(Device):
     user_data_folder = Component(EpicsSignal, "8idi:StrReg3", string=True)
 
     workflow_caller = Component(EpicsSignal, "8idi:StrReg12", string=True)
-    workflow_helper_alive = Component(EpicsSignal, "8idi:Reg171")
+    workflow_ticker = Component(EpicsSignal, "8idi:Reg171")
     workflow_start = Component(EpicsSignal, "8idi:Reg170")
+    workflow_submit_xpcs_job = Component(EpicsSignal, "8idi:Reg172")
+
+    xpcs_qmap_file = Component(EpicsSignal, "8idi:StrReg13", string=True)
 
     xspec = Component(EpicsSignal, "8idi:Reg15")
     zspec = Component(EpicsSignal, "8idi:Reg16")

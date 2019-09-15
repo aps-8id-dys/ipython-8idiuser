@@ -29,11 +29,11 @@ Sample checkup code for SPEC::
 Trigger the workflow (write HDF5 file and call unix commands) from SPEC:
 
 1. write all the metadata registers
-2. write the qmap file (the old way for now)
+2. write the qmap file name & path (the old way for now)
 3. epics_put("8idi:StrReg12", "SPEC")
 4. epics_put("8idi:Reg172", submit_xpcs_job)  # 1:analysis, 0:transfer
 5. epics_put("8idi:Reg170", 1)  # start
-6. poll until epics_get("8idi:Reg170") == 0
+6. while epics_get("8idi:Reg170") == 0: sleep 0.1
 7. epics_put("8idi:StrReg12", "")
 """
 

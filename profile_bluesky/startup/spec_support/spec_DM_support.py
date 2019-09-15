@@ -180,11 +180,13 @@ class WorkflowHelper:
     def __init__(self):
         # connect metadata register PVs
         self.registers = DataManagementMetadata()
+        # get detector information and software that calls the workflow
         self.workflow = APS_DM_8IDI.DM_Workflow(
             registers, 
             aps_cycle, 
             self.registers.xpcs_qmap_file.value)
 
+        # local attributes to control the polling loop
         self.increment_modulo = 10000
         self.increment_interval = 0.1 # seconds
         self.loop_sleep = 0.005 # seconds
@@ -194,7 +196,7 @@ class WorkflowHelper:
         n = max(int(self.registers.workflow_ticker.value), 0)
         self.registers.workflow_ticker.put((n + 1) % self.increment_modulo)
 
-    def startWatching(self):
+    def runPollingLoop(self):
         """
         watch for signal ('workflow_start') to start data management workflow
 
@@ -232,7 +234,7 @@ class WorkflowHelper:
 def main():
     helper = WorkflowHelper()
     # TODO: logger.info("workflow helper starting")
-    helper.startWatching()
+    helper.runPollingLoop()
 
 
 if __name__ == "__main__":

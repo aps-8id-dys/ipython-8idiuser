@@ -78,6 +78,9 @@ class MyPV(object):
     def value(self):
         return self.pv.get(as_string=self.string)
 
+    def put(self, value):
+        return self.pv.put(value)
+
 
 class DMDBase(object):
 
@@ -219,7 +222,7 @@ class WorkflowHelper:
         self.registers = DataManagementMetadata()
         # get detector information and software that calls the workflow
         self.workflow = APS_DM_8IDI.DM_Workflow(
-            registers, 
+            self.registers, 
             aps_cycle, 
             self.registers.xpcs_qmap_file.value)
 

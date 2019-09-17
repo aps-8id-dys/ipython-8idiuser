@@ -264,9 +264,12 @@ class WorkflowHelper:
                     self.registers.xpcs_qmap_file.value)    # in case this changed
                 
                 logger.info("before starting data management workflow")
+                t0 = time.time()
                 self.workflow.start_workflow(
                     analysis=self.registers.workflow_submit_xpcs_job.value)
-                logger.info("after starting data management workflow")
+                dt = time.time() - t0
+                logger.info(f"after starting data management workflow ({dt}s)")
+                logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
                 self.registers.workflow_start.put(0)
 
             time.sleep(self.loop_sleep)

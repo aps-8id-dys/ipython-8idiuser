@@ -145,6 +145,8 @@ class DM_Workflow:
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
         self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
 
+        self.hdf_workflow_file = None
+
     def get_workflow_filename(self):
         """
         decide absolute file name for the APS data management workflow
@@ -180,23 +182,23 @@ class DM_Workflow:
             If True (default): use DataAnalysis workflow.
             If False: use DataTransfer workflow.
         """
-        hdf_workflow_file = self.get_workflow_filename()
-        logger.debug(f"creating hdf_workflow_file = {hdf_workflow_file}")
-        self.create_hdf5_file(hdf_workflow_file)
+        self.hdf_workflow_file = self.get_workflow_filename()
+        logger.debug(f"creating hdf_workflow_file = {self.hdf_workflow_file}")
+        self.create_hdf5_file(self.hdf_workflow_file)
 
         @run_in_thread
         def kickoff_DM_workflow():
             logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
             if analysis:
-                out, err = self.DataAnalysis(hdf_workflow_file)
+                out, err = self.DataAnalysis(self.hdf_workflow_file)
             else:
-                out, err = self.DataTransfer(hdf_workflow_file)
+                out, err = self.DataTransfer(self.hdf_workflow_file)
             logger.info("DM workflow done")
             logger.info(out)
             if len(err) > 0:
                 logger.error(err)
         
-        kickoff_DM_workflow()
+        # FIXME: kickoff_DM_workflow()
 
     def set_xpcs_qmap_file(self, xpcs_qmap_file):
         """
@@ -225,6 +227,8 @@ class DM_Workflow:
 
         # Gets Python Dict stored in other file
         masterDict = self.detectors.getMasterDict()
+
+        logger.info(f"creating HDF5 file {filename}")
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:
@@ -288,7 +292,9 @@ class DM_Workflow:
             # In [1]: registers.user_data_folder.value
             # Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
             # pick "jemian_201908" part
-            parent_folder = registers.user_data_folder.value.split("/")[-2]
+            parent_folder = registers.user_data_folder.value
+            if parent_folder.find("/") > -1:
+                parent_folder = parent_folder.split("/")[-2]
             f["/measurement/instrument/acquisition/parent_folder"] = parent_folder
 
             f["/measurement/instrument/acquisition/data_folder"] = registers.data_folder.value

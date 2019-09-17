@@ -35,6 +35,13 @@ Trigger the workflow (write HDF5 file and call unix commands) from SPEC:
 5. epics_put("8idi:Reg170", 1)  # start
 6. while epics_get("8idi:Reg170") == 0: sleep 0.1
 7. epics_put("8idi:StrReg12", "")
+
+note about the qmap file:   Lambda_qmap.h5
+this file is in:
+
+    /home/8-id-i/partitionMapLibrary/2019-3/
+
+which will work out with the default basename and the hackulated cycle.
 """
 
 import datetime

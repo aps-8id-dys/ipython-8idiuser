@@ -156,7 +156,7 @@ class DM_Workflow:
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
         fname = (
-            f"{registers.data_folder.value}"
+            f"{registers.data_folder.value.rstrip('/')}"
             f"_{registers.data_begin.value:04.0f}"
             f"-{registers.data_end.value:04.0f}"
         )

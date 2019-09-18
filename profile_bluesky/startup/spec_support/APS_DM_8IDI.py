@@ -22,7 +22,9 @@ import logging
 import math
 import os
 import subprocess
+import sys
 import threading
+import time
 
 from . import detector_parameters
 
@@ -155,8 +157,10 @@ class DM_Workflow:
         path = registers.root_folder.value
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+        data_folder = registers.data_folder.value.strip('/')
+        path = os.path.join(path, data_folder, registers.data_subfolder.value)
         fname = (
-            f"{registers.data_folder.value.rstrip('/')}"
+            f"{data_folder}"
             f"_{registers.data_begin.value:04.0f}"
             f"-{registers.data_end.value:04.0f}"
         )
@@ -182,23 +186,35 @@ class DM_Workflow:
             If True (default): use DataAnalysis workflow.
             If False: use DataTransfer workflow.
         """
-        self.hdf_workflow_file = self.get_workflow_filename()
-        logger.debug(f"creating hdf_workflow_file = {self.hdf_workflow_file}")
-        self.create_hdf5_file(self.hdf_workflow_file)
+        analysis = analysis in (1, 1.0, True)
 
         @run_in_thread
         def kickoff_DM_workflow():
-            logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
+            # FIXME: logger output is not getting reported anywhere
+            print(f"DM workflow starting: analysis:{analysis}  file:{self.hdf_workflow_file}")
+            t1 = time.time()
             if analysis:
                 out, err = self.DataAnalysis(self.hdf_workflow_file)
             else:
                 out, err = self.DataTransfer(self.hdf_workflow_file)
-            logger.info("DM workflow done")
-            logger.info(out)
+            # TODO: out & err need to be converted by b'' to str, also strip() both
+            dt1 = time.time() - t1
+            print(f"DM workflow done: {dt1:.3f}s")
+            print(out)
             if len(err) > 0:
-                logger.error(err)
+                print(err)
         
-        # FIXME: kickoff_DM_workflow()
+        logger.info("starting start_workflow()")
+        self.hdf_workflow_file = self.get_workflow_filename()
+        logger.info(f"creating hdf_workflow_file = {self.hdf_workflow_file}")
+        self.create_hdf5_file(self.hdf_workflow_file)
+        logger.info(f"hdf_workflow_file exists: {os.path.exists(self.hdf_workflow_file)}")
+
+        logger.debug("calling kickoff_DM_workflow()")
+        t0 = time.time()
+        kickoff_DM_workflow()
+        dt = time.time() - t0
+        logger.debug(f"after kickoff_DM_workflow(): {dt:.3f}s")
 
     def set_xpcs_qmap_file(self, xpcs_qmap_file):
         """

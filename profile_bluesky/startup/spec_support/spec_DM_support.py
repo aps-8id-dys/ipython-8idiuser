@@ -85,7 +85,7 @@ class MyPV(object):
     def value(self):
         return self.pv.get(as_string=self.string)
 
-    def put(self, value):
+    def put(self, value, wait=False):
         return self.pv.put(value)
 
 
@@ -275,9 +275,9 @@ class WorkflowHelper:
                 self.workflow.start_workflow(
                     analysis=self.registers.workflow_submit_xpcs_job.value)
                 dt = time.time() - t0
-                logger.info(f"after starting data management workflow ({dt}s)")
+                logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
-                self.registers.workflow_start.put(0)
+                self.registers.workflow_start.put(0, wait=True)
 
             time.sleep(self.loop_sleep)
 

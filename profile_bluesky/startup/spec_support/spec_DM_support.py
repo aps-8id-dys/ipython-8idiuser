@@ -54,7 +54,7 @@ import time
 
 from . import APS_DM_8IDI
 
-
+logging.basicConfig(level=logging.DEBUG)
 logger = stdlogpj.standard_logging_setup(
     "spec_DM_support", "workflow_helper")
 

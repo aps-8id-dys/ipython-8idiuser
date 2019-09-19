@@ -28,6 +28,7 @@ import time
 
 from . import detector_parameters
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(os.path.split(__file__)[-1])
 
 

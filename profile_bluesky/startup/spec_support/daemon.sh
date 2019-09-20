@@ -2,9 +2,10 @@
 #
 # description: start/stop/restart an the spec_DM_support workflow helper
 #
+# crontab line (run every 5 minutes)
+#*/5 * * * * /home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support/daemon.sh 2>&1 > /dev/null
 
 WORKING_DIR=/home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support
-# WORKING_DIR=`pwd`
 PROCESS_NAME=spec_DM_support
 PROCESS_CMD=spec_DM_support_daemon
 
@@ -152,6 +153,15 @@ status() {
     fi
 }
 
+checkup() {
+    if checkpid; then
+        : # report nothing if process is running
+    else
+        ${ECHO} "${PROCESS_NAME} is not running"
+        start
+    fi
+}
+
 console() {
     if checkpid; then
         ${ECHO} "Connecting to ${PROCESS_NAME}'s screen session"
@@ -177,7 +187,7 @@ run() {
 }
 
 usage() {
-    ${ECHO} "Usage: $(${BASENAME} ${SNAME}) {start|stop|restart|status|console|run}"
+    ${ECHO} "Usage: $(${BASENAME} ${SNAME}) {start|stop|restart|status|checkup|console|run}"
 }
 
 #####################################################################
@@ -201,6 +211,10 @@ else
 
         status)
         status
+        ;;
+
+        checkup)
+        checkup
         ;;
 
         console)

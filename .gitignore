@@ -1,6 +1,9 @@
 # backup files
 *~
 
+# VIM swap file
+.*.swp
+
 db/
 history
 history.sqlite

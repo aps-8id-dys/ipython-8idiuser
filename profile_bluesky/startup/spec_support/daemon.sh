@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# description: start/stop/restart an the spec_DM_support workflow helper
+# description: start/stop/restart/checkup the spec_DM_support workflow helper
 #
 # crontab line (run every 5 minutes)
 #*/5 * * * * /home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support/daemon.sh 2>&1 > /dev/null

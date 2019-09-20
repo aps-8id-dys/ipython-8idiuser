@@ -192,7 +192,7 @@ class DM_Workflow:
         @run_in_thread
         def kickoff_DM_workflow():
             # FIXME: logger output is not getting reported anywhere
-            print(f"DM workflow starting: analysis:{analysis}  file:{self.hdf_workflow_file}")
+            logger.info(f"DM workflow starting: analysis:{analysis}  file:{self.hdf_workflow_file}")
             t1 = time.time()
             if analysis:
                 out, err = self.DataAnalysis(self.hdf_workflow_file)
@@ -200,10 +200,10 @@ class DM_Workflow:
                 out, err = self.DataTransfer(self.hdf_workflow_file)
             # TODO: out & err need to be converted by b'' to str, also strip() both
             dt1 = time.time() - t1
-            print(f"DM workflow done: {dt1:.3f}s")
-            print(out)
+            logger.info(f"DM workflow done: {dt1:.3f}s")
+            logger.info(out)
             if len(err) > 0:
-                print(err)
+                logger.error(err)
         
         logger.info("starting start_workflow()")
         self.hdf_workflow_file = self.get_workflow_filename()

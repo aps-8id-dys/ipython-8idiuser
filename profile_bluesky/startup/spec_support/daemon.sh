@@ -3,10 +3,10 @@
 # description: start/stop/restart an the spec_DM_support workflow helper
 #
 
-# WORKING_DIR=/home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support
-WORKING_DIR=`pwd``
-PROCESS_NAME=spec_DM_support_daemon
-PROCESS_CMD=${PROCESS_NAME}
+WORKING_DIR=/home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support
+# WORKING_DIR=`pwd`
+PROCESS_NAME=spec_DM_support
+PROCESS_CMD=spec_DM_support_daemon
 
 # Change YES to NO in the following line to disable screen-PID lookup 
 GET_SCREEN_PID=YES
@@ -54,7 +54,7 @@ screenpid() {
 checkpid() {
     MY_UID=`${ID} -u`
     # The '\$' is needed in the pgrep pattern to select process, but not process.sh
-    PROCESS_PID=`${PGREP} ${PROCESS_CMD}\$ -u ${MY_UID}`
+    PROCESS_PID=`${PGREP} ${PROCESS_NAME}\$ -u ${MY_UID}`
     #!${ECHO} "PROCESS_PID=${PROCESS_PID}"
 
     if [ "${PROCESS_PID}" != "" ] ; then

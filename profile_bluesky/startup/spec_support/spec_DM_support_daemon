@@ -16,4 +16,6 @@ EXECUTABLE_SCRIPT=./helper.py
 
 # start the daemon
 source /APSshare/anaconda3/x86_64/bin/activate
+# needs stdlogpj package
+conda activate bluesky
 python ${EXECUTABLE_SCRIPT}

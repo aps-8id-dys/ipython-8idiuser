@@ -172,7 +172,7 @@ class DataManagementMetadata(DMDBase):
     sample_pitch = MyPV("8idi:Reg164")
     sample_roll = MyPV("8idi:Reg165")
     sample_yaw = MyPV("8idi:Reg166")
-    scan_id = MyPV("8idi:Reg169", string=True)
+    scan_id = MyPV("8idi:Reg169")
     source_begin_beam_intensity_incident = MyPV("8idi:Reg9")
     source_begin_beam_intensity_transmitted = MyPV("8idi:Reg10")
     source_begin_current = MyPV("8idi:Reg121")

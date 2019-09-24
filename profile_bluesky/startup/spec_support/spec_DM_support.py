@@ -208,6 +208,7 @@ class DataManagementMetadata(DMDBase):
     workflow_ticker = MyPV("8idi:Reg171")
     workflow_start = MyPV("8idi:Reg170")
     workflow_submit_xpcs_job = MyPV("8idi:Reg172")
+    workflow_uuid = MyPV("8idi:StrReg14", string=True)  # TODO: need to bubble up from workflow thread, somehow
 
     xpcs_qmap_file = MyPV("8idi:StrReg13", string=True)
 
@@ -215,7 +216,6 @@ class DataManagementMetadata(DMDBase):
     zspec = MyPV("8idi:Reg16")
 
 
-@property
 def aps_cycle():
     """Hackulate the name of the current APS run cycle"""
     dt = datetime.datetime.now()
@@ -230,7 +230,7 @@ class WorkflowHelper:
         # get detector information and software that calls the workflow
         self.workflow = APS_DM_8IDI.DM_Workflow(
             self.registers, 
-            aps_cycle, 
+            aps_cycle(), 
             self.registers.xpcs_qmap_file.value)
 
         # local attributes to control the polling loop

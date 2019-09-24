@@ -141,7 +141,8 @@ def AD_Acquire(areadet,
             #registers.dark_begin, -1,            #  edit if detector needs this
             #registers.dark_end, -1,              #  op cit
             registers.data_begin, 1,
-            registers.data_end, num_images,
+            # registers.data_end, num_images,
+            registers.data_end, areadet.images_received,
             registers.exposure_time, acquire_time,
             registers.exposure_period, acquire_period,
             # registers.specscan_dark_number, -1,   #  not used, detector takes no darks

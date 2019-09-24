@@ -146,7 +146,7 @@ class DM_Workflow:
         self.ANALYSIS_COMMAND = ""
         
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
-        self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
+        self.set_xpcs_qmap_file(xpcs_qmap_file)
 
         self.hdf_workflow_file = None
 
@@ -640,26 +640,42 @@ class DM_Workflow:
 			".logs",
 			"analysis-log.txt"
         )
-        
         with open(log_file, "a") as dm_log:
-            dm_log.write(f"self.QMAP_FOLDER_PATH={self.QMAP_FOLDER_PATH}\n")
-            dm_log.write(f"self.XPCS_QMAP_FILENAME={self.XPCS_QMAP_FILENAME}\n")
+            dm_log.write("checkpoint\n")
+            dm_log.write(
+                f"self.QMAP_FOLDER_PATH={self.QMAP_FOLDER_PATH}\n"
+                f"self.XPCS_QMAP_FILENAME={self.XPCS_QMAP_FILENAME}\n"
+            )
+
+        try:
             default = os.path.join(self.QMAP_FOLDER_PATH, self.XPCS_QMAP_FILENAME)
-            dm_log.write(f"0: qmapfile_with_fullpath={qmapfile_with_fullpath}\n")
+        except Exception as exc:
+            with open(log_file, "a") as dm_log:
+                dm_log.write(f"{exc}\n")
+            default = "/xpcs"
+        try:
             qmapfile_with_fullpath = qmapfile_with_fullpath or default
-            dm_log.write(f"1: qmapfile_with_fullpath={qmapfile_with_fullpath}\n")
             xpcs_group_name = xpcs_group_name or "/xpcs"
+        except Exception as exc:
+            with open(log_file, "a") as dm_log:
+                dm_log.write(
+                    f"{exc}"
+                    f"default={default}"
+                    f"qmapfile_with_fullpath]{qmapfile_with_fullpath}"
+                    f"xpcs_group_name={xpcs_group_name}"
+                    )
 
-            cmd = (
-                "source /home/dm/etc/dm.setup.sh; "
-                "dm-start-processing-job"
-                f" --workflow-name={self.DM_WORKFLOW_DATA_ANALYSIS}"
-                f" filePath:{hdf_with_fullpath}"
-                f" qmapFile:{qmapfile_with_fullpath}"
-                f" xpcsGroupName:{xpcs_group_name}"
-                )
-            self.ANALYSIS_COMMAND = cmd;
+        cmd = (
+            "source /home/dm/etc/dm.setup.sh; "
+            "dm-start-processing-job"
+            f" --workflow-name={self.DM_WORKFLOW_DATA_ANALYSIS}"
+            f" filePath:{hdf_with_fullpath}"
+            f" qmapFile:{qmapfile_with_fullpath}"
+            f" xpcsGroupName:{xpcs_group_name}"
+            )
+        self.ANALYSIS_COMMAND = cmd;
 
+        with open(log_file, "a") as dm_log:
             dm_log.write(
                 f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
                 f",{qmapfile_with_fullpath}"

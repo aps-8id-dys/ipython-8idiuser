@@ -129,7 +129,7 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     
     @property
     def images_received(self):
-        return self.immout.num_captured.value
+        return self.immout.num_captured.get()
     
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -158,16 +158,16 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
 
-    def trigger(self):
-        "Trigger one acquisition."
-        if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
+    # def trigger(self):
+    #     "Trigger one acquisition."
+    #     if self._staged != Staged.yes:
+    #         raise RuntimeError("This detector is not ready to trigger."
+    #                            "Call the stage() method before triggering.")
 
-        self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
-        self.dispatch(self._image_name, ttime.time())
-        return self._status
+    #     self._status = self._status_type(self)
+    #     self._acquisition_signal.put(1, wait=False)
+    #     self.dispatch(self._image_name, ttime.time())
+    #     return self._status
 
 
 try:

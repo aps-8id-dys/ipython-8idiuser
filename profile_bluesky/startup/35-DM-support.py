@@ -90,6 +90,7 @@ class DataManagementMetadata(Device):
     workflow_ticker = Component(EpicsSignal, "8idi:Reg171")
     workflow_start = Component(EpicsSignal, "8idi:Reg170")
     workflow_submit_xpcs_job = Component(EpicsSignal, "8idi:Reg172")
+    workflow_uuid = Component(EpicsSignal, "8idi:StrReg14", string=True)  # TODO:
 
     xpcs_qmap_file = Component(EpicsSignal, "8idi:StrReg13", string=True)
 

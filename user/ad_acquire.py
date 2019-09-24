@@ -8,6 +8,11 @@ logger.info(__file__)
 bluesky data acquisition plans
 """
 
+AD_PATH_PREFIX = os.path.join("/data", aps_cycle)
+BLUESKY_PATH_PREFIX = os.path.join("/home/8-id-i", aps_cycle)
+AD_ACQUIRE_SUBPATH = "jemian_201908"
+
+
 def AD_Acquire(areadet, 
         acquire_time=0.1, acquire_period=0.11, 
         num_images=100, file_name="A001",
@@ -28,20 +33,32 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = "/home/8-id-i/2019-2/jemian_201908"
-    file_path = os.path.join(path,file_name)
-    if not file_path.endswith(os.path.sep):
-        file_path += os.path.sep
-    logger.info(f"file_path = {file_path}")
+    file_subpath = AD_ACQUIRE_SUBPATH
+    if not file_subpath.endswith(os.path.sep):
+        file_subpath += os.path.sep
     
+    bluesky_file_path = os.path.join(BLUESKY_PATH_PREFIX, file_subpath)
+    ad_file_path = os.path.join(AD_PATH_PREFIX, file_subpath, file_name) + os.path.sep
+    logger.info(f"bluesky_file_path = {bluesky_file_path}")
+    logger.info(f"ad_file_path = {ad_file_path}")
+
+    _p = os.path.join(bluesky_file_path, file_name)
+    if not os.path.exists(_p):
+        logger.info(f"creating directory {_p}")
+        os.makedirs(_p)
+
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
 
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
-    areadet.staging_setup_DM(file_path, file_name,
-            num_images, acquire_time, acquire_period)
+    areadet.staging_setup_DM(
+        ad_file_path,
+        file_name,
+        num_images, 
+        acquire_time, 
+        acquire_period)
    
     scaler1.select_channels(None) 
     monitored_things = [
@@ -78,12 +95,12 @@ def AD_Acquire(areadet,
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
-            registers.root_folder, file_path,
+            registers.root_folder, bluesky_file_path,
         )
         logger.debug("registers.root_folder")
 
         yield from bps.mv(
-            registers.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            registers.user_data_folder, os.path.dirname(bluesky_file_path),   # just last item in path
         )
         logger.debug("registers.user_data_folder")
 
@@ -152,7 +169,7 @@ def AD_Acquire(areadet,
             registers.source_end_datetime, timestamp_now(),
             registers.source_end_current, aps.current.value,
             registers.uid, db[-1].start["uid"],
-            registers.scan_id, RE.md["scan_id"],
+            registers.scan_id, int(RE.md["scan_id"]),
         )
 
     @bpp.stage_decorator([scaler1])
@@ -164,22 +181,28 @@ def AD_Acquire(areadet,
 
         md = {
             "file_name": file_name,
-            "file_path": file_path
+            "file_path": bluesky_file_path
         }
         # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
         logger.info("scaler should be autocounting now")
 
         # do the acquisition (the scan)
-        logger.info("before count()")
+        t0 = time.time()
+        logger.debug("before count()")
         yield from bp.count([areadet], md=md)
-        logger.info("after count()")
+        dt = time.time() - t0
+        logger.debug(f"after count(), {dt:.3f}s")
 
         yield from update_metadata_postscan()
 
+        t0 = time.time()
         logger.info("before starting data management workflow")
+        yield from bps.mv(registers.workflow_caller, "bluesky")
         workflow.start_workflow(analysis=submit_xpcs_job)
-        logger.info("after starting data management workflow")
+        yield from bps.mv(registers.workflow_caller, "")
+        dt = time.time() - t0
+        logger.info(f"after starting data management workflow, {dt:.3f}s")
 
     logger.info("calling inner()")
     return (yield from inner())

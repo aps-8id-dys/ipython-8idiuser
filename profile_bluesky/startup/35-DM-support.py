@@ -54,7 +54,7 @@ class DataManagementMetadata(Device):
     sample_pitch = Component(EpicsSignal, "8idi:Reg164")
     sample_roll = Component(EpicsSignal, "8idi:Reg165")
     sample_yaw = Component(EpicsSignal, "8idi:Reg166")
-    scan_id = Component(EpicsSignal, "8idi:Reg169", string=True)
+    scan_id = Component(EpicsSignal, "8idi:Reg169")
     source_begin_beam_intensity_incident = Component(EpicsSignal, "8idi:Reg9")
     source_begin_beam_intensity_transmitted = Component(EpicsSignal, "8idi:Reg10")
     source_begin_current = Component(EpicsSignal, "8idi:Reg121")

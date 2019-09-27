@@ -1,6 +1,6 @@
 logger.info(__file__)
 
-"""detector: Rigaku (not EPICS area detectorm though)"""
+"""detector: Rigaku (not EPICS area detector though)"""
 
 
 class UnixCommandSignal(Signal):
@@ -52,7 +52,10 @@ class Rigaku_8IDI(Device):
     3. yield from bps.count([R1])
     """
 
-    shutter_control = Component(EpicsSignal, "8idi:softGlueC:AND-4_IN2_Signal")
+    shutter_mode = Component(EpicsSignal, "8idi:softGlueC:AND-4_IN2_Signal")
+    shutter_override = Component(EpicsSignal, "8idi:Unidig1Bo9.VAL")
+    shutter_control = Component(EpicsSignal, "8idi:Unidig1Bo13")
+
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL") 
 
@@ -61,6 +64,9 @@ class Rigaku_8IDI(Device):
     batch_name = Component(Signal, value=None)
 
     def stage(self):
+        self.shutter_mode.put("UFXC")
+        self.shutter_control.put("Open")
+        self.shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.value} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
 
@@ -87,3 +93,9 @@ class Rigaku_8IDI(Device):
     
     # def staging_setup_DM(self, *args, **kwargs):
     #     pass
+
+try:
+    rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])
+except TimeoutError:
+    m = "Could not connect Rigaku detector"
+    logger.warning(m)

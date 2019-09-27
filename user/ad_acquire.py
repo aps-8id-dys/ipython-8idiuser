@@ -37,6 +37,9 @@ def AD_Acquire(areadet,
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
 
+    # select the detector's number
+    yield from bps.mv(dm_pars.detNum, areadet.detector_number)
+
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
@@ -169,8 +172,12 @@ def AD_Acquire(areadet,
             # source end values
             dm_pars.source_end_datetime, timestamp_now(),
             dm_pars.source_end_current, aps.current.value,
+        )
+        yield from bps.mv(
             dm_pars.uid, db[-1].start["uid"],
-            dm_pars.scan_id, RE.md["scan_id"],
+        )
+        yield from bps.mv(
+            dm_pars.scan_id, int(RE.md["scan_id"]),
         )
 
     @bpp.stage_decorator([scaler1])
@@ -195,6 +202,7 @@ def AD_Acquire(areadet,
 
         yield from update_metadata_postscan()
         hdf_with_fullpath = make_hdf5_workflow_filename()
+        print(f"YO! {hdf_with_fullpath}")
 
         yield from dm_workflow.create_hdf5_file(
             hdf_with_fullpath, as_bluesky_plan=True)

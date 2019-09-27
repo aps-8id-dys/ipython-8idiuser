@@ -28,7 +28,7 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = "/home/8-id-i/2019-2/jemian_201908"
+    path = f"/home/8-id-i/{aps_cycle}/jemian_201908"        # FIXME: ?jemian_201908?
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
@@ -176,7 +176,7 @@ def AD_Acquire(areadet,
         yield from bps.mv(
             dm_pars.uid, db[-1].start["uid"],
         )
-        yield from bps.mv(
+        yield from bps.abs_set(
             dm_pars.scan_id, int(RE.md["scan_id"]),
         )
 

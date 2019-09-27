@@ -127,6 +127,10 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         # cut the path from file name
         return os.path.basename(self.immout.full_file_name.value)
     
+    @property
+    def images_received(self):
+        return self.immout.num_captured.get()
+    
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow

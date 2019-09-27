@@ -54,7 +54,7 @@ class DataManagementMetadata(Device):
     sample_pitch = Component(EpicsSignal, "8idi:Reg164")
     sample_roll = Component(EpicsSignal, "8idi:Reg165")
     sample_yaw = Component(EpicsSignal, "8idi:Reg166")
-    scan_id = Component(EpicsSignal, "8idi:Reg169")
+    scan_id = Component(EpicsSignal, "8idi:Reg169", string=True)
     source_begin_beam_intensity_incident = Component(EpicsSignal, "8idi:Reg9")
     source_begin_beam_intensity_transmitted = Component(EpicsSignal, "8idi:Reg10")
     source_begin_current = Component(EpicsSignal, "8idi:Reg121")
@@ -85,15 +85,6 @@ class DataManagementMetadata(Device):
 
     uid = Component(EpicsSignal, "8idi:StrReg11", string=True)
     user_data_folder = Component(EpicsSignal, "8idi:StrReg3", string=True)
-
-    workflow_caller = Component(EpicsSignal, "8idi:StrReg12", string=True)
-    workflow_ticker = Component(EpicsSignal, "8idi:Reg171")
-    workflow_start = Component(EpicsSignal, "8idi:Reg170")
-    workflow_submit_xpcs_job = Component(EpicsSignal, "8idi:Reg172")
-    workflow_uuid = Component(EpicsSignal, "8idi:StrReg14", string=True)  # TODO:
-
-    xpcs_qmap_file = Component(EpicsSignal, "8idi:StrReg13", string=True)
-
     xspec = Component(EpicsSignal, "8idi:Reg15")
     zspec = Component(EpicsSignal, "8idi:Reg16")
 
@@ -102,7 +93,7 @@ class DataManagementMetadata(Device):
 dt = datetime.datetime.now()
 aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
-xpcs_qmap_file = "Lambda_qmap.h5"		# workflow.set_xpcs_qmap_file("new_name.h5")
+xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
 
-registers = DataManagementMetadata(name="registers")
-workflow = APS_DM_8IDI.DM_Workflow(registers, aps_cycle, xpcs_qmap_file)
+dm_pars = DataManagementMetadata(name="dm_pars")
+dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)

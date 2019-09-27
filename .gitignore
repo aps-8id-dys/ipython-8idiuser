@@ -11,6 +11,8 @@ security/
 *.pyo
 *~
 *.h5
+*.hdf
+*.hdf5
 mViewer.log
 .vscode
 
@@ -24,6 +26,11 @@ mViewer.log
 
 # SpecWriter (SPEC) data files:
 20*.dat
+
+# APS NFS fileserver crud
+*.swp
+.nfs*
+
 
 # ipython session log files
 .logs/

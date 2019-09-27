@@ -82,17 +82,23 @@ class Rigaku_8IDI(Device):
         self.acquire_complete.subscribe(closure)
         return status
     
-    # @property
-    # def plugin_file_name(self):
-    #     # cut the path from file name
-    #     return os.path.basename(self.immout.full_file_name.value)
+    @property
+    def plugin_file_name(self):
+        return f"{self.batch_name.value}.bin"
     
-    # @property
-    # def images_received(self):
-    #     return self.immout.num_captured.get()
+    @property
+    def images_received(self):
+        """Rigaku tells us not to change this.  100k images every time."""
+        return 100000
     
-    # def staging_setup_DM(self, *args, **kwargs):
-    #     pass
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the detector's stage_sigs for acquisition with the DM workflow
+        
+        Implement this method in _any_ Device that requires custom
+        setup for the DM workflow.
+        """
+        pass        # nothing to do here
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

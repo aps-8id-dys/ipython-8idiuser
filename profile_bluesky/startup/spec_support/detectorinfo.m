@@ -466,6 +466,26 @@ if ( ccdimginfo.detector == 45 )
     ccdimginfo.ccdxsense          = 1;
     ccdimginfo.ccdzsense          = 1;
     ccdimginfo.harmonic           = 1                                      ;
+    ccdimginfo.dpix               = 0.076                                  ; % pixel size in mm (this is by mistake set to 76 um, should be 75 um)
+    ccdimginfo.saturation         = 3                                  ; % saturation count in one pixel
+    ccdimginfo.adupphot           = 1.0                                  ; 
+    ccdimginfo.efficiency         = 1.000                                  ;
+    ccdimginfo.gain               = 1                                      ;
+    ccdimginfo.blemish            = 1                                      ;
+    ccdimginfo.flatfield          = 0                                      ;
+    ccdimginfo.distortion         = 0                                      ;
+    ccdimginfo.parasitic          = 0                                      ;
+    ccdimginfo.lld                = 0                                      ;
+end
+% --- Detector 46 : RIGAKU500K_NoGap
+% =========================================================================
+if ( ccdimginfo.detector == 46 )
+    ccdimginfo.ccdHardwareColSize = 512                                    ; % define ccd hardware col size
+    ccdimginfo.ccdHardwareRowSize = 1024                                    ; % define ccd hardware row size
+
+    ccdimginfo.ccdxsense          = 1;
+    ccdimginfo.ccdzsense          = 1;
+    ccdimginfo.harmonic           = 1                                      ;
     ccdimginfo.dpix               = 0.076                                  ; % pixel size in mm
     ccdimginfo.saturation         = 3                                  ; % saturation count in one pixel
     ccdimginfo.adupphot           = 1.0                                  ; 
@@ -477,6 +497,7 @@ if ( ccdimginfo.detector == 45 )
     ccdimginfo.parasitic          = 0                                      ;
     ccdimginfo.lld                = 0                                      ;
 end
+
 % =========================================================================
 
 % ---

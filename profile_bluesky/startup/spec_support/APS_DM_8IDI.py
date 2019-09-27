@@ -16,18 +16,82 @@ near future.
 These workflows are stored in ~8idiuser/DM_Workflows/ and in https://subversion.xray.aps.anl.gov/xpcs/DM_Workflows/
 """
 
-from apstools import utils as APS_utils
-from bluesky import plan_stubs as bps
 import datetime
 import h5py
 import logging
 import math
 import os
-import subprocess 
+import subprocess
+import sys
+import threading
+import time
 
 from . import detector_parameters
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(os.path.split(__file__)[-1])
+
+
+def unix(command, raises=True):
+    """
+    run a UNIX command, returns (stdout, stderr)
+
+    from apstools.utils.unix()
+
+    PARAMETERS
+    
+    command: str
+        UNIX command to be executed
+    raises: bool
+        If `True`, will raise exceptions as needed,
+        default: `True`
+    """
+    if sys.platform not in ("linux", "linux2"):
+        emsg = f"Cannot call unix() when OS={sys.platform}"
+        raise RuntimeError(emsg)
+
+    process = subprocess.Popen(
+        command, 
+        shell=True,
+        stdin = subprocess.PIPE,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        )
+
+    stdout, stderr = process.communicate()
+
+    if len(stderr) > 0:
+        emsg = f"unix({command}) returned error:\n{stderr}"
+        logger.error(emsg)
+        if raises:
+            raise RuntimeError(emsg)
+
+    return stdout, stderr
+
+
+def run_in_thread(func):
+    """
+    (decorator) run ``func`` in thread
+
+    from apstools.utils.run_in_thread()
+    
+    USAGE::
+
+       @run_in_thread
+       def progress_reporting():
+           logger.debug("progress_reporting is starting")
+           # ...
+       
+       #...
+       progress_reporting()   # runs in separate thread
+       #...
+
+    """
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+    return wrapper
 
 
 class DM_Workflow:
@@ -36,8 +100,8 @@ class DM_Workflow:
         
     PARAMETERS
     
-    dm_pars : ophyd.Device
-        Instance of `ophyd.Device` connected to metadata PVs
+    registers : ophyd.Device or spec_DM_support.DataManagementMetadata
+        Instance of class, connected to metadata register PVs
     
     transfer : str, optional
         Data Management Workflow transfer key (DM_WORKFLOW_DATA_TRANSFER)
@@ -51,25 +115,27 @@ class DM_Workflow:
     xpcs_qmap_file : str, optional
         XPCS qmap file name (XPCS_QMAP_FILENAME)
 
-    ==================  ===========================================
-    method              docstring
-    ==================  ===========================================
-    set_xpcs_qmap_file  (re)define the name of HDF5 workflow file
-    create_hdf5_file    Reads camera data from EPICS PVs and writes to an hdf5 file
-    DataTransfer        initiate data transfer
-    DataAnalysis        initiate data analysis
-    ListJobs            list current jobs in the workflow
-    ==================  ===========================================
+    ======================  ===========================================
+    method                  docstring
+    ======================  ===========================================
+    get_workflow_filename   decide absolute file name for the APS data management workflow
+    start_workflow          commence the APS data management workflow
+    set_xpcs_qmap_file      (re)define the name of HDF5 workflow file
+    create_hdf5_file        Reads camera data from EPICS PVs and writes to an hdf5 file
+    DataTransfer            initiate data transfer
+    DataAnalysis            initiate data analysis
+    ListJobs                list current jobs in the workflow
+    ======================  ===========================================
     """
 
     def __init__(self, 
-                 dm_pars,
+                 registers,
                  aps_cycle,
                  xpcs_qmap_file,
                  transfer="xpcs8-01-Lambda",
                  analysis="xpcs8-02-Lambda",
                  ):
-        self.dm_pars = dm_pars
+        self.registers = registers
         self.detectors = detector_parameters.PythonDict()
 
         self.DM_WORKFLOW_DATA_TRANSFER = transfer
@@ -80,7 +146,97 @@ class DM_Workflow:
         self.ANALYSIS_COMMAND = ""
         
         self.QMAP_FOLDER_PATH = f"/home/8-id-i/partitionMapLibrary/{aps_cycle}"
-        self.XPCS_QMAP_FILENAME = self.set_xpcs_qmap_file(xpcs_qmap_file)
+        self.set_xpcs_qmap_file(xpcs_qmap_file)
+
+        self.hdf_workflow_file = None
+
+    def get_workflow_filename(self):
+        """
+        decide absolute file name for the APS data management workflow
+        """
+        registers = self.registers
+        path = registers.root_folder.value
+        if path.startswith("/data"):
+            path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+        data_folder = registers.data_folder.value.strip('/')
+        path = os.path.join(path, data_folder, registers.data_subfolder.value)
+        fname = (
+            f"{data_folder}"
+            f"_{registers.data_begin.value:04.0f}"
+            f"-{registers.data_end.value:04.0f}"
+        )
+        fullname = os.path.join(path, f"{fname}.hdf")
+        suffix = 0
+        while os.path.exists(fullname):
+            suffix += 1
+            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+        if suffix > 0:
+            logger.info(f"using modified file name: {fullname}")
+        return fullname
+
+    def start_workflow(self, analysis=True):
+        """
+        commence the APS data management workflow
+        
+        PARAMETERS
+        
+        hdf_workflow_file : str
+            name of the HDF5 workflow file to be written
+        
+        analysis : bool
+            If True (default): use DataAnalysis workflow.
+            If False: use DataTransfer workflow.
+        """
+        analysis = analysis in (1, 1.0, True)
+        wf_name = {True: "analysis", False: "transfer"}[analysis]
+        logger.info(f"starting start_workflow(): workflow:{wf_name}")
+        
+        dm_log_file = os.path.join(
+			os.path.dirname(__file__),
+			".logs",
+			"dm-workflow-log.txt"
+        )
+        out_log_file = os.path.join(
+			os.path.dirname(__file__),
+			".logs",
+			"process-log.txt"
+        )
+
+        @run_in_thread
+        def kickoff_DM_workflow():
+            with open(dm_log_file, "a") as dm_log:
+                msg = f"DM workflow starting: workflow:{wf_name}  file:{self.hdf_workflow_file}"
+                dm_log.write(f"{msg}\n")
+                t1 = time.time()
+                try:
+                    func = {
+                        True: self.DataAnalysis, 
+                        False: self.DataTransfer
+                    }[analysis]
+                    out_err = func(self.hdf_workflow_file)
+                    out = out_err[0].decode().strip()
+                    err = out_err[1].decode().strip()
+                    with open(out_log_file, "a") as process_log:
+                        process_log.write(f"{out}\n")
+                except Exception as exc:
+                    dm_log.write(f"Exception {exc}\n")
+                dt1 = time.time() - t1
+                dm_log.write(f"DM workflow done: {dt1:.3f}s\n")
+                dm_log.write(f"{out}\n")
+                if len(err) > 0:
+                    dm_log.write(f"{err}\n")
+        
+        logger.info("starting start_workflow()")
+        self.hdf_workflow_file = self.get_workflow_filename()
+        logger.info(f"creating hdf_workflow_file = {self.hdf_workflow_file}")
+        self.create_hdf5_file(self.hdf_workflow_file)
+        logger.info(f"hdf_workflow_file exists: {os.path.exists(self.hdf_workflow_file)}")
+
+        logger.debug("calling kickoff_DM_workflow()")
+        t0 = time.time()
+        kickoff_DM_workflow()
+        dt = time.time() - t0
+        logger.debug(f"after kickoff_DM_workflow(): {dt:.3f}s")
 
     def set_xpcs_qmap_file(self, xpcs_qmap_file):
         """
@@ -96,7 +252,7 @@ class DM_Workflow:
             xpcs_qmap_file = os.path.splitext(xpcs_qmap_file)[0] + ext
         self.XPCS_QMAP_FILENAME = xpcs_qmap_file
 
-    def create_hdf5_file(self, filename, as_bluesky_plan=False):
+    def create_hdf5_file(self, filename, **kwargs):
         """
         write metadata from EPICS PVs to new HDF5 file
         
@@ -104,132 +260,128 @@ class DM_Workflow:
         
         filename : str
             name of the HDF5 file to be written
-        
-        as_bluesky_plan : bool
-            If ``True``, yield a bluesky Message, default: ``False``
         """
-        dm_pars = self.dm_pars
-        
-        if as_bluesky_plan:
-            # make this a bluesky plan, MUST yield at least one Message
-            # This is the only statement here that makes this a bluesky plan
-            yield from bps.null()
+        registers = self.registers
 
         # Gets Python Dict stored in other file
         masterDict = self.detectors.getMasterDict()
+
+        logger.info(f"creating HDF5 file {filename}")
         
         # any exception here will be handled by caller
         with h5py.File(filename, "w-") as f:
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
-                data=[[dm_pars.hdf_metadata_version.value]]) #same as batchinfo_ver for now
+                data=[[registers.hdf_metadata_version.value]]) #same as batchinfo_ver for now
             ##version 15 (May 2019) is start of burst mode support (rigaku) 
 
             #######/measurement/instrument/acquisition
             #######some new acq fields to replace batchinfo
             f.create_dataset("/measurement/instrument/acquisition/dark_begin",
-                data=[[dm_pars.dark_begin.value]],
+                data=[[registers.dark_begin.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/dark_end",
-                data=[[dm_pars.dark_end.value]],
+                data=[[registers.dark_end.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/data_begin",
-                data=[[dm_pars.data_begin.value]],
+                data=[[registers.data_begin.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/data_end",
-                data=[[dm_pars.data_end.value]],
+                data=[[registers.data_end.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/specscan_dark_number",
-                data=[[dm_pars.specscan_dark_number.value]],
+                data=[[registers.specscan_dark_number.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/specscan_data_number",
-                data=[[dm_pars.specscan_data_number.value]],
+                data=[[registers.specscan_data_number.value]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/attenuation",
-                data=[[dm_pars.attenuation.value]])
+                data=[[registers.attenuation.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[dm_pars.beam_size_H.value]])
+                data=[[registers.beam_size_H.value]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[dm_pars.beam_size_V.value]])
+                data=[[registers.beam_size_V.value]])
 
-            f["/measurement/instrument/acquisition/specfile"] = dm_pars.specfile.value
+            f["/measurement/instrument/acquisition/specfile"] = registers.specfile.value
 
-            # dm_pars.root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/'
-            # dm_pars.data_subfolder: 'A186_DOHE04_Yb010_att0_Uq0_00150'
+            # registers.root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/'
+            # registers.data_subfolder: 'A186_DOHE04_Yb010_att0_Uq0_00150'
             # root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/A186_DOHE04_Yb010_att0_Uq0_00150/'
             root_folder = os.path.join(
-                dm_pars.root_folder.value,
-                dm_pars.data_subfolder.value
+                registers.root_folder.value,
+                registers.data_subfolder.value
             ).rstrip("/") + "/"  # ensure one and only one trailing `/`
             f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
-            # In [1]: dm_pars.user_data_folder.value
+            # In [1]: registers.user_data_folder.value
             # Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
             # pick "jemian_201908" part
-            parent_folder = dm_pars.user_data_folder.value.split("/")[-2]
+            parent_folder = registers.user_data_folder.value
+            if parent_folder.find("/") > -1:
+                parent_folder = parent_folder.split("/")[-2]
             f["/measurement/instrument/acquisition/parent_folder"] = parent_folder
 
-            f["/measurement/instrument/acquisition/data_folder"] = dm_pars.data_folder.value
-            f["/measurement/instrument/acquisition/datafilename"] = dm_pars.datafilename.value
+            f["/measurement/instrument/acquisition/data_folder"] = registers.data_folder.value
+            f["/measurement/instrument/acquisition/datafilename"] = registers.datafilename.value
 
             f.create_dataset("/measurement/instrument/acquisition/beam_center_x",
-                data=[[dm_pars.beam_center_x.value]])
+                data=[[registers.beam_center_x.value]])
 
             f.create_dataset("/measurement/instrument/acquisition/beam_center_y",
-                data=[[dm_pars.beam_center_y.value]])
+                data=[[registers.beam_center_y.value]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_zero_x",
-                data=[[dm_pars.stage_zero_x.value]])
+                data=[[registers.stage_zero_x.value]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_zero_z",
-                data=[[dm_pars.stage_zero_z.value]])
+                data=[[registers.stage_zero_z.value]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_x",
-                data=[[dm_pars.stage_x.value]])
+                data=[[registers.stage_x.value]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_z",
-                data=[[dm_pars.stage_z.value]])
+                data=[[registers.stage_z.value]])
 
             v = {True: "ENABLED", 
-                 False: "DISABLED"}[dm_pars.compression.value == 1]
+                 False: "DISABLED"}[registers.compression.value == 1]
             f["/measurement/instrument/acquisition/compression"] = v
 
-            if dm_pars.geometry_num.value == 1: ##reflection geometry
+            if registers.geometry_num.value == 1: ##reflection geometry
                 f.create_dataset("/measurement/instrument/acquisition/xspec",
-                    data=[[float(dm_pars.xspec.value)]],
+                    data=[[float(registers.xspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/zspec",
-                    data=[[float(dm_pars.zspec.value)]],
+                    data=[[float(registers.zspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdxspec",
-                    data=[[float(dm_pars.ccdxspec.value)]],
+                    data=[[float(registers.ccdxspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdzspec",
-                    data=[[float(dm_pars.ccdzspec.value)]],
+                    data=[[float(registers.ccdzspec.value)]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/angle",
-                    data=[[float(dm_pars.angle.value)]],
+                    data=[[float(registers.angle.value)]],
                     dtype='float64')
 
-            elif dm_pars.geometry_num.value == 0: ##transmission geometry
+            elif registers.geometry_num.value == 0: ##transmission geometry
                 f["/measurement/instrument/acquisition/xspec"] = [[float(-1)]]
                 f["/measurement/instrument/acquisition/zspec"] = [[float(-1)]]
                 f["/measurement/instrument/acquisition/ccdxspec"] = [[float(-1)]]
@@ -238,49 +390,49 @@ class DM_Workflow:
 
             #/measurement/instrument/source_begin
             f.create_dataset("/measurement/instrument/source_begin/beam_intensity_incident",
-                data=[[dm_pars.source_begin_beam_intensity_incident.value]])
+                data=[[registers.source_begin_beam_intensity_incident.value]])
 
             f.create_dataset("/measurement/instrument/source_begin/beam_intensity_transmitted",
-                data=[[dm_pars.source_begin_beam_intensity_transmitted.value]])
+                data=[[registers.source_begin_beam_intensity_transmitted.value]])
 
             f.create_dataset("/measurement/instrument/source_begin/current",
-                data=[[dm_pars.source_begin_current.value]])
+                data=[[registers.source_begin_current.value]])
         
             f.create_dataset("/measurement/instrument/source_begin/energy",
-			     data=[[dm_pars.source_begin_energy.value]])
+			     data=[[registers.source_begin_energy.value]])
 
-            f["/measurement/instrument/source_begin/datetime"] = dm_pars.source_begin_datetime.value
+            f["/measurement/instrument/source_begin/datetime"] = registers.source_begin_datetime.value
 
             #/measurement/instrument/source_end (added in January 2019)
             f.create_dataset("/measurement/instrument/source_end/current",
-                data=[[dm_pars.source_end_current.value]])
+                data=[[registers.source_end_current.value]])
 
-            f["/measurement/instrument/source_end/datetime"] = dm_pars.source_end_datetime.value
+            f["/measurement/instrument/source_end/datetime"] = registers.source_end_datetime.value
 
             ########################################################################################
             #/measurement/instrument/sample
             f.create_dataset("/measurement/sample/thickness", data=[[1.0]])
             
             f.create_dataset("/measurement/sample/temperature_A",
-                data=[[dm_pars.temperature_A.value]])
+                data=[[registers.temperature_A.value]])
 
             f.create_dataset("/measurement/sample/temperature_B",
-                data=[[dm_pars.temperature_B.value]])
+                data=[[registers.temperature_B.value]])
 
             f.create_dataset("/measurement/sample/temperature_A_set",
-                data=[[dm_pars.temperature_A_set.value]])
-            # data=[[dm_pars.pid1.value]])
+                data=[[registers.temperature_A_set.value]])
+            # data=[[registers.pid1.value]])
 
             f.create_dataset("/measurement/sample/temperature_B_set",
-                data=[[dm_pars.temperature_B_set.value ]])
+                data=[[registers.temperature_B_set.value ]])
 
             f.create_dataset(
                 "/measurement/sample/translation",
                 data=[
                     [
-                        dm_pars.translation_x.value,
-                        dm_pars.translation_y.value,
-                        dm_pars.translation_z.value,
+                        registers.translation_x.value,
+                        registers.translation_y.value,
+                        registers.translation_z.value,
                         ]
                     ]
                 )
@@ -290,9 +442,9 @@ class DM_Workflow:
                 "/measurement/sample/translation_table",
                 data=[
                     [
-                        dm_pars.translation_table_x.value,
-                        dm_pars.translation_table_y.value,
-                        dm_pars.translation_table_z.value,
+                        registers.translation_table_x.value,
+                        registers.translation_table_y.value,
+                        registers.translation_table_z.value,
                          ]
                     ]
                 )
@@ -301,15 +453,15 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        dm_pars.sample_pitch.value,
-                        dm_pars.sample_roll.value,
-                        dm_pars.sample_yaw.value
+                        registers.sample_pitch.value,
+                        registers.sample_roll.value,
+                        registers.sample_yaw.value
                         ]
                     ]
                 )
 
             #######/measurement/instrument/detector#########################
-            detector_specs = masterDict[dm_pars.detNum.value]
+            detector_specs = masterDict[registers.detNum.value]
 
             f["/measurement/instrument/detector/manufacturer"] = detector_specs["manufacturer"]
 
@@ -344,20 +496,20 @@ class DM_Workflow:
                 dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/exposure_time",
-                data=[[dm_pars.exposure_time.value]])
+                data=[[registers.exposure_time.value]])
 
             f.create_dataset("/measurement/instrument/detector/exposure_period",
-                data=[[dm_pars.exposure_period.value]])
+                data=[[registers.exposure_period.value]])
 
-            if dm_pars.burst_mode_state.value == 1:
+            if registers.burst_mode_state.value == 1:
                 f.create_dataset("/measurement/instrument/detector/burst/number_of_bursts",
-                    data=[[dm_pars.number_of_bursts.value]], dtype='uint32')
+                    data=[[registers.number_of_bursts.value]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/burst/first_usable_burst",
-                    data=[[dm_pars.first_usable_burst.value]], dtype='uint32')
+                    data=[[registers.first_usable_burst.value]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/burst/last_usable_burst",
-                    data=[[dm_pars.last_usable_burst.value]], dtype='uint32')
+                    data=[[registers.last_usable_burst.value]], dtype='uint32')
             else:
                 f.create_dataset("/measurement/instrument/detector/burst/number_of_bursts",
                     data=[[0]], dtype='uint32')
@@ -369,7 +521,7 @@ class DM_Workflow:
                     data=[[0]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/distance",
-                data=[[dm_pars.detector_distance.value]])
+                data=[[registers.detector_distance.value]])
 
 
             choices = {True: "ENABLED", False: "DISABLED"}
@@ -403,30 +555,30 @@ class DM_Workflow:
             f.create_dataset("/measurement/instrument/detector/gain", data=[[1]], dtype='uint32')
 
             choices = {0: "TRANSMISSION", 1: "REFLECTION"}
-            v = choices.get(dm_pars.geometry_num.value, "UNKNOWN")
+            v = choices.get(registers.geometry_num.value, "UNKNOWN")
             f["/measurement/instrument/detector/geometry"] = v
 
             choices = {True: "ENABLED", False: "DISABLED"}
-            v = choices[dm_pars.kinetics_state.value == 1]
+            v = choices[registers.kinetics_state.value == 1]
             f["/measurement/instrument/detector/kinetics_enabled"] = v
 
-            v = choices[dm_pars.burst_mode_state.value == 1]
+            v = choices[registers.burst_mode_state.value == 1]
             f["/measurement/instrument/detector/burst_enabled"] = v
 
             #######/measurement/instrument/detector/kinetics/######
-            if dm_pars.kinetics_state.value == 1:
+            if registers.kinetics_state.value == 1:
                 f.create_dataset("/measurement/instrument/detector/kinetics/first_usable_window", 
                     data=[[2]], dtype='uint32')
 
-                v = int(dm_pars.kinetics_top.value/dm_pars.kinetics_window_size.value)-1
+                v = int(registers.kinetics_top.value/registers.kinetics_window_size.value)-1
                 f.create_dataset("/measurement/instrument/detector/kinetics/last_usable_window", 
                     data=[[v]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/kinetics/top", 
-                    data=[[dm_pars.kinetics_top.value]], dtype='uint32')
+                    data=[[registers.kinetics_top.value]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/kinetics/window_size", 
-                    data=[[dm_pars.kinetics_window_size.value]], dtype='uint32')
+                    data=[[registers.kinetics_window_size.value]], dtype='uint32')
             else :
                 f.create_dataset("/measurement/instrument/detector/kinetics/first_usable_window", 
                     data=[[0]], dtype='uint32')
@@ -442,16 +594,16 @@ class DM_Workflow:
 
             #######/measurement/instrument/detector/roi/######
             f.create_dataset("/measurement/instrument/detector/roi/x1", 
-                data=[[dm_pars.roi_x1.value]], dtype='uint32')
+                data=[[registers.roi_x1.value]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/y1", 
-                data=[[dm_pars.roi_y1.value]], dtype='uint32')
+                data=[[registers.roi_y1.value]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/x2", 
-                data=[[dm_pars.roi_x2.value]], dtype='uint32')
+                data=[[registers.roi_x2.value]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/y2", 
-                data=[[dm_pars.roi_y2.value]], dtype='uint32')
+                data=[[registers.roi_y2.value]], dtype='uint32')
 
         #####################################################################################
         # Close file closes automatically due to the "with" opener
@@ -472,7 +624,7 @@ class DM_Workflow:
             f"{hdf_with_fullpath}"
             f"----{datetime.datetime.now()}"
             )
-        return APS_utils.unix(cmd)
+        return unix(cmd)
 
     def DataAnalysis(self, 
                      hdf_with_fullpath, 
@@ -483,10 +635,35 @@ class DM_Workflow:
         
         SPEC note: hdf_with_fullpath : usually saved in global HDF5_METADATA_FILE 
         """
-        
-        default = os.path.join(self.QMAP_FOLDER_PATH, self.XPCS_QMAP_FILENAME)
-        qmapfile_with_fullpath = qmapfile_with_fullpath or default
-        xpcs_group_name = xpcs_group_name or "/xpcs"
+        log_file = os.path.join(
+			os.path.dirname(__file__),
+			".logs",
+			"analysis-log.txt"
+        )
+        with open(log_file, "a") as dm_log:
+            dm_log.write("checkpoint\n")
+            dm_log.write(
+                f"self.QMAP_FOLDER_PATH={self.QMAP_FOLDER_PATH}\n"
+                f"self.XPCS_QMAP_FILENAME={self.XPCS_QMAP_FILENAME}\n"
+            )
+
+        try:
+            default = os.path.join(self.QMAP_FOLDER_PATH, self.XPCS_QMAP_FILENAME)
+        except Exception as exc:
+            with open(log_file, "a") as dm_log:
+                dm_log.write(f"{exc}\n")
+            default = "/xpcs"
+        try:
+            qmapfile_with_fullpath = qmapfile_with_fullpath or default
+            xpcs_group_name = xpcs_group_name or "/xpcs"
+        except Exception as exc:
+            with open(log_file, "a") as dm_log:
+                dm_log.write(
+                    f"{exc}"
+                    f"default={default}"
+                    f"qmapfile_with_fullpath]{qmapfile_with_fullpath}"
+                    f"xpcs_group_name={xpcs_group_name}"
+                    )
 
         cmd = (
             "source /home/dm/etc/dm.setup.sh; "
@@ -498,12 +675,14 @@ class DM_Workflow:
             )
         self.ANALYSIS_COMMAND = cmd;
 
-        logger.info(
-            f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
-            f",{qmapfile_with_fullpath}"
-            f"----{datetime.datetime.now()}"
-            )
-        return APS_utils.unix(cmd)
+        with open(log_file, "a") as dm_log:
+            dm_log.write(
+                f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
+                f",{qmapfile_with_fullpath}"
+                f"----{datetime.datetime.now()}"
+                "\n"
+                )
+        return unix(cmd)
 
     def ListJobs(self):
         """
@@ -516,18 +695,7 @@ class DM_Workflow:
             " | sort -r"
             " |head -n 10"
             )
-        out, err = APS_utils.unix(command);
+        out, err = unix(command);
         logger.info("*"*30)
         logger.info(out)
         logger.info("*"*30)
-
-
-# if __name__ == "__main__":
-#     import sys
-#     filename = sys.argv[1]  # caller must provide a filename
-#
-#     dm_pars = None  # TO DO: need an ophyd.Device for testing
-#
-#     workflow = DM_Workflow(dm_pars)
-#     workflow.create_hdf5_file(filename)
-   

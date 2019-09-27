@@ -63,6 +63,8 @@ class Rigaku_8IDI(Device):
 
     batch_name = Component(Signal, value=None)
 
+    detector_number = 46    # 8-ID-I numbering of this detector
+
     def stage(self):
         self.shutter_mode.put("UFXC")
         self.shutter_control.put("Open")
@@ -98,7 +100,15 @@ class Rigaku_8IDI(Device):
         Implement this method in _any_ Device that requires custom
         setup for the DM workflow.
         """
-        pass        # nothing to do here
+        if len(args) != 5:
+            raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
+        # file_path = args[0]
+        file_name = args[1]
+        # num_images = args[2]
+        # acquire_time = args[3]
+        # acquire_period = args[4]
+
+        self.batch_name.put(file_name)
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

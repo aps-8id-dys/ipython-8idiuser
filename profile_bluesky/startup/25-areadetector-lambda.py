@@ -116,6 +116,8 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     immout = Component(IMMFilePlugin, "IMMout:")
     gather = Component(GatherPlugin, "Gather1:")
     scatter = Component(ScatterPlugin, "Scatter1:")
+
+    detector_number = 25    # 8-ID-I numbering of this detector
     
     @property
     def plugin_file_name(self):
@@ -138,7 +140,8 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         Implement this method in _any_ Device that requires custom
         setup for the DM workflow.
         """
-        assert len(args) == 5
+        if len(args) != 5:
+            raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
         file_path = args[0]
         file_name = args[1]
         num_images = args[2]

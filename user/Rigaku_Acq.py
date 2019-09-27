@@ -43,7 +43,7 @@ def UFXC_Acquire(batch_name='A001_Test'):
 
 
 
-class Unix_Command(Signal):
+class UnixCommandSignal(Signal):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -102,7 +102,7 @@ class Rigaku_8IDI(Device):
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL") 
 
-    unix_process = Component(Unix_Command)
+    unix_process = Component(UnixCommandSignal)
 
     batch_name = Component(Signal, value=None)
 

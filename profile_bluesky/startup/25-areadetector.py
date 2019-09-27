@@ -127,6 +127,10 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         # cut the path from file name
         return os.path.basename(self.immout.full_file_name.value)
     
+    @property
+    def images_received(self):
+        return self.immout.num_captured.get()
+    
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
@@ -153,6 +157,17 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         self.immout.stage_sigs["file_number"] = 1
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
+
+    # def trigger(self):
+    #     "Trigger one acquisition."
+    #     if self._staged != Staged.yes:
+    #         raise RuntimeError("This detector is not ready to trigger."
+    #                            "Call the stage() method before triggering.")
+
+    #     self._status = self._status_type(self)
+    #     self._acquisition_signal.put(1, wait=False)
+    #     self.dispatch(self._image_name, ttime.time())
+    #     return self._status
 
 
 try:

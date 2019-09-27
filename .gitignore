@@ -1,6 +1,9 @@
 # backup files
 *~
 
+# VIM swap file
+.*.swp
+
 db/
 history
 history.sqlite
@@ -11,6 +14,8 @@ security/
 *.pyo
 *~
 *.h5
+*.hdf
+*.hdf5
 mViewer.log
 .vscode
 

@@ -256,6 +256,7 @@ class WorkflowHelper:
         """
         logger.info("workflow helper starting")
         t_next_increment = time.time()
+        work_in_progress = False
 
         while True:
             t_now = time.time()
@@ -266,7 +267,13 @@ class WorkflowHelper:
             if (self.registers.workflow_start.value != 0
                 and 
                 self.registers.workflow_caller.value.lower() == "spec"
+                and
+                not work_in_progress
+                and
+                self.registers.workflow_start.value != previous_trigger_value
             ):
+                work_in_progress = True
+                previous_trigger_value = self.registers.workflow_start.value
                 self.workflow.set_xpcs_qmap_file(
                     self.registers.xpcs_qmap_file.value)    # in case this changed
                 
@@ -278,7 +285,9 @@ class WorkflowHelper:
                 logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
                 self.registers.workflow_start.put(0, wait=True)
+                work_in_progress = False
 
+            previous_trigger_value = self.registers.workflow_start.value
             time.sleep(self.loop_sleep)
 
 

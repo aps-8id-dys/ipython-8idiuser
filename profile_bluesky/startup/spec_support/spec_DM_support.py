@@ -282,6 +282,9 @@ class WorkflowHelper:
                 self.workflow.set_xpcs_qmap_file(
                     self.registers.xpcs_qmap_file.value)    # in case this changed
                 
+                self.workflow.transfer.put(self.registers.transfer.value)
+                self.workflow.analysis.put(self.registers.analysis.value)
+                
                 logger.info("before starting data management workflow")
                 t0 = time.time()
                 self.workflow.start_workflow(

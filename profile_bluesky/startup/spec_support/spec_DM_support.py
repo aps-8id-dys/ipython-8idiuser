@@ -257,7 +257,6 @@ class WorkflowHelper:
         logger.info("workflow helper starting")
         t_next_increment = time.time()
         work_in_progress = False
-        previous_trigger_value = self.registers.workflow_start.value
 
         while True:
             t_now = time.time()
@@ -288,6 +287,7 @@ class WorkflowHelper:
                 self.registers.workflow_start.put(0, wait=True)
                 work_in_progress = False
 
+            previous_trigger_value = self.registers.workflow_start.value
             time.sleep(self.loop_sleep)
 
 

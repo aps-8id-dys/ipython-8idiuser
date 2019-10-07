@@ -257,6 +257,7 @@ class WorkflowHelper:
         logger.info("workflow helper starting")
         t_next_increment = time.time()
         work_in_progress = False
+        previous_trigger_value = self.registers.workflow_start.value
 
         while True:
             t_now = time.time()
@@ -269,6 +270,8 @@ class WorkflowHelper:
                 self.registers.workflow_caller.value.lower() == "spec"
                 and
                 not work_in_progress
+                and
+                self.registers.workflow_start.value != previous_trigger_value
             ):
                 work_in_progress = True
                 self.workflow.set_xpcs_qmap_file(
@@ -284,6 +287,7 @@ class WorkflowHelper:
                 self.registers.workflow_start.put(0, wait=True)
                 work_in_progress = False
 
+            previous_trigger_value = self.registers.workflow_start.value
             time.sleep(self.loop_sleep)
 
 

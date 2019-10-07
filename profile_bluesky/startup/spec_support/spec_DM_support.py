@@ -204,6 +204,8 @@ class DataManagementMetadata(DMDBase):
     uid = MyPV("8idi:StrReg11", string=True)
     user_data_folder = MyPV("8idi:StrReg3", string=True)
 
+    transfer = MyPV("8idi:StrReg15", string=True)
+    analysis = MyPV("8idi:StrReg16", string=True)
     workflow_caller = MyPV("8idi:StrReg12", string=True)
     workflow_ticker = MyPV("8idi:Reg171")
     workflow_start = MyPV("8idi:Reg170")
@@ -231,7 +233,10 @@ class WorkflowHelper:
         self.workflow = APS_DM_8IDI.DM_Workflow(
             self.registers, 
             aps_cycle(), 
-            self.registers.xpcs_qmap_file.value)
+            self.registers.xpcs_qmap_file.value,
+            transfer=self.registers.transfer.value,
+            analysis=self.registers.analysis.value,
+            )
 
         # local attributes to control the polling loop
         self.increment_modulo = 10000   # 0 <= ticker < increment_modulo

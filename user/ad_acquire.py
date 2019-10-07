@@ -207,6 +207,12 @@ def AD_Acquire(areadet,
         yield from dm_workflow.create_hdf5_file(
             hdf_with_fullpath, as_bluesky_plan=True)
         
+        # update these values from the string registers
+        yield from bps.mv(
+            dm_workflow.transfer, dm_pars.transfer.value,
+            dm_workflow.analysis, dm_pars.analysis.value,
+        )
+
         # no need to yield from since the function is not a plan
         kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)
 

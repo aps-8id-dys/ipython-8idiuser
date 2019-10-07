@@ -83,6 +83,9 @@ class DataManagementMetadata(Device):
     translation_y = Component(EpicsSignal, "8idi:Reg159")
     translation_z = Component(EpicsSignal, "8idi:Reg160")
 
+    transfer = Component(EpicsSignal, "8idi:StrReg15", string=True)
+    analysis = Component(EpicsSignal, "8idi:StrReg16", string=True)
+
     uid = Component(EpicsSignal, "8idi:StrReg11", string=True)
     user_data_folder = Component(EpicsSignal, "8idi:StrReg3", string=True)
     xspec = Component(EpicsSignal, "8idi:Reg15")
@@ -96,4 +99,8 @@ aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
 
 dm_pars = DataManagementMetadata(name="dm_pars")
-dm_workflow = APS_DM_8IDI.DM_Workflow(dm_pars, aps_cycle, xpcs_qmap_file)
+dm_workflow = APS_DM_8IDI.DM_Workflow(
+    dm_pars, aps_cycle, xpcs_qmap_file,
+    transfer=dm_pars.transfer.value,
+    analysis=dm_pars.analysis.value,
+    )

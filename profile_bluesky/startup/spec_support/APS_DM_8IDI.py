@@ -138,10 +138,10 @@ class DM_Workflow:
         self.registers = registers
         self.detectors = detector_parameters.PythonDict()
 
-        self.DM_WORKFLOW_DATA_TRANSFER = transfer
-        self.DM_WORKFLOW_DATA_ANALYSIS = analysis
-        # self.DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-nos8iddata"
-        # self.DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-nos8iddata"
+        self.transfer = transfer      # was DM_WORKFLOW_DATA_TRANSFER
+        self.analysis = analysis      # was DM_WORKFLOW_DATA_ANALYSIS
+        # self.transfer = "xpcs8-01-nos8iddata"
+        # self.analysis = "xpcs8-02-nos8iddata"
         self.TRANSFER_COMMAND = ""
         self.ANALYSIS_COMMAND = ""
         
@@ -615,7 +615,7 @@ class DM_Workflow:
         cmd = (
             "source /home/dm/etc/dm.setup.sh; "
             "dm-start-processing-job"
-            f" --workflow-name={self.DM_WORKFLOW_DATA_TRANSFER}"
+            f" --workflow-name={self.transfer}"
             f" filePath:{hdf_with_fullpath}"
             )
         self.TRANSFER_COMMAND = cmd;
@@ -668,7 +668,7 @@ class DM_Workflow:
         cmd = (
             "source /home/dm/etc/dm.setup.sh; "
             "dm-start-processing-job"
-            f" --workflow-name={self.DM_WORKFLOW_DATA_ANALYSIS}"
+            f" --workflow-name={self.analysis}"
             f" filePath:{hdf_with_fullpath}"
             f" qmapFile:{qmapfile_with_fullpath}"
             f" xpcsGroupName:{xpcs_group_name}"

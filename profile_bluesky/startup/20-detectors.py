@@ -17,17 +17,21 @@ class LocalScalerCH(ScalerCH):
         self.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
 
 
-scaler1 = LocalScalerCH('8idi:scaler1', name='scaler1', labels=["scalers", "detectors"])
+_scaler_pv = "8idi:scaler1"
+RETRIES = 5
+for _retry in range(RETRIES):
+    scaler1 = None
+    try:
+        scaler1 = LocalScalerCH(_scaler_pv, name='scaler1', labels=["scalers", "detectors"])
+        break            # success!
+    except TimeoutError:
+        logger.error(f"attempt #{_retry + 1} failed to connect with PV '{_scaler_pv}'")
+        # no need to sleep since each connection attempt has 1 second timeout
 
-_timeout = time.time() + 10
-while time.time() < _timeout:
-    if scaler1.connected:
-        break
-    time.sleep(0.2)
-if time.time() > _timeout:
-    msg = "10s timeout expired waiting for scaler1 to connect"
-    raise RuntimeError(msg)
-del _timeout
+if scaler1 is None:
+    emsg = f"could not connect with PV '{_scaler_pv}' in {RETRIES} attempts"
+    logger.error(emsg)
+    raise TimeoutError(emsg)
 
 scaler1.select_channels(None)   # choose just the channels with EPICS names
 

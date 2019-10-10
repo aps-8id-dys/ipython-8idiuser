@@ -2,6 +2,8 @@ logger.info(__file__)
 
 """area detector: X-Spectrum Lambda 750K"""
 
+from ophyd.device import Staged
+
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 DATABROKER_ROOT_PATH = "/"
@@ -98,6 +100,62 @@ class Plugin_HDF5_EPICS_Names(
         suffix="CreateDirectory")
 
 
+class IMMOutTriggerStatus(DeviceStatus):
+    """
+    following ADTriggerStatus, this is for IMMOut plugin
+
+    A special status object that notifies watches (progress bars)
+    based on comparing device.immout.array_counter to  device.immout.num_captured.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start_ts = time.time()
+
+        # Notify watchers (things like progress bars) of new values
+        # at the device's natural update rate.
+        if not self.done:
+            self.device.immout.array_counter.subscribe(self._notify_watchers)
+            # some state needed only by self._notify_watchers
+            self._name = self.device.name
+            self._initial_count = self.device.immout.array_counter.get()
+            self._target_count = self.device.immout.num_captured.get()
+
+    def watch(self, func):
+        self._watchers.append(func)
+
+    def _notify_watchers(self, value, *args, **kwargs):
+        # *args and **kwargs catch extra inputs from pyepics, not needed here
+        if self.done:
+            self.device.immout.array_counter.clear_sub(self._notify_watchers)
+        if not self._watchers:
+            return
+        # Always start progress bar at 0 regardless of starting value of
+        # array_counter.
+        current = value - self._initial_count
+        target = self._target_count
+        initial = 0
+        time_elapsed = time.time() - self.start_ts
+        try:
+            fraction = (current - initial) / (target - initial)
+        except ZeroDivisionError:
+            fraction = 1
+        except Exception as exc:
+            fraction = None
+            time_remaining = None
+        else:
+            time_remaining = time_elapsed / fraction
+        for watcher in self._watchers:
+            watcher(name=self._name,
+                    current=current,
+                    initial=initial,
+                    target=target,
+                    unit='images',
+                    precision=0,
+                    fraction=fraction,
+                    time_elapsed=time_elapsed,
+                    time_remaining=time_remaining)
+
+
 class Lambda750kAreaDetector(SingleTrigger, AreaDetector): 
     cam = ADComponent(Lambda750kCam, "cam1:")
     image = Component(ImagePlugin, suffix="image1:")
@@ -116,6 +174,8 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
     immout = Component(IMMFilePlugin, "IMMout:")
     gather = Component(GatherPlugin, "Gather1:")
     scatter = Component(ScatterPlugin, "Scatter1:")
+
+    _status_type = IMMOutTriggerStatus  # our custom status
 
     detector_number = 25    # 8-ID-I numbering of this detector
     
@@ -160,6 +220,36 @@ class Lambda750kAreaDetector(SingleTrigger, AreaDetector):
         self.immout.stage_sigs["file_number"] = 1
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
+
+    # FIXME: acquisition stops when cam.acquire goes from 1 to 0
+    # # ophyd.areadetector.trigger_mixins.SingleTrigger().trigger()
+    # def trigger(self):
+    #     """
+    #     Trigger one acquisition
+
+    #     Custom trigger to wait for IMMout plugin to finish
+    #     in addition to waiting for CAM1 plugin
+    #     (array_counter  &  num_images)
+    #     """
+    #     if self._staged != Staged.yes:
+    #         raise RuntimeError("This detector is not ready to trigger."
+    #                            "Call the stage() method before triggering.")
+
+    #     # trigger_mixins.ADTriggerStatus
+    #     # compares device.cam.  array_counter  &  num_images
+    #     self._status = self._status_type(self)
+
+    #     def closure(value,old_value,**kwargs):
+    #         if value == 0 and old_value != value:
+    #             self.immout.capture.clear_sub(closure)
+    #             print("closure ends")
+    #             print(f"cam.acquire.value={self.cam.acquire.value}")
+    #             print(f"immout.capture.value={self.immout.capture.value}")
+        
+    #     self.immout.capture.subscribe(closure)
+    #     self._acquisition_signal.put(1, wait=False)
+    #     self.dispatch(self._image_name, time.time())
+    #     return self._status
 
 
 try:

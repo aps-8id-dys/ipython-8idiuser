@@ -204,8 +204,7 @@ def AD_Acquire(areadet,
         hdf_with_fullpath = make_hdf5_workflow_filename()
         print(f"YO! {hdf_with_fullpath}")
 
-        yield from dm_workflow.create_hdf5_file(
-            hdf_with_fullpath, as_bluesky_plan=True)
+        dm_workflow.create_hdf5_file(hdf_with_fullpath)
         
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.value

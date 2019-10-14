@@ -2,8 +2,6 @@ logger.info(__file__)
 
 """X-Spectrum Lambda 750K (not `ophyd.areaDetector`)"""
 
-from ophyd.device import Staged
-
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 
@@ -80,31 +78,6 @@ class Lambda750kLocal(Device):
         self.immout.capture.put(1, wait=False)
         acquire_signal.put(start_value, wait=False)
         return status
-
-    # def trigger(self):    # default trigger method
-    #     """Start acquisition"""
-    #     signals = self.trigger_signals
-    #     if len(signals) > 1:
-    #         raise NotImplementedError('More than one trigger signal is not '
-    #                                   'currently supported')
-    #     status = DeviceStatus(self)
-    #     if not signals:
-    #         status._finished()
-    #         return status
-
-    #     acq_signal, = signals
-
-    #     self.subscribe(status._finished,
-    #                    event_type=self.SUB_ACQ_DONE, run=False)
-
-    #     def done_acquisition(**ignored_kwargs):
-    #         # Keyword arguments are ignored here from the EpicsSignal
-    #         # subscription, as the important part is that the put completion
-    #         # has finished
-    #         self._done_acquiring()
-
-    #     acq_signal.put(1, wait=False, callback=done_acquisition)
-    #     return status
     
     @property
     def plugin_file_name(self):
@@ -148,6 +121,7 @@ class Lambda750kLocal(Device):
         self.immout.stage_sigs["file_number"] = 1
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
+
 
 try:
     lambdadet = Lambda750kLocal(

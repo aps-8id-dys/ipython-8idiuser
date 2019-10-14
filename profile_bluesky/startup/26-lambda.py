@@ -12,17 +12,18 @@ class Lambda750kCamLocal(Device):
     local interface to the ADLambda 750k cam1 plugin
     """
     # implement just the parts needed by our data acquisition
-    acquire = Component(EpicsSignalWithRBV, "Acquire", trigger_value=1)
-    acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod")
-    acquire_time = Component(EpicsSignalWithRBV, "AcquireTime")
+    acquire = Component(EpicsSignalWithRBV, "Acquire", trigger_value=1, kind='config')
+    acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod", kind='config')
+    acquire_time = Component(EpicsSignalWithRBV, "AcquireTime", kind='config')
+    array_callbacks = Component(EpicsSignalWithRBV, "ArrayCallbacks", kind='config')
     num_images = Component(EpicsSignalWithRBV, "NumImages")
     # blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks")
 
     config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
-    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True)
-    operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode')
-    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True)
-    temperature = Component(EpicsSignalWithRBV, 'Temperature')
+    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
+    operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
+    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
+    temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
 
 
 class IMMoutLocal(Device):
@@ -31,7 +32,7 @@ class IMMoutLocal(Device):
     """
     # implement just the parts needed by our data acquisition
     blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks", kind='config')
-    capture = Component(EpicsSignalWithRBV, "Capture")
+    capture = Component(EpicsSignalWithRBV, "Capture", kind='config')
     enable = Component(EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config")
     file_format = Component(EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config")
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind='config')
@@ -55,10 +56,55 @@ class Lambda750kLocal(Device):
     cam = Component(Lambda750kCamLocal, "cam1:")
     immout = Component(IMMoutLocal, "IMMout:")
 
-    # def trigger(self):
-    #     # FIXME:
-    #     # trigger device acquisition and return a status object
-    #     ...
+    def trigger(self):
+        "trigger device acquisition and return a status object"
+        acquire_signal = self.cam.acquire
+        start_value = 1
+        done_value = 0
+        watch_signal = self.cam.acquire
+        # watch_signal = self.immout.capture
+
+        status = DeviceStatus(self)
+
+        def closure(value, old_value, **kwargs):
+            if value == done_value and old_value != value:
+                watch_signal.clear_sub(closure)
+                print("closure() method ends")
+                print(f"cam.acquire.value={self.cam.acquire.value}")
+                print(f"immout.capture.value={self.immout.capture.value}")
+                print(f"immout.num_captured.value={self.immout.num_captured.value}")
+                status._finished()
+                print(f"status={status}")
+        
+        watch_signal.subscribe(closure)
+        self.immout.capture.put(1, wait=False)
+        acquire_signal.put(start_value, wait=False)
+        return status
+
+    # def trigger(self):    # default trigger method
+    #     """Start acquisition"""
+    #     signals = self.trigger_signals
+    #     if len(signals) > 1:
+    #         raise NotImplementedError('More than one trigger signal is not '
+    #                                   'currently supported')
+    #     status = DeviceStatus(self)
+    #     if not signals:
+    #         status._finished()
+    #         return status
+
+    #     acq_signal, = signals
+
+    #     self.subscribe(status._finished,
+    #                    event_type=self.SUB_ACQ_DONE, run=False)
+
+    #     def done_acquisition(**ignored_kwargs):
+    #         # Keyword arguments are ignored here from the EpicsSignal
+    #         # subscription, as the important part is that the put completion
+    #         # has finished
+    #         self._done_acquiring()
+
+    #     acq_signal.put(1, wait=False, callback=done_acquisition)
+    #     return status
     
     @property
     def plugin_file_name(self):
@@ -88,6 +134,7 @@ class Lambda750kLocal(Device):
         num_images = args[2]
         acquire_time = args[3]
         acquire_period = args[4]
+        # logger.debug(f"staging_setup_DM({args})")
 
         self.cam.stage_sigs["num_images"] = num_images
         self.cam.stage_sigs["acquire_time"] = acquire_time

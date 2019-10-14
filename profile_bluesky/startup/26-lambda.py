@@ -12,7 +12,7 @@ class Lambda750kCamLocal(Device):
     local interface to the ADLambda 750k cam1 plugin
     """
     # implement just the parts needed by our data acquisition
-    acquire = Component(EpicsSignalWithRBV, "Acquire")
+    acquire = Component(EpicsSignalWithRBV, "Acquire", trigger_value=1)
     acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod")
     acquire_time = Component(EpicsSignalWithRBV, "AcquireTime")
     num_images = Component(EpicsSignalWithRBV, "NumImages")
@@ -57,6 +57,7 @@ class Lambda750kLocal(Device):
 
     # def trigger(self):
     #     # FIXME:
+    #     # trigger device acquisition and return a status object
     #     ...
     
     @property

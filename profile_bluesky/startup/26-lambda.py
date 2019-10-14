@@ -11,17 +11,17 @@ class Lambda750kCamLocal(Device):
     """
     local interface to the ADLambda 750k cam1 plugin
     """
-    # implement just the parts needed from ophyd.areaDetector
-    acquire = Component(EpicsSignal, "Acquire")
-    acquire_period = Component(____FIXME____, "____FIXME____")
-    acquire_time = Component(____FIXME____, "____FIXME____")
-    num_images = Component(____FIXME____, "____FIXME____")
-    blocking_callbacks = Component(____FIXME____, "____FIXME____")
+    # implement just the parts needed by our data acquisition
+    acquire = Component(EpicsSignalWithRBV, "Acquire")
+    acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod")
+    acquire_time = Component(EpicsSignalWithRBV, "AcquireTime")
+    num_images = Component(EpicsSignalWithRBV, "NumImages")
+    # blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks")
 
-    config_file_path = Component(EpicsSignal, 'ConfigFilePath')
-    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV')
+    config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
+    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True)
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode')
-    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV')
+    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True)
     temperature = Component(EpicsSignalWithRBV, 'Temperature')
 
 
@@ -29,17 +29,17 @@ class IMMoutLocal(Device):
     """
     local interface to the IMMout plugin
     """
-    # implement just the parts needed from ophyd.areaDetector
-    blocking_callbacks = Component(____FIXME____, "____FIXME____")
+    # implement just the parts needed by our data acquisition
+    blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks", kind='config')
     capture = Component(EpicsSignalWithRBV, "Capture")
-    enable = Component(____FIXME____, "____FIXME____")
-    file_format = Component(EpicsSignalWithRBV, 'NDFileIMM_format')
-    file_name = Component(____FIXME____, "____FIXME____")
-    file_number = Component(____FIXME____, "____FIXME____")
-    file_path = Component(____FIXME____, "____FIXME____")
-    full_file_name = Component(EpicsSignalWithRBV, "____FIXME____")
-    num_capture = Component(____FIXME____, "____FIXME____")
-    num_captured = Component(EpicsSignalWithRBV, "____FIXME____")
+    enable = Component(EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config")
+    file_format = Component(EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config")
+    file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind='config')
+    file_number = Component(EpicsSignalWithRBV, "FileNumber", kind='config')
+    file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind='config')
+    full_file_name = Component(EpicsSignalRO, "FullFileName_RBV", string=True, kind='config')
+    num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind='config')
+    num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
 
     unique_id = Component(EpicsSignalRO, 'NDFileIMM_uniqueID_RBV')
 
@@ -48,16 +48,16 @@ class Lambda750kLocal(Device):
     """
     local interface to the Lambda 750k detector
     """
-    # implement just the parts needed from ophyd.areaDetector
+    # implement just the parts needed by our data acquisition
     detector_number = 25    # 8-ID-I numbering of this detector
 
     # only need cam1 and IMMout plugins
     cam = Component(Lambda750kCamLocal, "cam1:")
     immout = Component(IMMoutLocal, "IMMout:")
 
-    def trigger(self):
-        # FIXME:
-        ...
+    # def trigger(self):
+    #     # FIXME:
+    #     ...
     
     @property
     def plugin_file_name(self):

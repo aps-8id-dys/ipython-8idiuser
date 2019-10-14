@@ -135,13 +135,13 @@ class IMMOutTriggerStatus(DeviceStatus):
         target = self._target_count
         initial = 0
         time_elapsed = time.time() - self.start_ts
+        time_remaining = None
         try:
             fraction = (current - initial) / (target - initial)
         except ZeroDivisionError:
             fraction = 1
         except Exception as exc:
             fraction = None
-            time_remaining = None
         else:
             time_remaining = time_elapsed / fraction
         for watcher in self._watchers:

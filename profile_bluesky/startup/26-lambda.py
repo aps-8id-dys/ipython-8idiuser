@@ -61,8 +61,8 @@ class Lambda750kLocal(Device):
         acquire_signal = self.cam.acquire
         start_value = 1
         done_value = 0
-        watch_signal = self.cam.acquire
-        # watch_signal = self.immout.capture
+        # watch_signal = self.cam.acquire
+        watch_signal = self.immout.capture
 
         status = DeviceStatus(self)
 

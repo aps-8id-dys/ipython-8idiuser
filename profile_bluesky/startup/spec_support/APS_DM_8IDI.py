@@ -21,7 +21,7 @@ import h5py
 import logging
 import math
 import os
-import stdlogpj
+# import stdlogpj
 import subprocess
 import sys
 import threading
@@ -29,14 +29,14 @@ import time
 
 from . import detector_parameters
 
-BYTE = 1
-kB = 1024 * BYTE
-MB = 1024*kB
-#logging.basicConfig(level=logging.DEBUG)
-logger = stdlogpj.standard_logging_setup(
-    "spec_DM_support", 
-    "workflow_helper",
-    maxBytes=1*MB, backupCount=9)
+# BYTE = 1
+# kB = 1024 * BYTE
+# MB = 1024*kB
+# #logging.basicConfig(level=logging.DEBUG)
+# logger = stdlogpj.standard_logging_setup(
+#     "APS_DM_8IDI", 
+#     maxBytes=1*MB, backupCount=9)
+logger = logging.getLogger(__name__)
 
 
 def unix(command, raises=True):

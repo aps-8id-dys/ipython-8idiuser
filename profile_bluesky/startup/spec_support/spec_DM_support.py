@@ -54,9 +54,10 @@ import time
 
 from . import APS_DM_8IDI
 
-kB = 1024
+BYTE = 1
+kB = 1024 * BYTE
 MB = 1024*kB
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 logger = stdlogpj.standard_logging_setup(
     "spec_DM_support", "workflow_helper",
     maxBytes=1*MB, backupCount=9)

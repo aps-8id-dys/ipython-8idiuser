@@ -21,7 +21,6 @@ import h5py
 import logging
 import math
 import os
-# import stdlogpj
 import subprocess
 import sys
 import threading
@@ -29,13 +28,7 @@ import time
 
 from . import detector_parameters
 
-# BYTE = 1
-# kB = 1024 * BYTE
-# MB = 1024*kB
-# #logging.basicConfig(level=logging.DEBUG)
-# logger = stdlogpj.standard_logging_setup(
-#     "APS_DM_8IDI", 
-#     maxBytes=1*MB, backupCount=9)
+
 logger = logging.getLogger(__name__)
 
 
@@ -142,6 +135,7 @@ class DM_Workflow:
                  transfer="xpcs8-01-Lambda",
                  analysis="xpcs8-02-Lambda",
                  ):
+        logger.info(f"setting up DM_Workflow() for APS operating cycle {aps_cycle}")
         self.registers = registers
         self.detectors = detector_parameters.PythonDict()
 

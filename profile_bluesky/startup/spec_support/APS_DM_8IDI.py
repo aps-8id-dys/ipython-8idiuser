@@ -21,6 +21,7 @@ import h5py
 import logging
 import math
 import os
+import stdlogpj
 import subprocess
 import sys
 import threading
@@ -28,8 +29,14 @@ import time
 
 from . import detector_parameters
 
+BYTE = 1
+kB = 1024 * BYTE
+MB = 1024*kB
 #logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(os.path.split(__file__)[-1])
+logger = stdlogpj.standard_logging_setup(
+    "spec_DM_support", 
+    "workflow_helper",
+    maxBytes=1*MB, backupCount=9)
 
 
 def unix(command, raises=True):
@@ -191,40 +198,26 @@ class DM_Workflow:
         wf_name = {True: "analysis", False: "transfer"}[analysis]
         logger.info(f"starting start_workflow(): workflow:{wf_name}")
         
-        dm_log_file = os.path.join(
-			os.path.dirname(__file__),
-			".logs",
-			"dm-workflow-log.txt"
-        )
-        out_log_file = os.path.join(
-			os.path.dirname(__file__),
-			".logs",
-			"process-log.txt"
-        )
-
         @run_in_thread
         def kickoff_DM_workflow():
-            with open(dm_log_file, "a") as dm_log:
-                msg = f"DM workflow starting: workflow:{wf_name}  file:{self.hdf_workflow_file}"
-                dm_log.write(f"{msg}\n")
-                t1 = time.time()
-                try:
-                    func = {
-                        True: self.DataAnalysis, 
-                        False: self.DataTransfer
-                    }[analysis]
-                    out_err = func(self.hdf_workflow_file)
-                    out = out_err[0].decode().strip()
-                    err = out_err[1].decode().strip()
-                    with open(out_log_file, "a") as process_log:
-                        process_log.write(f"{out}\n")
-                except Exception as exc:
-                    dm_log.write(f"Exception {exc}\n")
-                dt1 = time.time() - t1
-                dm_log.write(f"DM workflow done: {dt1:.3f}s\n")
-                dm_log.write(f"{out}\n")
-                if len(err) > 0:
-                    dm_log.write(f"{err}\n")
+            msg = f"DM workflow starting: workflow:{wf_name}  file:{self.hdf_workflow_file}"
+            logger.info(f"{msg}")
+            t1 = time.time()
+            try:
+                func = {
+                    True: self.DataAnalysis, 
+                    False: self.DataTransfer
+                }[analysis]
+                out_err = func(self.hdf_workflow_file)
+                out = out_err[0].decode().strip()
+                err = out_err[1].decode().strip()
+            except Exception as exc:
+                logger.warning(f"Exception {exc}")
+            dt1 = time.time() - t1
+            logger.info(f"DM workflow done: {dt1:.3f}s")
+            logger.info(f"{out}")
+            if len(err) > 0:
+                logger.info(f"{err}")
         
         logger.info("starting start_workflow()")
         self.hdf_workflow_file = self.get_workflow_filename()
@@ -635,35 +628,24 @@ class DM_Workflow:
         
         SPEC note: hdf_with_fullpath : usually saved in global HDF5_METADATA_FILE 
         """
-        log_file = os.path.join(
-			os.path.dirname(__file__),
-			".logs",
-			"analysis-log.txt"
-        )
-        with open(log_file, "a") as dm_log:
-            dm_log.write("checkpoint\n")
-            dm_log.write(
-                f"self.QMAP_FOLDER_PATH={self.QMAP_FOLDER_PATH}\n"
-                f"self.XPCS_QMAP_FILENAME={self.XPCS_QMAP_FILENAME}\n"
-            )
+        logger.info(f"self.QMAP_FOLDER_PATH={self.QMAP_FOLDER_PATH}")
+        logger.info(f"self.XPCS_QMAP_FILENAME={self.XPCS_QMAP_FILENAME}")
 
         try:
             default = os.path.join(self.QMAP_FOLDER_PATH, self.XPCS_QMAP_FILENAME)
         except Exception as exc:
-            with open(log_file, "a") as dm_log:
-                dm_log.write(f"{exc}\n")
+            logger.warning(f"{exc}")
             default = "/xpcs"
         try:
             qmapfile_with_fullpath = qmapfile_with_fullpath or default
             xpcs_group_name = xpcs_group_name or "/xpcs"
         except Exception as exc:
-            with open(log_file, "a") as dm_log:
-                dm_log.write(
-                    f"{exc}"
-                    f"default={default}"
-                    f"qmapfile_with_fullpath]{qmapfile_with_fullpath}"
-                    f"xpcs_group_name={xpcs_group_name}"
-                    )
+            logger.warning(
+                f"{exc}"
+                f"default={default}"
+                f"qmapfile_with_fullpath]{qmapfile_with_fullpath}"
+                f"xpcs_group_name={xpcs_group_name}"
+                )
 
         cmd = (
             "source /home/dm/etc/dm.setup.sh; "
@@ -675,13 +657,11 @@ class DM_Workflow:
             )
         self.ANALYSIS_COMMAND = cmd;
 
-        with open(log_file, "a") as dm_log:
-            dm_log.write(
-                f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
-                f",{qmapfile_with_fullpath}"
-                f"----{datetime.datetime.now()}"
-                "\n"
-                )
+        logger.info(
+            f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
+            f",{qmapfile_with_fullpath}"
+            f"----{datetime.datetime.now()}"
+            )
         return unix(cmd)
 
     def ListJobs(self):

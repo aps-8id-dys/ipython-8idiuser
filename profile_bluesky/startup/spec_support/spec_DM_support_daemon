@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # ensure that multiple, simultaneous daemons are not started by this user ID
 # assume that pwd has this file

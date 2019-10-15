@@ -89,8 +89,8 @@ class MyPV(object):
     def value(self):
         return self.pv.get(as_string=self.string)
 
-    def put(self, value, wait=False):
-        return self.pv.put(value)
+    def put(self, value, wait=False, timeout=30):
+        return self.pv.put(value, wait=wait, timeout=timeout)
 
 
 class DMDBase(object):
@@ -281,6 +281,7 @@ class WorkflowHelper:
                 and
                 self.registers.workflow_start.value != previous_trigger_value
             ):
+                logger.debug("workflow handling triggered")
                 work_in_progress = True
                 previous_trigger_value = self.registers.workflow_start.value
                 self.workflow.set_xpcs_qmap_file(
@@ -289,14 +290,15 @@ class WorkflowHelper:
                 self.workflow.transfer = self.registers.transfer.value
                 self.workflow.analysis = self.registers.analysis.value
                 
-                logger.info("before starting data management workflow")
+                logger.info(f"calling start_workflow(analysis={self.registers.workflow_submit_xpcs_job.value})")
                 t0 = time.time()
                 self.workflow.start_workflow(
                     analysis=self.registers.workflow_submit_xpcs_job.value)
                 dt = time.time() - t0
                 logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
-                self.registers.workflow_start.put(0, wait=True)
+                self.registers.workflow_start.put(0, wait=False, timeout=1)
+                logger.debug(f"reset trigger: {self.registers.workflow_start.get()} (should be '0')")
                 work_in_progress = False
 
             previous_trigger_value = self.registers.workflow_start.value

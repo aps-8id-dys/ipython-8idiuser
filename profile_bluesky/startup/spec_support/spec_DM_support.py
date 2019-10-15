@@ -54,9 +54,12 @@ import time
 
 from . import APS_DM_8IDI
 
+kB = 1024
+MB = 1024*kB
 logging.basicConfig(level=logging.DEBUG)
 logger = stdlogpj.standard_logging_setup(
-    "spec_DM_support", "workflow_helper")
+    "spec_DM_support", "workflow_helper",
+    maxBytes=1*MB, backupCount=9)
 
 
 class MyPV(object):

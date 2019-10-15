@@ -2,8 +2,10 @@
 #
 # description: start/stop/restart/checkup the spec_DM_support workflow helper
 #
+# NOTE: install this on workstation "snow"
+# That's where this helper runs.
 # crontab line (run every 5 minutes)
-#*/5 * * * * /home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support/daemon.sh 2>&1 > /dev/null
+#*/5 * * * * /home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support/daemon.sh checkup 2>&1 > /dev/null
 
 WORKING_DIR=/home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support
 PROCESS_NAME=spec_DM_support

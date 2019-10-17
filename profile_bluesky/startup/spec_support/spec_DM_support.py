@@ -90,7 +90,16 @@ class MyPV(object):
         return self.pv.get(as_string=self.string)
 
     def put(self, value, wait=False, timeout=30):
-        return self.pv.put(value, wait=wait, timeout=timeout)
+        is_ticker = "8idi:Reg171" == self.pv.pvname
+        if not is_ticker:
+            logger.debug(f'caput("{self.pv.pvname}", {value})')
+        try:
+            response = self.pv.put(value, wait=wait, timeout=timeout)
+        except Exception as exc:
+            print(exc)
+        if not is_ticker:
+            logger.debug(f'value now: {self.value}')
+        return response
 
 
 class DMDBase(object):
@@ -231,6 +240,7 @@ def aps_cycle():
 class WorkflowHelper:
 
     def __init__(self):
+        logger.debug("WorkflowHelper() constructor")
         # connect metadata register PVs
         self.registers = DataManagementMetadata()
         # get detector information and software that calls the workflow
@@ -263,7 +273,7 @@ class WorkflowHelper:
           - set workflow_start back to 0
           - caller should set workflow_caller back to "" until next time
         """
-        logger.info("workflow helper starting")
+        logger.info("runPollingLoop() starting")
         t_next_increment = time.time()
         work_in_progress = False
         previous_trigger_value = self.registers.workflow_start.value
@@ -307,6 +317,8 @@ class WorkflowHelper:
 
 
 def main():
+    print("hello")
+    logger.debug("starting")
     helper = WorkflowHelper()
     helper.runPollingLoop()
 

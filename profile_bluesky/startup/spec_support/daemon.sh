@@ -8,7 +8,7 @@ PROCESS_NAME=spec_DM_support
 PROCESS_CMD=spec_DM_support_daemon
 
 HOST=`hostname`
-if [ "bronze.xray.aps.anl.gov" != "" ]; then
+if [ "bronze.xray.aps.anl.gov" != "${HOST}" ]; then
     echo "MUST run this from workstation: bronze.xray.aps.anl.gov"
     echo "you are logged into workstation: ${HOST}"
     exit 1
@@ -132,6 +132,10 @@ start() {
         ${ECHO} -n "${PROCESS_NAME} is already running (pid=${PROCESS_PID})"
         screenpid
     else
+        TRIGGER=`caget -t 8idi:Reg170`
+        if [ "0" != "${TRIGGER}" ]; then
+            caput 8idi:Reg170 0
+        fi
         ${ECHO} "Starting ${PROCESS_NAME}"
         cd ${WORKING_DIR}
         # Run process inside a screen session

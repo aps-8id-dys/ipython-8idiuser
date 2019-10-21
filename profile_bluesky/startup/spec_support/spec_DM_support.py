@@ -327,7 +327,7 @@ class WorkflowHelper:
                 while self.registers.workflow_start.value != 0:
                     self.registers.workflow_start.put(0, wait=True, timeout=0.1)
                     calls += 1
-                    if (calls % 10) == 2:
+                    if (calls % 10) == 0:
                         logger.warning("retrying put to trigger PV: {calls} times")
                 if calls > 1:
                     logger.warning(f"RETRY: put trigger PV value took {calls} tries")

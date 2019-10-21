@@ -23,7 +23,7 @@ BYTE = 1
 kB = 1024 * BYTE
 MB = 1024 * kB
 logger = stdlogpj.standard_logging_setup(
-    os.path.split(__file__)[-1], 
+    "main", 
     "ipython_logger",
     maxBytes=1*MB, 
     backupCount=9)

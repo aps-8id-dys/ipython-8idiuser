@@ -57,10 +57,10 @@ from . import APS_DM_8IDI
 BYTE = 1
 kB = 1024 * BYTE
 MB = 1024*kB
-# logging.basicConfig(level=logging.DEBUG)
 logger = stdlogpj.standard_logging_setup(
     "spec_DM_support", "workflow_helper",
     maxBytes=1*MB, backupCount=9)
+logger.setLevel(1)
 
 
 class MyPV(object):
@@ -317,7 +317,6 @@ class WorkflowHelper:
 
 
 def main():
-    print("hello")
     logger.debug("starting")
     helper = WorkflowHelper()
     helper.runPollingLoop()

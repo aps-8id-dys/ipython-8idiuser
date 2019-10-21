@@ -103,10 +103,12 @@ class MyPV(object):
             # implement the wait for ourselves
             t0 = time.time()
             t_end = t0 + 0.05
-            while (time.time() < t_end 
-                and 
-                self.pv.get(as_string=self.string) != value
-                ):
+            while (wait 
+                    and 
+                    time.time() < t_end 
+                    and 
+                    self.pv.get(as_string=self.string) != value
+                    ):
                 time.sleep(0.0002)
         
             msg = (f'value now: {self.pv.get(as_string=self.string)}'
@@ -321,7 +323,14 @@ class WorkflowHelper:
                 dt = time.time() - t0
                 logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
-                self.registers.workflow_start.put(0, wait=False, timeout=1)
+                calls = 0
+                while self.registers.workflow_start.value != 0:
+                    self.registers.workflow_start.put(0, wait=True, timeout=0.1)
+                    calls += 1
+                    if (calls % 10) == 2:
+                        logger.warning("retrying put to trigger PV: {calls} times")
+                if calls > 1:
+                    logger.warning(f"RETRY: put trigger PV value took {calls} tries")
                 logger.debug(f"reset trigger: {self.registers.workflow_start.value} (should be '0')")
                 work_in_progress = False
 

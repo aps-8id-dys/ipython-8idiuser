@@ -291,7 +291,6 @@ class WorkflowHelper:
         logger.info("runPollingLoop() starting")
         t_next_increment = time.time()
         work_in_progress = False
-        previous_trigger_value = self.registers.workflow_start.value
 
         while True:
             t_now = time.time()
@@ -304,12 +303,9 @@ class WorkflowHelper:
                 self.registers.workflow_caller.value.lower() == "spec"
                 and
                 not work_in_progress
-                and
-                self.registers.workflow_start.value != previous_trigger_value
             ):
-                logger.debug("workflow handling triggered")
                 work_in_progress = True
-                previous_trigger_value = self.registers.workflow_start.value
+                logger.debug("workflow handling triggered")
                 self.workflow.set_xpcs_qmap_file(
                     self.registers.xpcs_qmap_file.value)    # in case this changed
                 
@@ -328,13 +324,12 @@ class WorkflowHelper:
                     self.registers.workflow_start.put(0, wait=True, timeout=0.1)
                     calls += 1
                     if (calls % 10) == 0:
-                        logger.warning("retrying put to trigger PV: {calls} times")
+                        logger.warning("retrying caput(trigger PV, 0) {calls} times")
                 if calls > 1:
                     logger.warning(f"RETRY: put trigger PV value took {calls} tries")
                 logger.debug(f"reset trigger: {self.registers.workflow_start.value} (should be '0')")
                 work_in_progress = False
 
-            previous_trigger_value = self.registers.workflow_start.value
             time.sleep(self.loop_sleep)
 
 

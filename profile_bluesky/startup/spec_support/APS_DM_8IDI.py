@@ -29,7 +29,7 @@ import time
 from . import detector_parameters
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(f"main.{__name__}")
 
 
 def unix(command, raises=True):

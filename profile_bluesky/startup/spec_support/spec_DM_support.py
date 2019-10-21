@@ -57,10 +57,10 @@ from . import APS_DM_8IDI
 BYTE = 1
 kB = 1024 * BYTE
 MB = 1024*kB
+
 logger = stdlogpj.standard_logging_setup(
-    "spec_DM_support", "workflow_helper",
+    "main", "workflow_helper",
     maxBytes=1*MB, backupCount=9)
-logger.setLevel(1)
 
 
 class MyPV(object):
@@ -90,15 +90,28 @@ class MyPV(object):
         return self.pv.get(as_string=self.string)
 
     def put(self, value, wait=False, timeout=30):
-        is_ticker = "8idi:Reg171" == self.pv.pvname
-        if not is_ticker:
+        if "8idi:Reg171" == self.pv.pvname:     # ticker increment
+            response = self.pv.put(value)
+
+        else:
             logger.debug(f'caput("{self.pv.pvname}", {value})')
-        try:
-            response = self.pv.put(value, wait=wait, timeout=timeout)
-        except Exception as exc:
-            print(exc)
-        if not is_ticker:
-            logger.debug(f'value now: {self.value}')
+            try:
+                response = self.pv.put(value, wait=wait, timeout=timeout)
+            except Exception as exc:
+                print(exc)
+        
+            # implement the wait for ourselves
+            t0 = time.time()
+            t_end = t0 + 0.05
+            while (time.time() < t_end 
+                and 
+                self.pv.get(as_string=self.string) != value
+                ):
+                time.sleep(0.0002)
+        
+            msg = (f'value now: {self.pv.get(as_string=self.string)}'
+                   f"   in {time.time()-t0:.4f}s")
+            logger.debug(msg)
         return response
 
 
@@ -309,7 +322,7 @@ class WorkflowHelper:
                 logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
                 self.registers.workflow_start.put(0, wait=False, timeout=1)
-                logger.debug(f"reset trigger: {self.registers.workflow_start.get()} (should be '0')")
+                logger.debug(f"reset trigger: {self.registers.workflow_start.value} (should be '0')")
                 work_in_progress = False
 
             previous_trigger_value = self.registers.workflow_start.value

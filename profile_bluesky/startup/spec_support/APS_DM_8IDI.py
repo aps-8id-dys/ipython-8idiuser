@@ -211,7 +211,9 @@ class DM_Workflow:
             logger.info(f"{out}")
             # TODO: this is the place to get the job's UID
             # out="id=a5b0f25e-b8e1-4fa2-9c22-580379d47d0c owner=8idiuser status=pending startTime=1571151502.86 startTimestamp=2019/10/15 09:58:22 CDT"
-            logger.info(f"DM workflow done: {dt1:.3f}s")
+            if len(out) > 20:
+                uid = out.split()[0].split("=")[-1]
+            logger.info(f"DM workflow kickoff done: {dt1:.3f}s")
             if len(err) > 0:
                 logger.info(f"{err}")
         

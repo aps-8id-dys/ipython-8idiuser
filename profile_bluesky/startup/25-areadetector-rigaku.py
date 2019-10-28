@@ -51,6 +51,7 @@ class Rigaku_8IDI(Device):
     2. yield from bps.mv(R1.batch_name, 'A001_Test')
     3. yield from bps.count([R1])
     """
+    qmap_file = "qzhang1026_rerun_minus_streak.h5"
 
     shutter_mode = Component(EpicsSignal, "8idi:softGlueC:AND-4_IN2_Signal")
     shutter_override = Component(EpicsSignal, "8idi:Unidig1Bo9.VAL")
@@ -61,7 +62,7 @@ class Rigaku_8IDI(Device):
 
     unix_process = Component(UnixCommandSignal)
 
-    batch_name = Component(Signal, value=None)
+    batch_name = Component(Signal, value="A001")
 
     detector_number = 46    # 8-ID-I numbering of this detector
 
@@ -73,7 +74,7 @@ class Rigaku_8IDI(Device):
         self.unix_process.put(cmd)
 
     def trigger(self):
-        self.acquire_start.put(1)
+        self.acquire_start.put(0)
         status = DeviceStatus(self)
 
         def closure(value,old_value,**kwargs):
@@ -82,6 +83,7 @@ class Rigaku_8IDI(Device):
                 status._finished()
 
         self.acquire_complete.subscribe(closure)
+        self.acquire_start.put(1)
         return status
     
     @property

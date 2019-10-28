@@ -28,6 +28,7 @@ class IMMoutLocal(Device):
     """
     local interface to the IMMout plugin
     """
+
     # implement just the parts needed by our data acquisition
     blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks", kind='config')
     capture = Component(EpicsSignalWithRBV, "Capture", kind='config')
@@ -47,6 +48,8 @@ class Lambda750kLocal(Device):
     """
     local interface to the Lambda 750k detector
     """
+    qmap_file = "Lambda_qmap.h5"
+
     # implement just the parts needed by our data acquisition
     detector_number = 25    # 8-ID-I numbering of this detector
 

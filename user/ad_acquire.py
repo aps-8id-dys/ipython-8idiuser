@@ -12,7 +12,7 @@ def AD_Acquire(areadet,
         acquire_time=0.1, acquire_period=0.11, 
         num_images=100, file_name="A001",
         submit_xpcs_job=True,
-        atten=None):
+        atten=None, path=None):
     """
     acquisition sequence initiating data management workflow
 
@@ -28,7 +28,7 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = f"/home/8-id-i/{aps_cycle}/jemian_201908"        # FIXME: ?jemian_201908?
+    path = path or f"/home/8-id-i/{aps_cycle}/jemian_201908"
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
@@ -45,7 +45,8 @@ def AD_Acquire(areadet,
     scaler1.staging_setup_DM(acquire_period)
     areadet.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)
-   
+    dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
+
     scaler1.select_channels(None) 
     monitored_things = [
         #scaler1.channels.chan01,
@@ -79,6 +80,10 @@ def AD_Acquire(areadet,
         path = file_path
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+            logger.debug(f"modified path: {path}")
+            if not os.path.exists(path):
+                os.makedirs(path)
+                logger.debug(f"created path: {path}")
         fname = (
             f"{file_name}"
             f"_{dm_pars.data_begin.value:04.0f}"
@@ -215,12 +220,12 @@ def AD_Acquire(areadet,
 
     @APS_utils.run_in_thread
     def kickoff_DM_workflow(hdf_workflow_file, analysis=True):
-        logger.info(f"DM workflow starting: analysis:{analysis}  file:{hdf_workflow_file}")
+        logger.info(f"DM workflow kickoff starting: analysis:{analysis}  file:{hdf_workflow_file}")
         if analysis:
             out, err = dm_workflow.DataAnalysis(hdf_workflow_file)
         else:
             out, err = dm_workflow.DataTransfer(hdf_workflow_file)
-        logger.info("DM workflow done")
+        logger.info("DM workflow kickoff done")
         logger.info(out)
         if len(err) > 0:
             logger.error(err)

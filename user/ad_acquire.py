@@ -177,11 +177,7 @@ def AD_Acquire(areadet,
             # source end values
             dm_pars.source_end_datetime, timestamp_now(),
             dm_pars.source_end_current, aps.current.value,
-        )
-        yield from bps.mv(
             dm_pars.uid, db[-1].start["uid"],
-        )
-        yield from bps.abs_set(
             dm_pars.scan_id, int(RE.md["scan_id"]),
         )
 

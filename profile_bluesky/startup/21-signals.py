@@ -10,6 +10,13 @@ undulator = APS_devices.ApsUndulatorDual("ID08", name="undulator")
 sd.baseline.append(undulator)
 
 pss = PSS_Parameters(name="pss")
+# bluesky session should restart if this changes
+msg = "D station shutter changed.  This affects whether or not"
+msg += " I station can take beam and whether simulators are"
+msg += " used.  You are strongly advised to exit and restart"
+msg += " the bluesky session."
+suspend_I_station_status = APS_suspenders.SuspendWhenChanged(pss.i_station_enabled, tripped_message=msg)
+RE.install_suspender(suspend_I_station_status)
 
 
 def operations_in_8idi():

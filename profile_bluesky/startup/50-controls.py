@@ -19,24 +19,6 @@ preset = Presets()
 
 # Bluesky plans to move the diodes in/out
 
-def pind1z_in():
-    yield from bps.mv(pind1z, presets.pind1z.in)
-
-def pind1z_out():
-    yield from bps.mv(pind1z, presets.pind1z.out)
-
-def pind2z_in():
-    yield from bps.mv(pind2z, presets.pind2z.in)
-
-def pind2z_out():
-    yield from bps.mv(pind2z, presets.pind2z.out)
-
-def pvFLUX_PIND_in():
-    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.in)
-
-def pvFLUX_PIND_out():
-    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.out)
-
 def move_diodes_in():
     "move ALL the diodes in"
     yield from bps.mv(
@@ -53,6 +35,26 @@ def move_diodes_out():
         pvFLUX_PIND, presets.pvFLUX_PIND.out,
     )
 
+def move_pind1z_in():
+    yield from bps.mv(pind1z, presets.pind1z.in)
+
+def move_pind1z_out():
+    yield from bps.mv(pind1z, presets.pind1z.out)
+
+def move_pind2z_in():
+    yield from bps.mv(pind2z, presets.pind2z.in)
+
+def move_pind2z_out():
+    yield from bps.mv(pind2z, presets.pind2z.out)
+
+def move_pvFLUX_PIND_in():
+    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.in)
+
+def move_pvFLUX_PIND_out():
+    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.out)
+
+
+# alignment plans
 
 def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     """
@@ -91,7 +93,7 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     scaler.select_channels([channel.name])
     clock.kind = Kind.normal
 
-    md = _md.update
+    md = dict(_md)
     md["purpose"] = "alignment"
     yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
     logger.info(f"tuned detector {channel.name} using motor {motor.name}:")
@@ -105,3 +107,37 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
 
     scaler.select_channels(None)
     scaler.stage_sigs = old_sigs
+
+
+def Rinaldi_group_alignment(_md={}):
+    md = dict(_md)
+    yield from move_pind1z_in()
+
+    # TODO: confirm names
+    """
+    # yield from bp.mv()
+    # yield from bp.mvr()
+    umv si1x 0.0
+    umvr diamx -1.0
+    ##si1hgap is at 60, si1vgap is at 150
+    umv si1hgap 250
+    umv si1vgap 250
+    umv si1hcen 0
+    """
+
+    yield from lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0)
+
+    # TODO: confirm names
+    """
+    # yield from bp.mv()
+    # yield from bp.mvr()
+    ##check if the position is ok
+    tw ta2fine 2 to maximize
+    flux pind1 xxxx
+    ##flux should be 1.0-1.6 E12 ph/sec
+    umv si1x 0.2
+    umvr diamx 1.0
+    umv si1hcen 50
+    umv si1hgap 60
+    umv si1vgap 150
+    """

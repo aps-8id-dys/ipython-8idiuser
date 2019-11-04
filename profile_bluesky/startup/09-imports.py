@@ -3,6 +3,7 @@ logger.info(__file__)
 """gather all the imports here"""
 
 
+from collections import namedtuple
 import datetime
 from enum import Enum
 import getpass 
@@ -28,6 +29,7 @@ from ophyd import AreaDetector
 from ophyd import CamBase
 from ophyd import FilePlugin
 from ophyd import HDF5Plugin, ImagePlugin
+from ophyd import Kind
 from ophyd import SingleTrigger, SimDetector
 from ophyd.areadetector.filestore_mixins import FileStoreIterativeWrite
 from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite

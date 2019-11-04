@@ -274,3 +274,31 @@ class LS336Device(Device):
     def value(self):
         """designate one loop as the default signal to return"""
         return self.loop1.signal.value
+
+
+class PSS_Parameters(Device):
+    a_beam_active = Component(EpicsSignalRO, "PA:08ID:A_BEAM_ACTIVE.VAL", string=True, labels=["pss",])
+
+    d_shutter_open_chain_A = Component(EpicsSignalRO, "PA:08ID:STA_D_SDS_OPEN_PL.VAL", string=True, labels=["pss",])
+    d_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:08ID:STA_D_SDS_CLSD_PL", string=True, labels=["pss",])
+
+    i_shutter_open_chain_A = Component(EpicsSignalRO, "PA:08ID:STA_F_SFS_OPEN_PL", string=True, labels=["pss",])
+    i_shutter_closed_chain_B = Component(EpicsSignalRO, "PB:08ID:STA_F_SFS_CLSD_PL", string=True, labels=["pss",])
+    i_station_searched_chain_A = Component(EpicsSignalRO, "PA:08ID:STA_F_SEARCHED_PL.VAL", string=True, labels=["pss",])
+
+    @property
+    def i_station_enabled(self):
+        """
+        look at the switches: are we allowed to operate?
+    
+        # Station I has a shutter to control beam entering
+        # but the user may open or close that shutter at will.
+        # The upstream D shutter (at exit of A station) defines 
+        # whether the I station can operate,
+        # so that's the component we need to make a determination
+        # whether or not the I station is enabled.
+        
+        # I station operations are enabled if D shutter is OPEN
+        """
+        enabled = self.d_shutter_open_chain_A.value == "ON"
+        return enabled

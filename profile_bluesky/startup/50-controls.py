@@ -107,9 +107,7 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     logger.info(str(table))
 
     # TODO: check if the position is ok
-
-    # tweak ta2fine 2 to maximize
-    yield from bps.mv(motor, bec.peaks["cen"][channel.name])
+    # TODO:tweak ta2fine 2 to maximize
 
     scaler.select_channels(None)
     scaler.stage_sigs = old_sigs
@@ -117,6 +115,9 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
 
 def Rinaldi_group_alignment(_md={}):
     md = dict(_md)
+
+    channel = "pind1"
+    motor = "ta2fine"
     yield from move_pind1z_in()
 
     # TODO: confirm names
@@ -131,7 +132,7 @@ def Rinaldi_group_alignment(_md={}):
     umv si1hcen 0
     """
 
-    yield from lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0, md=md)
+    yield from lineup_and_center(channel, motor, -30, 30, 30, 1.0, md=md)
 
     # TODO: confirm names
     """

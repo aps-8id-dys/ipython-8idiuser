@@ -54,17 +54,54 @@ def move_diodes_out():
     )
 
 
-def lineup_and_center(axis, minus, plus, npts, time_s):
+def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     """
     lineup and center a given axis, relative to current position
 
+    PARAMETERS
+    
+    channel : scaler channel object
+        detector to be maximized
+    
+    axis : motor
+        motor to use for alignment
+    
+    minus : float
+        first point of scan at this offset from starting position
+    
+    plus : float
+        last point of scan at this offset from starting position
+    
+    npts : int
+        number of data points in the scan
+    
+    time_s : float (default: 0.1)
+        count time per step
+
     EXAMPLE:
 
-        RE(lineup_and_center(ta2fine, -30, 30, 30, 1.0))
+        RE(lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0))
     """
-    yield from bps.mv(scaler.preset_time, time_s)
-    yield from bp.rel_scan([scaler], axis, minus, plus, npts)
-    # TODO: move axis to CEN: need scaler channel name
-    yield from bps.mv(axis, bec.peaks["cen"]["diode"])
+    from ophyd import Kind
+
+    old_sigs = scaler.stage_sigs
+    scaler.stage_sigs["preset_time"] = time_s
+    # yield from bps.mv(scaler.preset_time, time_s)
+
+    scaler.select_channels([channel.name])
+    clock.kind = Kind.normal
+
+    md = _md.update
+    md["purpose"] = "alignment"
+    yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
+    logger.info(f"tuned detector {channel.name} using motor {motor.name}:")
+    for key in ('com', 'cen', 'max', 'min', 'fwhm', 'nlls'):
+        logger.info(f"{key} = {bec.peaks[key][channel.name]}")
+
+    yield from bps.mv(motor, bec.peaks["cen"][channel.name])
+
     # check if the position is ok
     # TODO: tweak ta2fine 2 to maximize
+
+    scaler.select_channels(None)
+    scaler.stage_sigs = old_sigs

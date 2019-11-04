@@ -32,9 +32,14 @@ def Rinaldi_group_alignment(_md={}):
 
     yield from lineup_and_center(channel, motor, -30, 30, 30, 1.0, md=md)
 
-    # prints the flux
-    flux(pind1, channel.value)     # TODO: channel.value?
-    ##flux should be 1.0-1.6 E12 ph/sec
+    # prints the flux, scaled to 100 mA APS current
+    count_rate = channel.value / timebase.value * 1e6 * aps.current.value / 100
+    v = flux(pind1, count_rate)
+    if v < 1e12:
+        logger.warning(f"computed flux {v} is low, expected at least 1e12")
+    elif v > 1.6e12:
+        logger.warning(f"computed flux {v} is high, expected at most 1.6e12")
+
 
     yield from bp.mv(si1.x, 0.2)
     yield from bp.mvr(diamond.x, 1.0)     # NOTE: *relative* move here

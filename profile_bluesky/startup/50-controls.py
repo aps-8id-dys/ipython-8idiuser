@@ -90,9 +90,10 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
 
     EXAMPLE:
 
-        RE(lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0))
+        RE(lineup_and_center("diode", foemirror.theta, -30, 30, 30, 1.0))
     """
     old_sigs = scaler.stage_sigs
+    old_position = motor.position
     scaler.stage_sigs["preset_time"] = time_s
     # yield from bps.mv(scaler.preset_time, time_s)
 
@@ -103,183 +104,131 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     md["purpose"] = "alignment"
     yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
 
-    table = pyRestTable.Table()
-    table.labels = ("key", "value")
-    table.addRow(("motor", motor.name))
-    table.addRow(("detector", channel.name))
-    for key in ('com', 'cen', 'max', 'min', 'fwhm', 'nlls'):
-        # TODO: if channel.name not in bec.peaks[key] then report that no scan has been done
-        table.addRow((key, bec.peaks[key][channel.name]))
-    logger.info("alignment scan results:")
-    logger.info(str(table))
+    if channel.name in bec.peaks["cen"]:
+        table = pyRestTable.Table()
+        table.labels = ("key", "value")
+        table.addRow(("motor", motor.name))
+        table.addRow(("detector", channel.name))
+        for key in ('com', 'cen', 'max', 'min', 'fwhm', 'nlls'):
+            table.addRow((key, bec.peaks[key][channel.name]))
+        logger.info("alignment scan results:")
+        logger.info(str(table))
 
-    # move motor to centroid
-    yield from bp.mv(motor, bec.peaks["cen"][channel.name])
+        # TODO: min & max are for diode or motor?
+        # lo = bec.peaks["min"][channel.name]
+        # hi = bec.peaks["max"][channel.name]
+        fwhm = bec.peaks["fwhm"][channel.name]
+        final = bec.peaks["cen"][channel.name]
+        # if centroid < lo:
+        #     logger.error(f"centroid too low: {final} < {lo}")
+        #     final = old_position
+        # elif centroid > hi:
+        #     logger.error(f"centroid too high: {final} > {hi}")
+        #     final = old_position
 
-    # TODO: check if the position is ok
-    # TODO:tweak ta2fine 2 to maximize
+        # move motor to final position
+        logger.info(f"moving {motor.name} to {final}")
+        yield from bp.mv(motor, final)
+    else:
+        logger.error("no statistical analysis of scan peak!")
+
+    # TODO:tweak foemirror.theta to maximize
+    # md["purpose"] = "alignment - fine"
+    # lo = max(lo, fwhm/2)
+    # hi = min(hi, fwhm/2)
+    # yield from bp.rel_scan([scaler], motor, lo, hi, npts, md=md)
 
     scaler.select_channels(None)
     scaler.stage_sigs = old_sigs
 
 
-def Rinaldi_group_alignment(_md={}):
-    # TODO: this looks like a macro for the "user" folder
-    md = dict(_md)
-
-    channel = pind1     # the EpicsSignalRO (scaler channel) object, not the string name
-    motor = ta2fine     # the EpicsMotor object, not the string name
-    yield from insert_pind1()
-
-    yield from bp.mv(si1.x, 0.0)
-    yield from bp.mvr(diamond.x, -1)     # NOTE: *relative* move here
-    yield from bp.mv(
-        si1.hcen, 0,
-        si1.hgap, 250,
-        si1.vgap, 250,
-    )
-
-    yield from lineup_and_center(channel, motor, -30, 30, 30, 1.0, md=md)
-
-    yield from flux(pind1, cps)     # FIXME: cps is undefined here!
-    ##flux should be 1.0-1.6 E12 ph/sec
-
-    yield from bp.mv(si1.x, 0.2)
-    yield from bp.mvr(diamond.x, 1.0)     # NOTE: *relative* move here
-    yield from bp.mv(
-        si1.hcen, 50,
-        si1.hgap, 60,
-        si1.vgap, 150,
-    )
-
-
-def flux(pin_diode, photocurrent):
+def flux(pin_diode, count_rate):
     """
+    print the flux on the named photodiode
     """
-    raise NotImplementedError("Need to write the Bluesky flux() plan")
+    gain = preamps.gains[pin_diode.name]
+    params = flux_params(pin_diode)
+    print_flux_params(params, pin_diode)
 
+    t = pyRestTable.Table()
+    t.addLabel("term")
+    t.addLabel("value")
+    t.addRow(("diode", pin_diode.name))
+    t.addRow(("count rate, cps", count_rate))
+    t.addRow(("photo current, A", count_rate/params["CtpV"]*gain))
+    v = calc_flux(count_rate, params, pin_diode)
+    t.addRow(("flux, ph/s", f"{v:8.3g}"))
+
+    logger.info(f"\n{t}")
+
+    return v
+
+
+def taylor_series(x, coefficients):
     """
-736.SPEC8IDI> prdef flux
-
-# /home/beams/S8SPEC/spec/macros/sites/spec8IDI/site_f.mac
-def flux '{
-	if ($# !=2) {
-	eprint "Usage: flux pin_diode cps"
-	exit
-	}
-	preamp_setread;
-    params = flux_params("$1")
-    print_flux_params params "$1"
-    #printf("\n %g cps is a current of %g Amps \n",$2,\
-     #      ($2/params["CtpV"])*params["Amps_per_Volt"])
-    printf("\n %g cps is a current of %g Amps \n",$2,\
-           ($2/params["CtpV"])*Amps_per_Volt["$1"])
-    printf("\n %8.3g photons per second \n",calc_flux($2,params,"$1"))
-  }'
-
-737.SPEC8IDI> prdef preamp_setread
-
-# /home/beams/S8SPEC/spec/macros/sites/spec8IDI/site_f.mac
-def preamp_setread '{
-  	local amp_scale;
-	local strPVUnit, strPVNum, strID;
-
-	for (i = 1; i <= 5; i++) {
-    		strPVUnit = "8idi:A" i "sens_unit.VAL";
-    		strPVNum = "8idi:A" i "sens_num.VAL";
-    		_unit = epics_get(strPVUnit);
-		sleep(0.1);
-    		_num = epics_get(strPVNum);
-		sleep(0.1);
-    		if (_unit =="mA/V") amp_scale=1e-3;
-    		if (_unit =="uA/V") amp_scale=1e-6;
-    		if (_unit =="nA/V") amp_scale=1e-9;
-    		if (_unit =="pA/V") amp_scale=1e-12;
-		if (i == 1)
-			strID = "pind1";
-		else if (i == 2)
-		 	strID = "pind2";
-		else if (i == 3)
-			strID = "pind3";
-		else if (i == 4)
-			strID = "pind4";
-		else
-			strID = "pdbs";
-    		Amps_per_Volt[strID] = (_num)*amp_scale;
-
-       		if (Amps_per_Volt[strID]==0.0) {
-       			printf("\nLooks like SPEC is not getting the sensitivity of  %s (Amps/Volt) from EPICS\n",strID); 
-       			exit
-		}
-	}
-
-}'
-
-739.SPEC8IDI> prdef flux_params
-
-# /home/beams/S8SPEC/spec/macros/sites/spec8IDI/site_f.mac
-def flux_params(_counter) '{
-  local Elength result Mabs N_elec 
-
-  result["Amps_per_Volt"] = Amps_per_Volt[_counter];
-
-	CtpV=1e5
-  result["CtpV"] = CtpV
-
-	Length=0.04
-  result["fluxLength"] = Length
-
-	Element="Si"
-   result["Element"] = Element
-
-  #Ephot=epics_get("ID08us:Energy.VAL")*1000-100
-  Ephot=epics_get("8idimono:sm2.RBV")*1000
-  result["Ephot"] = Ephot
-  Ekev = Ephot/1000;
-
-  if (Element == "Ar") {
-	N_elec = Ephot/26.4; 
-	Elength =  exp(-2.78262);
-	Elength *= exp(.782515*Ekev);
-	Elength *= exp(-.0379763*Ekev*Ekev);
-	Elength *= exp(1.04293e-3*Ekev*Ekev*Ekev);
-	Elength *= exp(-1.14407e-5*Ekev*Ekev*Ekev*Ekev);
-	}
-  else if ( Element == "N2") {
-	N_elec = Ephot/34.8;
-	Mabs =  exp(6.17639);
-	Mabs *= exp(-6.90647e-1*Ekev);
-	Mabs *= exp(2.44039e-2*Ekev*Ekev);
-	Mabs *= exp(-.453977e-3*Ekev*Ekev*Ekev);
-	Mabs *= exp(0.033084e-4*Ekev*Ekev*Ekev*Ekev);
-	Elength = 1.0/(Mabs*1.165e-3);
-	}
-  else if ( Element == "He") {
-	N_elec = Ephot/41.3;
-	Elength =  exp(15.4707);
-	Elength *= exp(0.972059*Ekev);
-	Elength *= exp(-0.0487191*Ekev*Ekev);
-	Elength *= exp(0.00134312*Ekev*Ekev*Ekev);
-	Elength *= exp(-1.46011e-05*Ekev*Ekev*Ekev*Ekev);
-	Elength /=1e4;
-	}
-  else if (Element == "Si") {
-	N_elec = Ephot/3.62;
-	Elength = 61e-4*pow((7.65/Ekev),-3);
-	Length = 400e-4;
-	}
-  else {
-	printf("This program does not yet calculate %s \n",Element);
-	exit
-	}
-  result["N_elec"] = N_elec
-  result["Elength"] = Elength
-  result["Abs_frac"] = (1-exp(-Length/Elength));
-  return(result)
-  }'
+    compute a Taylor series expansion at x
+    
+    a0 + x*(a1 + x*(a2+x*0)
     """
-    # TODO:
-    pass
+    v = 0
+    for a in reversed(coefficients):
+        v = v*x + a
+    return v
+
+
+def flux_params(_counter):
+    """
+    dictionary of computed conversion constants
+    """
+    result = {}
+    result["Amps_per_Volt"] = preamps.gains[_counter.name]   # amplifier gain
+    result["CtpV"] = 1e5                        # voltage/frequency conversion
+    Length = result["fluxLength"] = 0.04        #
+    result["Element"] = "Si"
+    keV = monochromator.energy.position
+    result["Ephot"] = keV * 1000
+
+    if result["Element"] == "Ar":
+        N_elec = result["Ephot"]/26.4
+        v = taylor_series(keV, [-2.78262, .782515, -.0379763, 1.04293e-3, -1.14407e-5])
+        Elength =  math.exp(v)
+    elif result["Element"] == "N2":
+        N_elec = result["Ephot"]/34.8
+        v = taylor_series(keV, [6.17639, -6.90647e-1, 2.44039e-2, -.453977e-3, 0.033084e-4])
+        Elength = 1.0/(math.exp(v)*1.165e-3)
+    elif result["Element"] == "He":
+        N_elec = result["Ephot"]/41.3
+        v = taylor_series(keV, [15.4707, 0.972059, -0.0487191, 0.00134312, -1.46011e-05])
+        Elength = math.exp(v) / 1e4
+    elif result["Element"] == "Si":
+        N_elec = result["Ephot"]/3.62   # 3.62: electron-hole pair production energy
+        Elength = 61e-4*pow((7.65/keV),-3)
+        Length = 400e-4
+    else:
+        raise KeyError(f"flux params not defined for '{result['Element']}'")
+
+    result["N_elec"] = N_elec
+    result["Elength"] = Elength
+    result["Abs_frac"] = (1-math.exp(-Length/Elength))
+
+    return result
+
+
+def print_flux_params(params, counter):
+    gain = preamps.gains[counter.name]
+    element = params['Element']
+    t = pyRestTable.Table()
+    t.addLabel("term")
+    t.addLabel("value")
+    t.addLabel("units")
+    t.addRow(("detector", counter.name, ""))
+    t.addRow(("Amps/Volt", gain, "A/V"))
+    t.addRow(("counts/Volt", params["CtpV"], ""))
+    t.addRow(("Length", params["fluxLength"], "cm"))
+    t.addRow(("Element", element, ""))
+    t.addRow(("Ephot", params["Ephot"], "eV"))
+    t.addRow((f"{element} detector", params["Elength"], "cm"))
+    logger.info(f"\n{t}")
 
 
 def bb(*args, **kwargs):
@@ -318,3 +267,13 @@ def tw(channel, motor, delta):
     """
     # Usage:  tw mot [mot2 ...] delta [delta2 ...] [count_time]
     raise NotImplementedError("Need to write the Bluesky tw() plan")
+
+
+def calc_flux(cps, params, pin_diode):
+    """
+    """
+    gain = preamps.gains[pin_diode.name]
+    amps = (cps/params["CtpV"])*gain
+    photons = amps/(1.60218e-19*params["N_elec"]*params["Abs_frac"])
+    return photons
+

@@ -85,3 +85,6 @@ class ModifiedEpidRecord(APS_synApps.EpidRecord):
 
 pid1 = ModifiedEpidRecord("8idi:pid1", name="pid1", labels=["pid",])
 pid2 = ModifiedEpidRecord("8idi:pid2", name="pid2", labels=["pid",])
+
+
+preamps = PreampDevice(name="preamps")

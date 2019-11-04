@@ -45,7 +45,7 @@ I_APS = scaler1.channels.chan07.s
 I0Mon = scaler1.channels.chan08.s
 # APD = scaler1.channels.chan09.s
 
-for item in (pind1, pind2, pind3, pind4, pdbs, I_APS, I0Mon):
+for item in (timebase, pind1, pind2, pind3, pind4, pdbs, I_APS, I0Mon):
     item._ophyd_labels_ = set(["channel", ])
 
 Atten1 = EpicsSignalRO('8idi:userTran1.P', name='Atten1', labels=["detectors",])

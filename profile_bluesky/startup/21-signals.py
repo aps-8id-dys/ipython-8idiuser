@@ -13,9 +13,12 @@ pss = PSS_Parameters(name="pss")
 # bluesky session should restart if this changes
 msg = "D station shutter changed.  This affects whether or not"
 msg += " I station can take beam and whether simulators are"
-msg += " used.  You are strongly advised to exit and restart"
+msg += " used.  Resume is not allowed from this condition."
+msg += " You are strongly advised to exit and restart"
 msg += " the bluesky session."
-suspend_I_station_status = APS_suspenders.SuspendWhenChanged(pss.i_station_enabled, tripped_message=msg)
+suspend_I_station_status = APS_suspenders.SuspendWhenChanged(
+    pss.d_shutter_open_chain_A, 
+    tripped_message=msg)
 RE.install_suspender(suspend_I_station_status)
 
 

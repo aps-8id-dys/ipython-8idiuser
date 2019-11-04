@@ -96,14 +96,20 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     md = dict(_md)
     md["purpose"] = "alignment"
     yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
-    logger.info(f"tuned detector {channel.name} using motor {motor.name}:")
+
+    table = pyRestTable.Table()
+    table.labels = ("key", "value")
+    table.addRow(("motor", motor.name))
+    table.addRow(("detector", channel.name))
     for key in ('com', 'cen', 'max', 'min', 'fwhm', 'nlls'):
-        logger.info(f"{key} = {bec.peaks[key][channel.name]}")
+        table.addRow((key, bec.peaks[key][channel.name]))
+    logger.info("alignment scan results:")
+    logger.info(str(table))
 
+    # TODO: check if the position is ok
+
+    # tweak ta2fine 2 to maximize
     yield from bps.mv(motor, bec.peaks["cen"][channel.name])
-
-    # check if the position is ok
-    # TODO: tweak ta2fine 2 to maximize
 
     scaler.select_channels(None)
     scaler.stage_sigs = old_sigs
@@ -125,7 +131,7 @@ def Rinaldi_group_alignment(_md={}):
     umv si1hcen 0
     """
 
-    yield from lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0)
+    yield from lineup_and_center("diode", ta2fine, -30, 30, 30, 1.0, md=md)
 
     # TODO: confirm names
     """

@@ -302,3 +302,36 @@ class PSS_Parameters(Device):
         """
         enabled = self.d_shutter_open_chain_A.value == "ON"
         return enabled
+
+
+class PreampUnitNumberDevice(Device):
+    units = Component(EpicsSignalRO, 'sens_unit', string=True)
+    number = Component(EpicsSignalRO, 'sens_num')
+
+    @property
+    def amp_scale(self):
+        return {
+            "mA/V": 1e-3,
+            "uA/V": 1e-6,
+            "nA/V": 1e-9,
+            "pA/V": 1e-12,
+        }[self.units.value] * self.number.value
+
+
+class PreampDevice(Device):
+    pind1 = Component(PreampUnitNumberDevice, '8idi:A1')
+    pind2 = Component(PreampUnitNumberDevice, '8idi:A2')
+    pind3 = Component(PreampUnitNumberDevice, '8idi:A3')
+    pind4 = Component(PreampUnitNumberDevice, '8idi:A4')
+    pdbs = Component(PreampUnitNumberDevice, '8idi:A5')
+
+    @property
+    def gains(self):
+        """
+        return dictionary of Amps/V (gains) for all preamplifiers
+        """
+        Amps_per_Volt = {}
+        for nm in self.component_names:
+            amp = self.__getattribute__(nm)
+            Amps_per_Volt[nm] = amp.amp_scale
+        return Amps_per_Volt

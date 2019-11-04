@@ -52,3 +52,19 @@ def move_diodes_out():
         pind2z, presets.pind2z.out,
         pvFLUX_PIND, presets.pvFLUX_PIND.out,
     )
+
+
+def lineup_and_center(axis, minus, plus, npts, time_s):
+    """
+    lineup and center a given axis, relative to current position
+
+    EXAMPLE:
+
+        RE(lineup_and_center(ta2fine, -30, 30, 30, 1.0))
+    """
+    yield from bps.mv(scaler.preset_time, time_s)
+    yield from bp.rel_scan([scaler], axis, minus, plus, npts)
+    # TODO: move axis to CEN: need scaler channel name
+    yield from bps.mv(axis, bec.peaks["cen"]["diode"])
+    # check if the position is ok
+    # TODO: tweak ta2fine 2 to maximize

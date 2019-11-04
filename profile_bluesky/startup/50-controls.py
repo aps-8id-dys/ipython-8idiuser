@@ -2,13 +2,18 @@ logger.info(__file__)
 
 """local, custom Bluesky plans (scans)"""
 
+from collections import namedtuple
+
+# access by subscript or by name (obj[0]= same as obj.in)
 in_out_tuple = namedtuple('in_out_tuple', 'in out')
 
 class Presets:
+    """
+    various instrument settings and constants
+    """
     pind1z = in_out_tuple(1, 0)  # TODO: what values?
     pind2z = in_out_tuple(1, 0)  # TODO: what values?
     pvFLUX_PIND = in_out_tuple(1, 0)
-
 
 preset = Presets()
 

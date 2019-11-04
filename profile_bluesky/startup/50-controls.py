@@ -147,3 +147,15 @@ def Rinaldi_group_alignment(_md={}):
     umv si1hgap 60
     umv si1vgap 150
     """
+
+def flux(*args, **kwargs):
+    # TODO:
+    pass
+
+def bb(*args, **kwargs):
+    # TODO:
+    pass
+
+def sb(*args, **kwargs):
+    # TODO:
+    pass

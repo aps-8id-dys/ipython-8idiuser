@@ -9,10 +9,40 @@ sd.baseline.append(aps)
 undulator = APS_devices.ApsUndulatorDual("ID08", name="undulator")
 sd.baseline.append(undulator)
 
+pss = PSS_Parameters(name="pss")
 
-# simulate a shutter (no hardware required)
-shutter = SimulatedApsPssShutterWithStatus(name="shutter")
-shutter.delay_s = 0.05 # shutter needs short recovery time after moving
+
+def operations_in_8idi():
+    """
+    returns True if allowed to use X-ray beam in 8-ID-I station
+    """
+    return pss.i_station_enabled
+
+
+if aps.inUserOperations and operations_in_8idi():
+    sd.monitor.append(aps.current)
+
+    # suspend when current < 2 mA
+    # resume 100s after current > 10 mA
+    logger.info("Installing suspender for low APS current.")
+    suspend_APS_current = bluesky.suspenders.SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
+    RE.install_suspender(suspend_APS_current)
+
+    shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
+
+else:
+    logger.warning("!"*30)
+    if operations_in_8idi():
+        logger.warning("Session started when APS not operating.")
+    else:
+        logger.warning("Session started when 8_ID-I is not operating.")
+    logger.warning("Using simulator 'shutter'.")
+    logger.warning("!"*30)
+    # simulate a shutter (no hardware required)
+    shutter = SimulatedApsPssShutterWithStatus(name="shutter", labels=["shutter", "simulator"])
+    shutter.delay_s = 0.05 # shutter needs short recovery time after moving
+
+
 
 crl = CompoundRefractiveLensDevice(name="crl")
 monochromator = MonochromatorDevice(name="monochromator")

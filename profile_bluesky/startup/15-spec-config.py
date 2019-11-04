@@ -8,6 +8,7 @@ tth = EpicsMotor('8idi:sm1', name='tth', labels=("motor",))
 
 pind1z = EpicsMotor('8idi:m3', name='pind1z', labels=("motor",))
 pind2z = EpicsMotor('8idi:m4', name='pind2z', labels=("motor",))
+pvFLUX_PIND = EpicsMotor('?????????????', name='pvFLUX_PIND', labels=("motor",))
 
 tth_act = EpicsMotor('8idi:m63', name='tth_act', labels=("motor",))
 bstop = EpicsMotor('8idi:m27', name='bstop', labels=("motor",))

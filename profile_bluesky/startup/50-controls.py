@@ -2,34 +2,47 @@ logger.info(__file__)
 
 """local, custom Bluesky plans (scans)"""
 
-# a place to store various preset values for the instrument
-presets = {
-    "pind1z" : {"in": 0.0, "out": 0.0},  # TODO: what values?
-    "pind2z" : {"in": 0.0, "out": 0.0},  # TODO: what values?
-}
+in_out_tuple = namedtuple('in_out_tuple', 'in out')
+
+class Presets:
+    pind1z = in_out_tuple(1, 0)  # TODO: what values?
+    pind2z = in_out_tuple(1, 0)  # TODO: what values?
+    pvFLUX_PIND = in_out_tuple(1, 0)
+
+
+preset = Presets()
+
 
 def pind1z_in():
-    yield from bps.mv(pind1z, presets["pindz1"]["in"])
+    yield from bps.mv(pind1z, presets.pind1z.in)
 
 def pind1z_out():
-    yield from bps.mv(pind1z, presets["pindz1"]["out"])
+    yield from bps.mv(pind1z, presets.pind1z.out)
 
 def pind2z_in():
-    yield from bps.mv(pind2z, presets["pindz2"]["in"])
+    yield from bps.mv(pind2z, presets.pind2z.in)
 
 def pind2z_out():
-    yield from bps.mv(pind2z, presets["pindz2"]["out"])
+    yield from bps.mv(pind2z, presets.pind2z.out)
+
+def pvFLUX_PIND_in():
+    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.in)
+
+def pvFLUX_PIND_out():
+    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.out)
 
 def diodes_in():
-    "move ALL the diode in"
+    "move ALL the diodes in"
     yield from bps.mv(
-        pind1z, presets["pindz1"]["in"],
-        pind2z, presets["pindz2"]["in"],
+        pind1z, presets.pind1z.in,
+        pind2z, presets.pind2z.in,
+        pvFLUX_PIND, presets.pvFLUX_PIND.in,
     )
 
 def diodes_out():
-    "move ALL the diode out"
+    "move ALL the diodes out"
     yield from bps.mv(
-        pind1z, presets["pindz1"]["out"],
-        pind2z, presets["pindz2"]["out"],
+        pind1z, presets.pind1z.out,
+        pind2z, presets.pind2z.out,
+        pvFLUX_PIND, presets.pvFLUX_PIND.out,
     )

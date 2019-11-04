@@ -17,6 +17,7 @@ class Presets:
 
 preset = Presets()
 
+# Bluesky plans to move the diodes in/out
 
 def pind1z_in():
     yield from bps.mv(pind1z, presets.pind1z.in)

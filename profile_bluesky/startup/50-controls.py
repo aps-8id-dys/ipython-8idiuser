@@ -37,7 +37,7 @@ def pvFLUX_PIND_in():
 def pvFLUX_PIND_out():
     yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.out)
 
-def diodes_in():
+def move_diodes_in():
     "move ALL the diodes in"
     yield from bps.mv(
         pind1z, presets.pind1z.in,
@@ -45,7 +45,7 @@ def diodes_in():
         pvFLUX_PIND, presets.pvFLUX_PIND.in,
     )
 
-def diodes_out():
+def move_diodes_out():
     "move ALL the diodes out"
     yield from bps.mv(
         pind1z, presets.pind1z.out,

@@ -11,9 +11,9 @@ class Presets:
     """
     various instrument settings and constants
     """
-    pind1z = insert_remove_tuple(1, 0)
-    pind2z = insert_remove_tuple(1, 0)
-    pvFLUX_PIND = insert_remove_tuple(1, 0)
+    pind1 = insert_remove_tuple(1, 0)
+    pind2 = insert_remove_tuple(1, 0)
+    flux = insert_remove_tuple(1, 0)
 
 presets = Presets()
 
@@ -22,36 +22,44 @@ presets = Presets()
 def insert_diodes():
     "insert ALL the diodes"
     yield from bps.mv(
-        pind1z, presets.pind1z.insert,
-        pind2z, presets.pind2z.insert,
-        pvFLUX_PIND, presets.pvFLUX_PIND.insert,
+        actuator_pind1, presets.pind1.insert,
+        actuator_pind2, presets.pind2.insert,
+        actuator_flux, presets.flux.insert,
     )
+    logger.debug(f"inserted all PIN diodes")
 
 def remove_diodes():
     "remove ALL the diodes"
     yield from bps.mv(
-        pind1z, presets.pind1z.remove,
-        pind2z, presets.pind2z.remove,
-        pvFLUX_PIND, presets.pvFLUX_PIND.remove,
+        actuator_pind1, presets.pind1.remove,
+        actuator_pind2, presets.pind2.remove,
+        actuator_flux, presets.flux.remove,
     )
+    logger.debug(f"removed all PIN diodes")
 
-def insert_pind1z():
-    yield from bps.mv(pind1z, presets.pind1z.insert)
+def insert_pind1():
+    yield from bps.mv(actuator_pind1, presets.pind1.insert)
+    logger.debug(f"inserted pind1")
 
-def remove_pind1z_out():
-    yield from bps.mv(pind1z, presets.pind1z.remove)
+def remove_pind1_out():
+    yield from bps.mv(actuator_pind1, presets.pind1.remove)
+    logger.debug(f"removed pind1")
 
-def insert_pind2z():
-    yield from bps.mv(pind2z, presets.pind2z.insert)
+def insert_pind2():
+    yield from bps.mv(actuator_pind2, presets.pind2.insert)
+    logger.debug(f"inserted pind2")
 
-def remove_pind2z():
-    yield from bps.mv(pind2z, presets.pind2z.remove)
+def remove_pind2():
+    yield from bps.mv(actuator_pind2, presets.pind2.remove)
+    logger.debug(f"removed pind2")
 
-def insert_pvFLUX_PIND():
-    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.insert)
+def insert_flux_pind():
+    yield from bps.mv(actuator_flux, presets.flux.insert)
+    logger.debug(f"inserted flux pind")
 
-def remove_pvFLUX_PIND():
-    yield from bps.mv(pvFLUX_PIND, presets.pvFLUX_PIND.remove)
+def remove_flux_pind():
+    yield from bps.mv(actuator_flux, presets.flux.remove)
+    logger.debug(f"removed flux pind")
 
 
 # alignment plans
@@ -121,7 +129,7 @@ def Rinaldi_group_alignment(_md={}):
 
     channel = pind1     # the EpicsSignalRO (scaler channel) object, not the string name
     motor = ta2fine     # the EpicsMotor object, not the string name
-    yield from insert_pind1z()
+    yield from insert_pind1()
 
     yield from bp.mv(si1.x, 0.0)
     yield from bp.mvr(diamond.x, -1)     # NOTE: *relative* move here

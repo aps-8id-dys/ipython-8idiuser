@@ -6,9 +6,9 @@ logger.info(__file__)
 # line 1: MOT001 =    NONE:2/64   2000  1  2000  200   50  125    0 0x003  StrainN  StrainN
 tth = EpicsMotor('8idi:sm1', name='tth', labels=("motor",))
 
-pind1z = EpicsMotor('8idi:m3', name='pind1z', labels=("motor",))
-pind2z = EpicsMotor('8idi:m4', name='pind2z', labels=("motor",))
-pvFLUX_PIND = EpicsMotor('?????????????', name='pvFLUX_PIND', labels=("motor",))
+actuator_pind1 = EpicsSignal('8idi:9440:1:bo_2', name='actuator_pind1', labels=("actuator",))
+actuator_pind2 = EpicsSignal('8idi:9440:1:bo_1', name='actuator_pind2', labels=("actuator",))
+actuator_flux = EpicsSignal('8idi:9440:1:bo_0', name='actuator_flux', labels=("actuator",))
 
 tth_act = EpicsMotor('8idi:m63', name='tth_act', labels=("motor",))
 bstop = EpicsMotor('8idi:m27', name='bstop', labels=("motor",))

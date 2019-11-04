@@ -11,8 +11,8 @@ class Presets:
     """
     various instrument settings and constants
     """
-    pind1z = insert_remove_tuple(1, 0)  # TODO: what values?
-    pind2z = insert_remove_tuple(1, 0)  # TODO: what values?
+    pind1z = insert_remove_tuple(1, 0)
+    pind2z = insert_remove_tuple(1, 0)
     pvFLUX_PIND = insert_remove_tuple(1, 0)
 
 presets = Presets()

@@ -18,6 +18,7 @@ msg += " You are strongly advised to exit and restart"
 msg += " the bluesky session."
 suspend_I_station_status = APS_suspenders.SuspendWhenChanged(
     pss.d_shutter_open_chain_A, 
+    expected_value=1,
     tripped_message=msg)
 RE.install_suspender(suspend_I_station_status)
 

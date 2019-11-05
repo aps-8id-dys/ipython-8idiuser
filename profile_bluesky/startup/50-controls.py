@@ -15,6 +15,8 @@ Variables
 Plans
 
     bb
+    beam_params_backup
+    beam_params_restore
     insert_diodes
     insert_flux_pind
     insert_pind1
@@ -315,3 +317,147 @@ def tw(counter, motor, delta):
     # Usage:  tw mot [mot2 ...] delta [delta2 ...] [count_time]
     raise NotImplementedError("Need to write the Bluesky tw() plan")
 
+# -----------------------------------------------------------------------
+
+PV_REG_MAP = {
+    "template": "8idi:Reg%d",
+    "detector_pv" : "8idi:Reg2",
+    "registers/detector": 10,
+    "highest register": 170,
+    "regpv_start": {
+        "current" : 10,
+        "LAMBDA" : 90,
+        "RIGAKU1" : 140,
+    },
+    "detectors" : {
+        25 : "LAMBDA",
+        46 : "RIGAKU1",
+    }
+}
+PV_REG_MAP["registers"] = [     # each register is a signal
+    EpicsSignal(
+        PV_REG_MAP["template"] % (i+1), 
+        name="pv_reg%d" % (i+1)
+        )
+    for i in range(PV_REG_MAP["highest register"])
+    ]
+PV_REG_MAP["registers"].insert(0, None)     # offset since no 8idi:Reg0
+
+
+def beam_params_backup():
+    """
+    copy detector registers from current to detector
+    """
+    detNum = dm_pars.detNum.value
+    detName = PV_REG_MAP["detectors"].get(detNum)
+
+    if detName is None:
+        msg = f"Unknown detector number {detNum}"
+        msg += f" in EPICS PV register {dm_pars.detNum.pvname}"
+        raise ValueError(msg)
+
+    offset = PV_REG_MAP["regpv_start"][detName]
+    offset_current = PV_REG_MAP["regpv_start"]["current"]
+    t = pyRestTable.Table()
+    t.addLabel("value")
+    t.addLabel("from")
+    t.addLabel("to")
+    for i in range(PV_REG_MAP["registers/detector"]):
+        target = PV_REG_MAP["registers"][i + offset]
+        source = PV_REG_MAP["registers"][i + offset_current]
+        t.addRow((source.value, source.pvname, target.pvname))
+        yield from bps.mv(target, source.value)
+    logger.debug(f"Detector {detName} Beam Params are Backed up\n{t}")
+
+
+def beam_params_restore():
+    """
+    copy detector registers from detector to current
+    """
+    detNum = dm_pars.detNum.value
+    detName = PV_REG_MAP["detectors"].get(detNum)
+
+    if detName is None:
+        msg = f"Unknown detector number {detNum}"
+        msg += f" in EPICS PV register {dm_pars.detNum.pvname}"
+        raise ValueError(msg)
+
+    offset = PV_REG_MAP["regpv_start"][detName]
+    offset_current = PV_REG_MAP["regpv_start"]["current"]
+    t = pyRestTable.Table()
+    t.addLabel("value")
+    t.addLabel("from")
+    t.addLabel("to")
+    for i in range(PV_REG_MAP["registers/detector"]):
+        source = PV_REG_MAP["registers"][i + offset]
+        target = PV_REG_MAP["registers"][i + offset_current]
+        t.addRow((source.value, source.pvname, target.pvname))
+        yield from bps.mv(target, source.value)
+    logger.debug(f"Detector {detName} Beam Params are restored\n{t}")
+
+
+def select_LAMBDA(*args, **kwargs):
+    """
+def select_LAMBDA '
+    	beam_params_backup;
+	epics_put(DETECTOR_REGISTER_PV, LAMBDA_detector_num)
+	epics_put("8idi:Reg5",3930.00); ##moved sample 7 inches closer to detector
+	##epics_put("8idi:Reg5",7800.00); ##moved sample 7 inches closer to detector
+	epics_put("8idi:Reg4",240.00);
+	beam_params_restore;
+    
+    	blockbeam;
+
+	printf("Moving LAMBDA PAD to the direct beam position\n");
+	getangles;
+    #####2 lines below for 4 m distance
+    A[ccdx]=epics_get(ccdx0_pv);A[ccdz]=epics_get(ccdz0_pv);move_em;uwm ccdx ccdz;
+	A[ccdx]= 214.10;A[ccdz]= 36.95;move_em; uwm ccdx ccdz
+    
+    #####2 lines below for 8 m distance
+    #A[dsccdx]=epics_get(ccdx0_pv);A[dsccdz]=epics_get(ccdz0_pv);move_em;uwm dsccdx dsccdz;
+	#A[dsccdx]= 127.53;A[dsccdz]= 15.55;move_em; uwm dsccdx dsccdz
+	shutteroff;
+	use_blockbeam_Lambda
+
+        ccdhook_ad_nofpga_Lambda 8LAMBDA1:cam1: 8LAMBDA1:IMMout: 8LAMBDA1:cam1:  8LAMBDA1:Stats1: 8LAMBDA1:Proc1:
+        
+        #setccdc_ad 0  #set CCD_MONITOR_ROI
+        
+	DIR_SLASH="/"
+
+	LAMBDA_data_path
+
+        CCD_FILE_EXT="imm"
+	ccdsetup  
+	sleep(1.0);
+	##Lambda_Set_EnergyThreshold 5.5;
+
+        use_blockbeam_Lambda 
+	##def shutteron \' shutteron_default \';
+	##def shutteroff \' shutteroff_default \';
+        ##shutteron;
+	
+	epics_put("8idi:softGlueB:BUFFER-1_IN_Signal",1); #sends  external pulse train signal to the trigger
+	###epics_put("8idi:softGlueC:MUX2-1_SEL_Signal",0); #sets shutter signal pulse train to single(0)/burst(1) mode
+	###epics_put("8idi:softGlueC:MUX2-2_SEL_Signal",0); #sends detector signal pulse train to burst mode
+	###ccdtype_shutter_control_select 1
+        
+	shutteroff_default;
+	def shutteron \'  \';
+	def shutteroff \'  \';
+	
+#	umv si2hgap 20;umv si2vgap 20;
+
+	def xpcs_pre_start \'xpcs_pre_start_LAMBDA\';
+	def user_xpcs_loop \'user_xpcs_loop_LAMBDA\';
+
+	UFXC_align_mode
+
+        epics_put(BURST_MODE_REGISTER_PV, 0); ##setting burst mode default status (May 2019 onwards)
+	DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-Lambda"
+	DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-Lambda"
+    epics_put("8idi:StrReg15", DM_WORKFLOW_DATA_TRANSFER)
+    epics_put("8idi:StrReg16", DM_WORKFLOW_DATA_ANALYSIS)
+'
+    """

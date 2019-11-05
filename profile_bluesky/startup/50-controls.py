@@ -1,6 +1,41 @@
 logger.info(__file__)
 
-"""local, custom Bluesky plans (scans)"""
+"""
+local, custom Bluesky plans (scans)
+
+Classes and Other Structures
+
+    insert_remove_tuple
+    Presets
+
+Variables
+
+    presets
+
+Plans
+
+    bb
+    insert_diodes
+    insert_flux_pind
+    insert_pind1
+    insert_pind2
+    lineup_and_center
+    remove_diodes
+    remove_flux_pind
+    remove_pind1_out
+    remove_pind2
+    sb
+    tw (not implemented yet)
+
+Functions
+
+    calc_flux
+    flux
+    flux_params
+    print_flux_params
+    taylor_series
+
+"""
 
 
 # access by subscript or by name (obj[0]= same as obj.insert)
@@ -161,6 +196,16 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
     scaler.stage_sigs = old_sigs
 
 
+def calc_flux(cps, params, pin_diode):
+    """
+    calculate the number of photons/s from diode count rate
+    """
+    gain = preamps.gains[pin_diode.name]
+    amps = (cps/params["CtpV"])*gain
+    photons = amps/(1.60218e-19*params["N_elec"]*params["Abs_frac"])
+    return photons
+
+
 def flux(pin_diode, count_rate):
     """
     print the flux on the named photodiode
@@ -250,12 +295,12 @@ def print_flux_params(params, counter):
     logger.info(f"\n{t}")
 
 
-def bb(*args, **kwargs):
+def bb():
     """block beam"""
     yield from bps.mv(shutter, "close")
 
 
-def sb(*args, **kwargs):
+def sb():
     """show beam"""
     yield from bps.mv(shutter, "open")
 
@@ -269,13 +314,4 @@ def tw(counter, motor, delta):
     """
     # Usage:  tw mot [mot2 ...] delta [delta2 ...] [count_time]
     raise NotImplementedError("Need to write the Bluesky tw() plan")
-
-
-def calc_flux(cps, params, pin_diode):
-    """
-    """
-    gain = preamps.gains[pin_diode.name]
-    amps = (cps/params["CtpV"])*gain
-    photons = amps/(1.60218e-19*params["N_elec"]*params["Abs_frac"])
-    return photons
 

@@ -64,13 +64,13 @@ def remove_flux_pind():
 
 # alignment plans
 
-def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
+def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor=4, width_factor=0.8,_md={}):
     """
     lineup and center a given axis, relative to current position
 
     PARAMETERS
     
-    channel : scaler channel object
+    counter : scaler channel object
         detector to be maximized
     
     axis : motor
@@ -87,6 +87,12 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     
     time_s : float (default: 0.1)
         count time per step
+    
+    peak_factor : float (default: 4)
+        maximum must be greater than 'peak_factor'*minimum
+    
+    width_factor : float (default: 0.8)
+        fwhm must be less than 'width_factor'*plot_range
 
     EXAMPLE:
 
@@ -97,46 +103,59 @@ def lineup_and_center(channel, motor, minus, plus, npts, time_s=0.1, _md={}):
     scaler.stage_sigs["preset_time"] = time_s
     # yield from bps.mv(scaler.preset_time, time_s)
 
-    scaler.select_channels([channel.name])
+    scaler.select_channels([counter.name])
     clock.kind = Kind.normal
+
+    aligned = False
+
+    def peak_analysis():
+        if counter.name in bec.peaks["cen"]:
+            table = pyRestTable.Table()
+            table.labels = ("key", "value")
+            table.addRow(("motor", motor.name))
+            table.addRow(("detector", counter.name))
+            table.addRow(("starting position", old_position))
+            for key in bec.peaks.ATTRS:
+                table.addRow((key, bec.peaks[key][counter.name]))
+            logger.info(f"alignment scan results:\n{table}")
+
+            lo = bec.peaks["min"][counter.name][-1]  # [-1] means detector
+            hi = bec.peaks["max"][counter.name][-1]  # [0] means motor
+            fwhm = bec.peaks["fwhm"][counter.name]
+            final = bec.peaks["cen"][counter.name]
+
+            ps = list(bec._peak_stats.values())[0][counter.name]    # PeakStats object
+            # get the X data range as received by PeakStats
+            x_range = abs(max(ps.x_data) - min(ps.x_data))
+
+            if hi < peak_factor*lo:
+                logger.error(f"no clear peak: {hi} < {peak_factor}*{lo}")
+                final = old_position
+            elif fwhm > width_factor*x_range:
+                logger.error(f"FWHM too large: {fwhm} > {width_factor}*{x_range}")
+                final = old_position
+
+            logger.info(f"moving {motor.name} to {final}")
+            yield from bps.mv(motor, final)
+            aligned = True
+        else:
+            logger.error("no statistical analysis of scan peak!")
+            yield from bps.null()
 
     md = dict(_md)
     md["purpose"] = "alignment"
     yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
+    yield from peak_analysis()
 
-    if channel.name in bec.peaks["cen"]:
-        table = pyRestTable.Table()
-        table.labels = ("key", "value")
-        table.addRow(("motor", motor.name))
-        table.addRow(("detector", channel.name))
-        for key in ('com', 'cen', 'max', 'min', 'fwhm', 'nlls'):
-            table.addRow((key, bec.peaks[key][channel.name]))
-        logger.info("alignment scan results:")
-        logger.info(str(table))
-
-        # TODO: min & max are for diode or motor?
-        # lo = bec.peaks["min"][channel.name]
-        # hi = bec.peaks["max"][channel.name]
-        fwhm = bec.peaks["fwhm"][channel.name]
-        final = bec.peaks["cen"][channel.name]
-        # if centroid < lo:
-        #     logger.error(f"centroid too low: {final} < {lo}")
-        #     final = old_position
-        # elif centroid > hi:
-        #     logger.error(f"centroid too high: {final} > {hi}")
-        #     final = old_position
-
-        # move motor to final position
-        logger.info(f"moving {motor.name} to {final}")
-        yield from bp.mv(motor, final)
-    else:
-        logger.error("no statistical analysis of scan peak!")
-
-    # TODO:tweak foemirror.theta to maximize
-    # md["purpose"] = "alignment - fine"
-    # lo = max(lo, fwhm/2)
-    # hi = min(hi, fwhm/2)
-    # yield from bp.rel_scan([scaler], motor, lo, hi, npts, md=md)
+    if aligned:
+        # again, tweak axis to maximize
+        md["purpose"] = "alignment - fine"
+        fwhm = bec.peaks["fwhm"][counter.name]
+        lo = max(old_position+minus, -fwhm/2)
+        hi = min(old_position+plus, fwhm/2)
+        yield from bp.scan([scaler], motor, lo, hi, npts, md=md)
+        width_factor = 1
+        yield from peak_analysis()
 
     scaler.select_channels(None)
     scaler.stage_sigs = old_sigs
@@ -232,33 +251,16 @@ def print_flux_params(params, counter):
 
 
 def bb(*args, **kwargs):
-    """
-    block beam
-
-    bb -> blockbeam -> blockbeam_Lambda
-
-    # /home/beams/8IDIUSER/batches/2019/Oct2019/Lambda_rubber_both4X.do
-    def blockbeam 'blockbeam_Lambda'
-
-    745.SPEC8IDI> prdef blockbeam_Lambda
-
-    # /home/beams/8IDIUSER/local_macros/CCD_macros/xpcs_ad_nofpga_Lambda_AD3p0_EXTTRIG.mac
-    def blockbeam_Lambda '
-        ##epics_put("8idi:BioEnc2B1.VAL","Down");
-        ##epics_put("8idi:BioEnc2B3.VAL","Close");
-        epics_put("8idi:Unidig1Bo13","Closed");
-    '
-
-    """
-    yield from bp.mv(shutter, "close")
+    """block beam"""
+    yield from bps.mv(shutter, "close")
 
 
 def sb(*args, **kwargs):
     """show beam"""
-    yield from bp.mv(shutter, "open")
+    yield from bps.mv(shutter, "open")
 
 
-def tw(channel, motor, delta):
+def tw(counter, motor, delta):
     """
     maximize a positioner using a motor and reading a scaler channel
 

@@ -11,6 +11,7 @@ Classes and Other Structures
 Variables
 
     presets
+    PV_REG_MAP
 
 Plans
 
@@ -24,11 +25,14 @@ Plans
     insert_pind1
     insert_pind2
     lineup_and_center
+    pv_reg_write
     remove_diodes
     remove_flux_pind
     remove_pind1_out
     remove_pind2
     sb
+    select_LAMBDA
+    select_RIGAKU
     showbeam
     tw (not implemented yet)
 
@@ -37,7 +41,9 @@ Functions
     calc_flux
     flux
     flux_params
+    get_detector_number_by_name
     print_flux_params
+    pv_reg_read
     taylor_series
 
 """
@@ -56,6 +62,32 @@ class Presets:
     flux = insert_remove_tuple(1, 0)
 
 presets = Presets()
+
+PV_REG_MAP = {
+    "template": "8idi:Reg%d",
+    "detector_pv" : "8idi:Reg2",
+    "registers/detector": 10,
+    "highest register": 200,
+    "regpv_start": {
+        "current" : 11,
+        "LAMBDA" : 91,
+        "RIGAKU500K_NoGap" : 141,
+    },
+    "detectors" : {
+        25 : "LAMBDA",
+        46 : "RIGAKU500K_NoGap",
+    },
+    "burst mode pv" : "8idi:Reg124",    # added May 2019
+}
+PV_REG_MAP["registers"] = [     # each register is a signal
+    EpicsSignal(
+        PV_REG_MAP["template"] % (i+1), 
+        name="pv_reg%d" % (i+1)
+        )
+    for i in range(PV_REG_MAP["highest register"])
+    ]
+PV_REG_MAP["registers"].insert(0, None)     # offset since no 8idi:Reg0
+
 
 # Bluesky plans to move the diodes in/out
 
@@ -331,29 +363,25 @@ def tw(counter, motor, delta):
 
 # -----------------------------------------------------------------------
 
-PV_REG_MAP = {
-    "template": "8idi:Reg%d",
-    "detector_pv" : "8idi:Reg2",
-    "registers/detector": 10,
-    "highest register": 170,
-    "regpv_start": {
-        "current" : 10,
-        "LAMBDA" : 90,
-        "RIGAKU1" : 140,
-    },
-    "detectors" : {
-        25 : "LAMBDA",
-        46 : "RIGAKU1",
-    }
-}
-PV_REG_MAP["registers"] = [     # each register is a signal
-    EpicsSignal(
-        PV_REG_MAP["template"] % (i+1), 
-        name="pv_reg%d" % (i+1)
-        )
-    for i in range(PV_REG_MAP["highest register"])
-    ]
-PV_REG_MAP["registers"].insert(0, None)     # offset since no 8idi:Reg0
+def get_detector_number_by_name(detName):
+    if detName in PV_REG_MAP["detectors"].values():
+        for detNum, k in PV_REG_MAP["detectors"].items():
+            if k == detName:
+                return detNum
+
+
+def pv_reg_read(num):
+    """read a value from PV register (indexed by number)"""
+    register = PV_REG_MAP["registers"][num]
+    if register is not None:
+        return register.value
+
+
+def pv_reg_write(num, value):
+    """read a value to PV register (indexed by number)"""
+    register = PV_REG_MAP["registers"][num]
+    if register is not None:
+        yield from bps.mv(register, value)
 
 
 def beam_params_backup():
@@ -405,71 +433,287 @@ def beam_params_restore():
         target = PV_REG_MAP["registers"][i + offset_current]
         t.addRow((source.value, source.pvname, target.pvname))
         yield from bps.mv(target, source.value)
+        # logger.debug(f"{target.pvname} = {target.value}")
     logger.debug(f"Detector {detName} Beam Params are restored\n{t}")
 
 
-def select_LAMBDA(*args, **kwargs):
+def select_LAMBDA(distance=None):
     """
-def select_LAMBDA '
-    	beam_params_backup;
-	epics_put(DETECTOR_REGISTER_PV, LAMBDA_detector_num)
-	epics_put("8idi:Reg5",3930.00); ##moved sample 7 inches closer to detector
-	##epics_put("8idi:Reg5",7800.00); ##moved sample 7 inches closer to detector
-	epics_put("8idi:Reg4",240.00);
-	beam_params_restore;
+    select the LAMBDA detetcor
+    """
+    yield from beam_params_backup()
+    yield from bps.mv(
+        dm_pars.detNum, get_detector_number_by_name("LAMBDA"),
+        dm_pars.detector_distance, 3930.00, #moved sample 7 inches closer to detector
+        dm_pars.airgap, 240.00,
+    )
+    # logger.info(f"******** detector number {dm_pars.detNum.value} ************************")
+    yield from beam_params_restore()
+    yield from bps.sleep(1)
+    yield from blockbeam()
     
-    	blockbeam;
+    logger.info("Moving LAMBDA PAD to the direct beam position")
 
-	printf("Moving LAMBDA PAD to the direct beam position\n");
-	getangles;
-    #####2 lines below for 4 m distance
-    A[ccdx]=epics_get(ccdx0_pv);A[ccdz]=epics_get(ccdz0_pv);move_em;uwm ccdx ccdz;
-	A[ccdx]= 214.10;A[ccdz]= 36.95;move_em; uwm ccdx ccdz
+    distance = distance or "4 m"
+    if distance == "4 m":
+        # logger.debug(f"ccdx0={dm_pars.ccdx0.value}, ccdz0={dm_pars.ccdz0.value}")
+        yield from bps.mv(
+            detu.x, dm_pars.ccdx0.get(),
+            detu.z, dm_pars.ccdz0.get(),
+        )
+        # yield from bps.mv(
+        #     detu.x, 214.10,
+        #     detu.z, 36.95,
+        # )
+        # logger.debug(f"detu.x={detu.x.position}, detu.z={detu.z.position}")
+    elif distance == "8 m":
+        yield from bps.mv(
+            detd.x, dm_pars.ccdx0.get(),
+            detd.z, dm_pars.ccdz0.get(),
+        )
+        # yield from bps.mv(
+        #     detd.x, 127.53,
+        #     detd.z, 15.55,
+        # )
+
+    yield from bps.mv(shutter_override, 1)
+    yield from blockbeam()
+
+    yield from bps.mv(
+        # NOTE: these are all stringout records!  Use a str!
+        soft_glue.send_ext_pulse_tr_sig_to_trig, "1",
+        # soft_glue.set_shtr_sig_pulse_tr_mode, "0",
+        # soft_glue.send_det_sig_pulse_tr_mode, "0",
+    )
+
+	# TODO: needs some planning here, see below
+    # def xpcs_pre_start \'xpcs_pre_start_LAMBDA\';
+	# def user_xpcs_loop \'user_xpcs_loop_LAMBDA\';
+
+    yield from bps.mv(shutter_mode, "1UFXC")    # "align" mode
+
+    dm_workflow.transfer = "xpcs8-01-Lambda"
+    dm_workflow.analysis = "xpcs8-02-Lambda"
+    yield from bps.mv(
+        dm_pars.burst_mode_state, 0,    # 2019-05, set default status
+        dm_pars.transfer, dm_workflow.transfer,
+        dm_pars.analysis, dm_workflow.analysis,
+    )
+
+
+def select_RIGAKU():
+    """
+    select the RIGAKU detetcor
+    """
+    yield from beam_params_backup()
+    yield from bps.mv(
+        dm_pars.detNum, get_detector_number_by_name("RIGAKU500K_NoGap"),
+        dm_pars.detector_distance, 3930.00, #moved sample 7 inches closer to detector
+        dm_pars.airgap, 100.00,
+    )
+    logger.info(f"******** detector number {dm_pars.detNum.value} ************************")
+    yield from beam_params_restore()
+    yield from bps.sleep(1)
+    yield from blockbeam()
     
-    #####2 lines below for 8 m distance
-    #A[dsccdx]=epics_get(ccdx0_pv);A[dsccdz]=epics_get(ccdz0_pv);move_em;uwm dsccdx dsccdz;
-	#A[dsccdx]= 127.53;A[dsccdz]= 15.55;move_em; uwm dsccdx dsccdz
+    logger.info("Moving RIGAKU to the direct beam position")
+
+    # logger.debug(f"ccdx0={dm_pars.ccdx0.value}, ccdz0={dm_pars.ccdz0.value}")
+    yield from bps.mv(
+        detu.x, dm_pars.ccdx0.get(),
+        detu.z, dm_pars.ccdz0.get(),
+    )
+    # logger.debug(f"detu.x={detu.x.position}, detu.z={detu.z.position}")
+
+    yield from bps.mv(shutter_override, 1)
+    yield from blockbeam()
+
+    # TODO: needs some planning here, see below
+    # def xpcs_pre_start \'xpcs_pre_start_RIGAKU\';
+    # def user_xpcs_loop \'user_xpcs_loop_RIGAKU\';
+
+    dm_workflow.transfer = "xpcs8-01"
+    dm_workflow.analysis = "xpcs8-02-Rigaku-bin"
+    yield from bps.mv(
+        dm_pars.burst_mode_state, 0,    # 2019-05, set default status
+        dm_pars.transfer, dm_workflow.transfer,
+        dm_pars.analysis, dm_workflow.analysis,
+    )
+
+
+# --------------------------------------------------------------------
+
+"""
+These two macros are detector-specific, as are others.
+
+	# def xpcs_pre_start \'xpcs_pre_start_LAMBDA\'; # before a batch of scans
+	# def user_xpcs_loop \'user_xpcs_loop_LAMBDA\'; # with each scan in a batch
+
+This begs for a superclass that is used in operations where a 
+subclass is defined for each detector, configured for that detector.
+
+Also, current operations pattern is to treat each scan separately,
+so that only one detector-specific macro is needed.
+
+768.SPEC8IDI> prdef xpcs_pre_start_LAMBDA
+
+# /home/beams/8IDIUSER/batches/2019/Oct2019/ccd_settings.do
+def xpcs_pre_start_LAMBDA '{
+    CCD_POLLTIME=1
+#    COMPRESSION=1  ##raw=0, compressed=1
+#    EXT_TRIGGER=0 ##use 0 or 2, do not use 1 for now
+#    LAMBDA_OPERATING_MODE = 0;
+    epics_put("8idi:Reg8",COMPRESSION)
+    CCD_THROW= 0  # must be zero for non-compressed mode
+    COPY_LOCAL_DATA=1  ############
+    COPY_LOCAL_DATA_M2=0  ############
+    PRINT_HARDCOPY_LOGFILE = 0
+    WRITE_LOCAL=2 ##If set to >0, save batchinfo locally, data on local disk, set to 2 will copy over
+    plcounter ccdc
+}'
+
+769.SPEC8IDI> prdef user_xpcs_loop_LAMBDA
+
+# /home/beams/8IDIUSER/batches/2019/Oct2019/ccd_settings.do
+def user_xpcs_loop_LAMBDA '{
+	monitorBeamToI
+	waitForFaultClear
+##	takeflux vacuum 1
+    movesample
+#    move_rheometer
+#  	movesamth
+    wm samx samz samth
+#    wm ti3_x ti3_z
+#    wm samx samz sampit
+	takeflux 1
+}'
+
+770.SPEC8IDI> prdef takeflux
+
+# /home/beams/S8SPEC/spec/macros/sites/spec8IDI/site_f.mac
+def takeflux '{
+  ##A new pneumatic feedthrough with a 20 mm PIN diode has been mounted at the
+  ##longitudinal location of the beam stop and at 90 degrees. This feedthrough 
+  ##will esp. make flux measurement in reflection geometry very quick (3 min 
+  ##reduced to 3 sec).(Suresh, Feb.11,2008)
+
+  # Usage: takeflux [vacuum] [time]
+  local i bg cfield cps ctime curnt dt flx ifield nflx params xtime Monitor_flux
+  local sz sx sth
+  {
+    rdef batch_cleanup \'{
+      emptydef batch_cleanup
+      blockbeam; shutteron; waitmove
+      }\'
+    preamp_setread;
+    params = flux_params("pind4")
+    if ("$1" == "vacuum") {
+      printf("\nTakeflux: Moving samx to %g, samz to %g\n",\
+             samxvac, samzvac)
+      umv samx samxvac; umv samz samzvac;
+     ##The function move_pind4z_in and out are defined in pind_positions_8idi.mac
+     move_pind4z_in
+     waitmove; 
+      }
+    else {
+     ##The function move_pind4z_in and out are defined in pind_positions_8idi.mac
+      move_pind4z_in
+       waitmove;sleep(0.1)
+      # leave sample wherever it is already
+      }
+    if ($# > 1) xtime = $2
+    else if ($# && "$1" != "vacuum") xtime = $1
+    else xtime = 5 
+    printf("Measuring background:\n")
+    p date();
+    blockbeam; waitmove;sleep(0.1)
+    uct xtime
+    ctime = (S[sec]) ? S[sec] : xtime
+#    bg = S[DET]/ctime
+#hard coded the detector to "pind4" since not defining the counter before 
+#running the ccd_batch always causes the wrong detector to be used for 
+#flux (Suresh, June 2004, onset of Epics in 8-ID-I)
+    bg = S[pind4]/ctime
+    curnt = epics_get("S:SRcurrentAI")
+    printf("Ring Current = %6.2f mA\n",curnt)
+    printf("Measuring intensity:\n")
+    p date();
+    shutteroff_default; showbeam; waitmove;sleep(0.1)
+    uct xtime
+    blockbeam; shutteron;
+     ##The function move_pind4z_in and out are defined in pind_positions_8idi.mac
+    move_pind4z_out
+    waitmove;sleep(.1)
+    ctime = (S[sec]) ? S[sec] : xtime
+#    cps = S[DET]/ctime - bg
+    cps = S[pind4]/ctime - bg
+    Monitor_flux = epics_get("8idi:scaler1_calc1.H")/ctime 
+
+    if (cps > 650000) {
+                       for (i=1;i<11;i++) {
+                           beep;sleep(1);
+    			   printf("\nWarning: Counts is very close to saturation of pind4, Check the Sensitivity:\n");
+                       }
+    }
+
+    printf("%g cps is a current of %g Amps \n",cps,\
+          (cps/params["CtpV"])*params["Amps_per_Volt"])
+
+    flx = calc_flux(cps,params,"pind4")
+    if (curnt) nflx = calc_flux(cps*100/curnt,params,"pind4")
+    printf("%8.3g photons per second \n",flx)
+    if (nflx) printf("%8.3g photons per second per 100 mA \n",nflx)
+    # make sure the parameters will be in the .batchinfo file
+    if (!exists("batch_pars","Amps_per_Volt")) {
+      for (field in params) batch_pars[field] = params[field]
+      batch_pars["Element"] = inquotes(params["Element"])
+      }
+    if ("$1" == "vacuum") {
+      add_batch_par ring_i_vacuum curnt
+      add_batch_par beam_i_vacuum flx
+      if (curnt) batch_pars["norm_vac_flux"] = flx/curnt
+      fprintf(SHORTFILE,"\nAt samx = %g, samz = %g, samth = %g",A[samx],A[samz],A[samth])
+      fprintf(SHORTFILE," (through vacuum):\n")
+      fprintf(SHORTFILE,"\t%4.3g photons/sec at %5.2f mA",\
+              flx,curnt)
+      if (nflx) fprintf(SHORTFILE," (%4.3g per 100 mA)",nflx)
+      }
+    else { # sample
+      sth = A[samth]; sz = A[samz]; sx = A[samx]; dt=inquotes(date())
+      add_batch_par samth_flux sth
+      add_batch_par samz_flux sz
+      add_batch_par samx_flux sx
+      add_batch_par ring_i_sample curnt
+      add_batch_par beam_i flx
+      add_batch_par beam_i_vacuum max(Monitor_flux,1.0)
+      add_batch_par beam_i_time dt
+      fprintf(SHORTFILE,"\t%4.3g photons/sec at %5.2f mA",flx,curnt)
+      if (curnt && batch_pars["ring_i_vacuum"] && flx)
+        fprintf(SHORTFILE," (a factor of %.3g absorbed)",\
+                batch_pars["norm_vac_flux"]*curnt/flx)
+      else if (nflx) fprintf(SHORTFILE," (%4.3g per 100 mA)",nflx)
+      }
+    fprintf(SHORTFILE,"\n")
+    }
+  emptydef batch_cleanup
+  }'
+
+771.SPEC8IDI> prdef UFXC_align_mode
+
+# /home/beams/8IDIUSER/local_macros/CCD_macros/UFXC_shutter_logic.mac
+def UFXC_align_mode '
+	epics_put("8idi:softGlueC:AND-4_IN2_Signal","1UFXC");
 	shutteroff;
-	use_blockbeam_Lambda
-
-        ccdhook_ad_nofpga_Lambda 8LAMBDA1:cam1: 8LAMBDA1:IMMout: 8LAMBDA1:cam1:  8LAMBDA1:Stats1: 8LAMBDA1:Proc1:
-        
-        #setccdc_ad 0  #set CCD_MONITOR_ROI
-        
-	DIR_SLASH="/"
-
-	LAMBDA_data_path
-
-        CCD_FILE_EXT="imm"
-	ccdsetup  
-	sleep(1.0);
-	##Lambda_Set_EnergyThreshold 5.5;
-
-        use_blockbeam_Lambda 
-	##def shutteron \' shutteron_default \';
-	##def shutteroff \' shutteroff_default \';
-        ##shutteron;
-	
-	epics_put("8idi:softGlueB:BUFFER-1_IN_Signal",1); #sends  external pulse train signal to the trigger
-	###epics_put("8idi:softGlueC:MUX2-1_SEL_Signal",0); #sets shutter signal pulse train to single(0)/burst(1) mode
-	###epics_put("8idi:softGlueC:MUX2-2_SEL_Signal",0); #sends detector signal pulse train to burst mode
-	###ccdtype_shutter_control_select 1
-        
-	shutteroff_default;
-	def shutteron \'  \';
-	def shutteroff \'  \';
-	
-#	umv si2hgap 20;umv si2vgap 20;
-
-	def xpcs_pre_start \'xpcs_pre_start_LAMBDA\';
-	def user_xpcs_loop \'user_xpcs_loop_LAMBDA\';
-
-	UFXC_align_mode
-
-        epics_put(BURST_MODE_REGISTER_PV, 0); ##setting burst mode default status (May 2019 onwards)
-	DM_WORKFLOW_DATA_TRANSFER = "xpcs8-01-Lambda"
-	DM_WORKFLOW_DATA_ANALYSIS = "xpcs8-02-Lambda"
-    epics_put("8idi:StrReg15", DM_WORKFLOW_DATA_TRANSFER)
-    epics_put("8idi:StrReg16", DM_WORKFLOW_DATA_ANALYSIS)
+	printf("Shutter will remain OPEN for alignment if **showbeam** is called\n");
 '
-    """
+
+772.SPEC8IDI> prdef UFXC_data_mode 
+
+# /home/beams/8IDIUSER/local_macros/CCD_macros/UFXC_shutter_logic.mac
+def UFXC_data_mode '
+	epics_put("8idi:softGlueC:AND-4_IN2_Signal","UFXC");
+	shutteroff;
+	printf("Shutter will be controlled by UFXC if shutter is left in the **showbeam** state\n");
+'
+
+"""

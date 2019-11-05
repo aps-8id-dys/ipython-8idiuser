@@ -88,3 +88,11 @@ pid2 = ModifiedEpidRecord("8idi:pid2", name="pid2", labels=["pid",])
 
 
 preamps = PreampDevice(name="preamps")
+soft_glue = SoftGlueDevice(name="soft_glue")
+
+shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
+
+# values: "UFXC" : acquire mode, "1UFXC" : align mode
+shutter_mode = EpicsSignal("8idi:softGlueC:AND-4_IN2_Signal", name="shutter_mode")
+
+shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")

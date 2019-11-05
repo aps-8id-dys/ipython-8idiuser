@@ -11,6 +11,7 @@ class DataManagementMetadata(Device):
     """
     signals for the APS Data Management service
     """
+    airgap = Component(EpicsSignal, "8idi:Reg4")
     angle = Component(EpicsSignal, "8idi:Reg19")
     attenuation = Component(EpicsSignal, "8idi:Reg110")
     beam_center_x = Component(EpicsSignal, "8idi:Reg11")
@@ -18,8 +19,10 @@ class DataManagementMetadata(Device):
     beam_size_H = Component(EpicsSignal, "8idi:Reg151")
     beam_size_V = Component(EpicsSignal, "8idi:Reg152")
     burst_mode_state = Component(EpicsSignal, "8idi:Reg124")
-    ccdxspec = Component(EpicsSignal, "8idi:Reg18")
-    ccdzspec = Component(EpicsSignal, "8idi:Reg17")
+    ccdx0 = Component(EpicsSignal, "8idi:Reg13")
+    ccdz0 = Component(EpicsSignal, "8idi:Reg14")
+    ccdxspec = Component(EpicsSignal, "8idi:Reg17")
+    ccdzspec = Component(EpicsSignal, "8idi:Reg18")
     cols = Component(EpicsSignal, "8idi:Reg105")
     compression = Component(EpicsSignal, "8idi:Reg8")
     dark_begin = Component(EpicsSignal, "8idi:Reg111")

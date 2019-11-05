@@ -14,15 +14,15 @@ class PythonDict:
 
         self.manufacturerDict = {
             # 1: "Direct Detection CCD in slow mode",
-            5: "DALSA", 
-            8: "PI Princeton Instruments", 
-            13: "PI Princeton Instruments", 
+            # 5: "DALSA", 
+            # 8: "PI Princeton Instruments", 
+            # 13: "PI Princeton Instruments", 
             # 15: "APS Detector Pool Fast CCD",
-            20: "ANL-LBL FastCCD Detector", 
+            # 20: "ANL-LBL FastCCD Detector", 
             25: "LAMBDA", 
-            30: "EIGER", 
-            35: "UFXC_128x256", 
-            45: "RIGAKU500K", 
+            # 30: "EIGER", 
+            # 35: "UFXC_128x256", 
+            # 45: "RIGAKU500K", 
             46: "RIGAKU500K_NoGap",
         }
         for k, v in self.masterDict.items():

@@ -53,10 +53,6 @@ class Rigaku_8IDI(Device):
     """
     qmap_file = "qzhang1026_rerun_minus_streak.h5"
 
-    shutter_mode = Component(EpicsSignal, "8idi:softGlueC:AND-4_IN2_Signal")
-    shutter_override = Component(EpicsSignal, "8idi:Unidig1Bo9.VAL")
-    shutter_control = Component(EpicsSignal, "8idi:Unidig1Bo13")
-
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL") 
 
@@ -67,11 +63,15 @@ class Rigaku_8IDI(Device):
     detector_number = 46    # 8-ID-I numbering of this detector
 
     def stage(self):
-        self.shutter_mode.put("UFXC")
-        self.shutter_control.put("Open")
-        self.shutter_override.put("High")
+        shutter_mode.put("UFXC")    # data mode
+        shutter_control.put("Open")
+        shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.value} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
+    
+    # TODO: unstage? do we need/want a custom method?
+    #         shutter_mode.put("1UFXC") "align" mode for any detector
+
 
     def trigger(self):
         self.acquire_start.put(0)

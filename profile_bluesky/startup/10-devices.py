@@ -335,3 +335,18 @@ class PreampDevice(Device):
             amp = self.__getattribute__(nm)
             Amps_per_Volt[nm] = amp.amp_scale
         return Amps_per_Volt
+
+
+class SoftGlueDevice(Device):
+
+    # sends  external pulse train signal to the trigger
+    # this is a stringout record, value is a str
+    send_ext_pulse_tr_sig_to_trig = Component(EpicsSignal, '8idi:softGlueB:BUFFER-1_IN_Signal')
+
+    # sets shutter signal pulse train to single(0)/burst(1) mode
+    # this is a stringout record, value is a str
+    set_shtr_sig_pulse_tr_mode = Component(EpicsSignal, '8idi:softGlueC:MUX2-1_SEL_Signal')
+
+    # sends detector signal pulse train to burst mode
+    # this is a stringout record, value is a str
+    send_det_sig_pulse_tr_mode = Component(EpicsSignal, '8idi:softGlueC:MUX2-2_SEL_Signal')

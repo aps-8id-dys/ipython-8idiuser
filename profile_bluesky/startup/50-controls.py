@@ -17,6 +17,8 @@ Plans
     bb
     beam_params_backup
     beam_params_restore
+    blockbeam
+    block_directbeam_common
     insert_diodes
     insert_flux_pind
     insert_pind1
@@ -27,6 +29,7 @@ Plans
     remove_pind1_out
     remove_pind2
     sb
+    showbeam
     tw (not implemented yet)
 
 Functions
@@ -301,10 +304,19 @@ def bb():
     """block beam"""
     yield from bps.mv(shutter, "close")
 
+blockbeam = bb  # alias
 
 def sb():
     """show beam"""
     yield from bps.mv(shutter, "open")
+
+showbeam = sb   # alias
+
+def block_directbeam_common():
+    yield from bps.mv(
+        att1, 15,
+        att2, 15,
+    )
 
 
 def tw(counter, motor, delta):

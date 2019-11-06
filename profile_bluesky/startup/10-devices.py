@@ -307,28 +307,24 @@ class PSS_Parameters(Device):
 class PreampUnitNumberDevice(Device):
     units = Component(EpicsSignalRO, 'sens_unit', string=True)
     number = Component(EpicsSignalRO, 'sens_num')
+    
+    unit_gains = {
+		"mA/V": 1e-3,
+		"uA/V": 1e-6,
+		"nA/V": 1e-9,
+		"pA/V": 1e-12,
+	}
 
     @property
     def amp_scale(self):
+        enums = self.number.enum_strs
         sensitivity_index = self.number.get()
-        sensitivity = float(self.number.enum_strs[sensitivity_index])
+        sensitivity = float(enums[sensitivity_index])
 
-        """
-In [6]: !caget 8idi:A4sens_num.RTYP                                                                                                                                                                                             
-8idi:A4sens_num.RTYP           mbbo
+        units = self.units.get()
+        gain = self.unit_gains[units]
 
-In [7]: preamps.pind4.number.enum_strs                                                                                                                                                                                          
-Out[7]: ('1', '2', '5', '10', '20', '50', '100', '200', '500')
-
-In [8]:  
-        """
-
-        return {
-            "mA/V": 1e-3,
-            "uA/V": 1e-6,
-            "nA/V": 1e-9,
-            "pA/V": 1e-12,
-        }[self.units.get()] * sensitivity_index
+        return gain * sensitivity
 
 
 class PreampDevice(Device):

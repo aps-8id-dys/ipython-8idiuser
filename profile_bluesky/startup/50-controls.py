@@ -116,7 +116,7 @@ def insert_pind1():
     yield from bps.mv(actuator_pind1, presets.pind1.insert)
     logger.debug(f"inserted pind1")
 
-def remove_pind1_out():
+def remove_pind1():
     yield from bps.mv(actuator_pind1, presets.pind1.remove)
     logger.debug(f"removed pind1")
 

@@ -31,7 +31,7 @@ def operations_in_8idi():
 
 
 if aps.inUserOperations and operations_in_8idi():
-    sd.monitor.append(aps.current)
+    sd.monitors.append(aps.current)
 
     # suspend when current < 2 mA
     # resume 100s after current > 10 mA
@@ -39,7 +39,9 @@ if aps.inUserOperations and operations_in_8idi():
     suspend_APS_current = bluesky.suspenders.SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
     RE.install_suspender(suspend_APS_current)
 
-    shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
+    shutter = APS_devices.EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
+    shutter.close_value = 1
+    shutter.open_value = 0
 
 else:
     logger.warning("!"*30)

@@ -2,7 +2,8 @@ logger.info(__file__)
 
 """detectors (area detectors handled separately)"""
 
-class LocalScalerCH(ScalerCH):
+# class LocalScalerCH(ScalerCH):
+class LocalScalerCH(FixScalerCH):
     
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -33,7 +34,8 @@ if scaler1 is None:
     logger.error(emsg)
     raise TimeoutError(emsg)
 
-scaler1.select_channels(None)   # choose just the channels with EPICS names
+
+scaler1.select_channels()   # choose just the channels with EPICS names
 
 timebase = scaler1.channels.chan01.s
 pind1 = scaler1.channels.chan02.s

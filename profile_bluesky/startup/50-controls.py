@@ -251,7 +251,7 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
         yield from peak_analysis()
 
     if scaler is not None:
-        scaler.select_channels(None)
+        scaler.select_channels()
         scaler.stage_sigs = old_sigs
 
 

@@ -173,17 +173,27 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
 
         RE(lineup_and_center("diode", foemirror.theta, -30, 30, 30, 1.0))
     """
-    old_sigs = scaler.stage_sigs
-    old_position = motor.position
-    scaler.stage_sigs["preset_time"] = time_s
-    # yield from bps.mv(scaler.preset_time, time_s)
+    # first, determine if counter is part of a ScalerCH device
+    scaler = None
+    obj = counter.parent
+    if isinstance(counter.parent, ScalerChannel):
+        if hasattr(obj, "parent") and obj.parent is not None:
+            obj = obj.parent
+            if hasattr(obj, "parent") and isinstance(obj.parent, ScalerCH):
+                scaler = obj.parent
 
-    scaler.select_channels([counter.name])
-    clock.kind = Kind.normal
+    if scaler is not None:
+        old_sigs = scaler.stage_sigs
+        scaler.stage_sigs["preset_time"] = time_s
+        scaler.select_channels([counter.name])
 
-    aligned = False
+    if hasattr(motor, "position"):
+        old_position = motor.position
+    else:
+        old_position = motor.value
 
     def peak_analysis():
+        aligned = False
         if counter.name in bec.peaks["cen"]:
             table = pyRestTable.Table()
             table.labels = ("key", "value")
@@ -203,37 +213,46 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
             # get the X data range as received by PeakStats
             x_range = abs(max(ps.x_data) - min(ps.x_data))
 
-            if hi < peak_factor*lo:
+            if final is None:
+                logger.error(f"centroid is None")
+                final = old_position
+            elif fwhm is None:
+                logger.error(f"FWHM is None")
+                final = old_position
+            elif hi < peak_factor*lo:
                 logger.error(f"no clear peak: {hi} < {peak_factor}*{lo}")
                 final = old_position
             elif fwhm > width_factor*x_range:
                 logger.error(f"FWHM too large: {fwhm} > {width_factor}*{x_range}")
                 final = old_position
-
-            logger.info(f"moving {motor.name} to {final}")
+            else:
+                aligned = True
+            
+            logger.info(f"moving {motor.name} to {final}  (aligned: {aligned})")
             yield from bps.mv(motor, final)
-            aligned = True
         else:
             logger.error("no statistical analysis of scan peak!")
             yield from bps.null()
 
+        # too sneaky?  We're modifying this structure locally
+        bec.peaks.aligned = aligned
+        bec.peaks.ATTRS =  ('com', 'cen', 'max', 'min', 'fwhm')
+
     md = dict(_md)
     md["purpose"] = "alignment"
-    yield from bp.rel_scan([scaler], motor, minus, plus, npts, md=md)
+    yield from bp.rel_scan([counter], motor, minus, plus, npts, md=md)
     yield from peak_analysis()
 
-    if aligned:
+    if bec.peaks.aligned:
         # again, tweak axis to maximize
         md["purpose"] = "alignment - fine"
         fwhm = bec.peaks["fwhm"][counter.name]
-        lo = max(old_position+minus, -fwhm/2)
-        hi = min(old_position+plus, fwhm/2)
-        yield from bp.scan([scaler], motor, lo, hi, npts, md=md)
-        width_factor = 1
+        yield from bp.rel_scan([counter], motor, -fwhm, fwhm, npts, md=md)
         yield from peak_analysis()
 
-    scaler.select_channels(None)
-    scaler.stage_sigs = old_sigs
+    if scaler is not None:
+        scaler.select_channels(None)
+        scaler.stage_sigs = old_sigs
 
 
 def calc_flux(cps, params, pin_diode):

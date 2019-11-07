@@ -40,7 +40,10 @@ class FixScalerCH(ScalerCH):
         self.match_names()  # name channels by EPICS names
         name_map = {}
         for i, s in enumerate(self.channels.component_names):
-            nm = getattr(self.channels, s).s.name  # as defined in scaler.match_names()
+            channel = getattr(self.channels, s)
+            # just in case the name is not yet safe
+            channel.s.name = safeOphydName(channel.s.name)
+            nm = channel.s.name  # as defined in scaler.match_names()
             if i == 0 and len(nm) == 0:
                 nm = "clock"        # ALWAYS get the clock channel
             if len(nm) > 0:

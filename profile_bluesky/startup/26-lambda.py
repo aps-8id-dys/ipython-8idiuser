@@ -96,6 +96,14 @@ class Lambda750kLocal(Device):
     def images_received(self):
         return self.immout.num_captured.get()
     
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        pass    # TODO:
+    
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow

@@ -95,6 +95,14 @@ class Rigaku_8IDI(Device):
         """Rigaku tells us not to change this.  100k images every time."""
         return 100000
     
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_RIGAKU` and `user_xpcs_loop_RIGAKU`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        pass    # TODO:
+
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow

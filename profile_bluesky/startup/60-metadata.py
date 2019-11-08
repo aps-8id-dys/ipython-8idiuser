@@ -41,4 +41,5 @@ del s2n_version
 import pyRestTable
 RE.md['versions']['pyRestTable'] = pyRestTable.__version__
 
-APS_utils.print_RE_md(RE.md)
+# get this into the logs
+logger.info(f'RE metadata = \n{APS_utils.print_RE_md(printing=False)}')

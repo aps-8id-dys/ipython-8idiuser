@@ -22,15 +22,52 @@ class Lambda750kCamLocal(Device):
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
-
     trigger_mode = Component(EpicsSignalWithRBV, 'TriggerMode', kind='config')
 
-    def ccdset_TriggerMode(self, mode):
+    def set_TriggerMode(self, mode):
         """
         mode = 0,1,2 for Internal, External_per_sequence, External_per_frame
+        note: mode = 3 ("Gating_Mode", permitted by EPICS record) is not supported here
         """
         # from SPEC macro: ccdset_TriggerMode_Lambda
+        if mode not in (0, 1, 2):
+            msg = f"trigger mode {mode} not allowed, must be one of 0, 1, 2"
+            raise ValueError(msg)
         yield from bps.mv(self.trigger_mode, mode)
+
+    def set_OperatingMode(self, mode):
+        """
+        mode = 0, 1 for ContinuousReadWrite(12-bit), TwentyFourBit
+        """
+        # from SPEC macro: ccdset_OperatingMode_Lambda
+        if mode not in (0, 1):
+            msg = f"operating mode {mode} not allowed, must be one of 0, 1"
+            raise ValueError(msg)
+        if self.operating_mode.value != mode:
+            yield from bps.mv(self.operating_mode, mode)
+            # yield from bps.sleep(5.0)     # TODO: still needed?
+            logger.info(f"Lambda Operating Mode switched to: {mode}")
+
+        if self.operating_mode.value == 1:
+            yield from self.set_DataType(3)     # TODO: What does 3 mean?
+            data_type = self.get_DataType
+            logger.info("Lambda DataType switched to: {data_type}")
+
+    @property
+    def get_DataType(self, value):
+        """
+        ???
+        """
+        # from SPEC macro: ccdget_DataType_ad
+        raise NotImplementedError("Need to translate SPEC macro: ccdget_DataType_ad")
+
+    def set_DataType(self, value):
+        """
+        value = ??? 3 means ???
+        """
+        # from SPEC macro: ccdset_DataType_ad
+        # yield from bps.mv(self.some_signal, value)
+        raise NotImplementedError("Need to translate SPEC macro: ccdset_DataType_ad")
 
 
 class IMMoutLocal(Device):

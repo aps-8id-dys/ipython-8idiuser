@@ -209,6 +209,7 @@ class IMMoutLocal(Device):
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind='config')
     file_number = Component(EpicsSignalWithRBV, "FileNumber", kind='config')
     file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind='config')
+    # FIXME: TimeoutError: 8LAMBDA1:IMMout:FullFileName could not connect within 1.0-second timeout.
     full_file_name = Component(EpicsSignalRO, "FullFileName", string=True, kind='config')
     num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind='config')
     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
@@ -251,6 +252,7 @@ class Lambda750kLocal(Device):
         Look through all the counters and report if 
         any one of them is named `ccdc`.
         """
+        # FIXME: We don't have a counter named "ccdc"
         return False
 
     @property

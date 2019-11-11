@@ -17,6 +17,7 @@ class Lambda750kCamLocal(Device):
     num_images = Component(EpicsSignalWithRBV, "NumImages")
     # blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks")
 
+    bad_frame_counter = Component(EpicsSignal, 'BadFrameCounter', kind='config') 
     config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
     firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
     image_mode = Component(EpicsSignalWithRBV, 'ImageMode', kind='config')
@@ -31,37 +32,15 @@ class Lambda750kCamLocal(Device):
     MODE_INTERNAL_TRIGGER = 1
     MODE_MULTIPLE_IMAGE = 1
 
-    def setup_trigger_logic_external(self, num_triggers):
+    @property
+    def getBadFrameCount(self):
         """
-        configure the number of triggers to be expected
         """
-        # from SPEC macro: external_trigger_logic_setup_Data_Lambda
-        if self.getOperatingMode == 0:
-            num_triggers += 1
-        yield from bps.mv(sg_control1.channels.J.current_value, num_triggers)
-        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, 1) # external trigger
-        #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
-
-    def setup_trigger_mode_external(self):
-        """
-        configure EPICS area detector for external triggering
-
-        user can change chosen image mode via `self.EXT_TRIGGER`
-        """
-        # from SPEC macro: external_trigger_mode_setup_Lambda
-        yield from self.setTriggerMode(self.EXT_TRIGGER)
-        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
-
-    def setup_trigger_mode_internal(self):
-        """
-        configure EPICS area detector for internal triggering, multiple images
-        """
-        # from SPEC macro: internal_trigger_mode_setup_Lambda
-        yield from self.setTriggerMode(self.MODE_INTERNAL_TRIGGER)
-        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
+        # from SPEC macro: ccdget_Lambda_BadFrameCount
+        return self.bad_frame_counter.value
 
     @property
-    def getDataType(self, value):
+    def getDataType(self):
         """
         ???
         """
@@ -108,6 +87,49 @@ class Lambda750kCamLocal(Device):
             data_type = self.getDataType
             logger.info("Lambda DataType switched to: {data_type}")
 
+    def setTime(self, exposure_time, exposure_period):
+        """
+        ...
+        """
+        # from SPEC macro: ccdset_time_Lambda
+        # set exp time always regardless of any mode
+        yield from bps.mv(self.acquire_time, exposure_time)
+        # yield from bps.sleep(0.05)
+
+        # set period based on the mode
+        if self.getOperatingMode == 0:      # continuous read/write mode
+            yield from bps.mv(self.acquire_period, exposure_time)
+        else:
+            extra = 1e-3     # 1 ms is typical for period
+            extra += 100e-6  # extra 100 us for 24-bit mode (empirical)
+            yield from bps.mv(
+                self.acquire_period, 
+                max(exposure_period, exposure_time + extra)
+                )
+        # yield from bps.sleep(0.05)
+
+        if self.EXT_TRIGGER > 0 and self.getOperatingMode == 0: 
+            # this should work for single-trigger per sequence as well
+            yield from bps.mv(pvDELAY_B, 1e-4)  # for softglue trigger generation (shorter than the fastest frame time)
+            # yield from bps.sleep(0.05)
+            yield from bps.mv(pvDELAY_A, exposure_time)  # AcquirePeriod in area detector
+            # yield from bps.sleep(0.05)
+
+        elif self.EXT_TRIGGER == 2 and self.getOperatingMode == 1:
+            yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
+            # yield from bps.sleep(0.05)
+            yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
+            # yield from bps.sleep(0.05)
+
+        elif self.EXT_TRIGGER == 1 and self.getOperatingMode == 1:
+            # important thing to be aware:
+            # lambda does not support acquire_period in any way, 
+            # except with trigger per frame mode
+            yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
+            # yield from bps.sleep(0.05)
+            yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
+            # yield from bps.sleep(0.05)
+
     def setTriggerMode(self, mode):
         """
         mode = 0,1,2 for Internal, External_per_sequence, External_per_frame
@@ -118,6 +140,38 @@ class Lambda750kCamLocal(Device):
             msg = f"trigger mode {mode} not allowed, must be one of 0, 1, 2"
             raise ValueError(msg)
         yield from bps.mv(self.trigger_mode, mode)
+
+    def setup_trigger_logic_external(self, num_triggers):
+        """
+        configure the number of triggers to be expected
+        """
+        # from SPEC macro: external_trigger_logic_setup_Data_Lambda
+
+        # Set number of frames in SGControl1 depending on the mode
+        if self.getOperatingMode == 0:
+            num_triggers += 1
+        yield from bps.mv(sg_num_frames, num_triggers)
+
+        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, 1) # external trigger
+        #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
+
+    def setup_trigger_mode_external(self):
+        """
+        configure EPICS area detector for external triggering
+
+        user can change chosen image mode via `self.EXT_TRIGGER`
+        """
+        # from SPEC macro: external_trigger_mode_setup_Lambda
+        yield from self.setTriggerMode(self.EXT_TRIGGER)
+        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
+
+    def setup_trigger_mode_internal(self):
+        """
+        configure EPICS area detector for internal triggering, multiple images
+        """
+        # from SPEC macro: internal_trigger_mode_setup_Lambda
+        yield from self.setTriggerMode(self.MODE_INTERNAL_TRIGGER)
+        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
 
 
 class IMMoutLocal(Device):

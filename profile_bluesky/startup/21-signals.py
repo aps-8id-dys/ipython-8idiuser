@@ -101,3 +101,6 @@ shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")
 
 # TODO: this could have a better name
 sg_control1 = APS_devices.TransformRecord("8idi:SGControl1", name="sg_control1")
+pvDELAY_A = sg_control1.channels.A.current_value
+pvDELAY_B = sg_control1.channels.C.current_value
+sg_num_frames = sg_control1.channels.J.current_value

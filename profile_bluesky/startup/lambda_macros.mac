@@ -1,0 +1,200 @@
+def Start_SoftGlue_Trigger '{
+    if ( epics_get("8idi:softGlueA:MUX2-1_SEL_Signal") == 0 ) {
+        printf("Starting the Detector trigger pulses: %s\n", date());
+        epics_put("8idi:softGlueA:MUX2-1_IN0_Signal","1\!");
+        sleep(0.05);
+    } else {
+        printf("Waiting for ****User Trigger**** to start Acquisition: %s\n", date());
+    }
+}'
+
+def Reset_SoftGlue_Trigger '{
+    printf("Resetting the Detector trigger pulses: %s\n", date());
+    epics_put("8idi:softGlueA:OR-1_IN2_Signal","1\!");
+}'
+
+def external_trigger_mode_setup_Lambda '{
+    ccdset_TriggerMode EXT_TRIGGER  ##(this value is either 0,1,or 2)
+    ccdset_ImageMode 1 ##Multiple mode
+}'
+
+def internal_trigger_mode_setup_Lambda '{
+    ccdset_TriggerMode 0 ##Internal
+    ccdset_ImageMode 1 ##Multiple mode
+}'
+
+def external_trigger_logic_setup_Data_Lambda '{
+    if ($# != 1)  {
+        eprint "Usage: external_trigger_logic_setup_Data_Lambda number_of_triggers"
+        exit
+    }
+    ##Set number of frames in SGControl1 depending on the mode
+    if (ccdget_OperatingMode_Lambda == 0) epics_put("8idi:SGControl1.J",$1+1);
+    if (ccdget_OperatingMode_Lambda == 1) epics_put("8idi:SGControl1.J",$1);
+
+    epics_put("8idi:softGlueB:BUFFER-1_IN_Signal",1); #select external trigger from softglue
+    #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
+}'
+
+
+def ccdget_Lambda_BadFrameCount 'epics_get(sprintf("%sBadFrameCounter",CCDPV))'
+
+
+def ccdset_time_Lambda '{
+   if(!$#) {
+      p "Usage:ccdset_time xtime period"
+      exit
+   }
+   local _expTime _expPeriod
+   _expTime = $1
+   _expPeriod = $2
+
+   ##set exp time always regardless of any mode
+   epics_put(sprintf("%sAcquireTime",CCDPV),_expTime)
+   sleep(0.05);
+
+   ##set period based on the mode
+   if (ccdget_OperatingMode_Lambda == 0) { ##continuous read/write mode
+       epics_put(sprintf("%sAcquirePeriod",CCDPV),_expTime)
+       sleep(0.05);
+   } else { ##24 bit mode which has a 0.0011 sec (seems like needs another 100 us or so beyond 0.001 sec) read out time
+       epics_put(sprintf("%sAcquirePeriod",CCDPV),max(_expPeriod,_expTime+0.0011))
+       sleep(0.05);
+   }
+
+   ##set up softglue through the dedicated SGControl1 user transform record
+   if ( (EXT_TRIGGER > 0) && (ccdget_OperatingMode_Lambda == 0) ) { ##this should work for single trigger per sequence as well
+       epics_put(pvDELAY_B,1e-4);####this is for softglue trigger generation (shorter than the fastest frame time)
+       sleep(0.05);
+       epics_put(pvDELAY_A,_expTime); ####AcquirePeriod in area detector
+       sleep(0.05);
+   }
+
+   if ( (EXT_TRIGGER == 2) && (ccdget_OperatingMode_Lambda == 1) ) {
+       epics_put(pvDELAY_B,_expTime);####AcquireTime in area detector
+       sleep(0.05);
+       epics_put(pvDELAY_A,max(_expPeriod,_expTime+0.0011)); ####AcquirePeriod in area detector
+       sleep(0.05);
+   }
+
+   ##important thing to be aware: lambda does not support acquire_period in any way, except with trigger per frame mode
+   if ( (EXT_TRIGGER == 1) && (ccdget_OperatingMode_Lambda == 1) ) {
+       epics_put(pvDELAY_B,_expTime);####AcquireTime in area detector
+       sleep(0.05);
+       epics_put(pvDELAY_A,_expTime+0.0011); ####AcquirePeriod in area detector
+       sleep(0.05);
+   }
+
+}'
+
+
+def Lambda_modes_setup '
+    ##based on EXT_TRIGGER variable, set up modes accordingly
+
+    if (LAMBDA_OPERATING_MODE == 1) { ##24-bit mode
+        ccdset_OperatingMode_Lambda 1
+    } else { ##keep 12-bit ZDT as the default mode
+        ccdset_OperatingMode_Lambda 0
+    }
+
+    if (EXT_TRIGGER == 0) { ##Internal mode
+        ccdset_TriggerMode_Lambda 0
+        shutteroff_default;
+        printf("Shutter will *REMAIN OPEN THROUGH* the Acquisition...\n");
+    }
+
+    if (EXT_TRIGGER == 1) { ##External Sequence per trigger mode
+        ccdset_TriggerMode_Lambda 1
+        shutteroff_default;
+        printf("Shutter will *REMAIN OPEN THROUGH* the Acquisition...\n");
+    }
+
+    if (EXT_TRIGGER == 2) {
+        ccdset_TriggerMode_Lambda 2
+        shutteron_default;
+        printf("Shutter will *OPEN AND CLOSE DURING* the Acquisition...\n");
+    }
+'
+
+
+def ccdset_TriggerMode_Lambda '{
+    if ($# != 1) {
+        eprint "Usage: ccdset_TriggerMode_Lambda $1"
+        eprint "$1=0,1,2 for Internal, External_per_sequence, External_per_frame"
+        exit
+    }
+    epics_put((sprintf("%sTriggerMode",CCDPV)), $1)
+    sleep(0.05)
+}'
+
+def ccdset_OperatingMode_Lambda '{
+    ##pick 12 bit or 24 bit mode
+    if ($# != 1) {
+        eprint "Usage: ccdset_OperatingMode_Lambda $1 (0 or 1)"
+        eprint "$1=0,1 for ContinuousReadWrite(12-bit), TwentyFourBit"
+        exit
+    }
+    if (ccdget_OperatingMode_Lambda != $1) {
+        epics_put((sprintf("%sOperatingMode",CCDPV)), $1)
+        while (ccdget_OperatingMode_Lambda == $1) {
+            sleep(0.1);
+        }
+        sleep(5.0);
+        printf("Lambda Operating Mode has been switched to: %s\n", ccdget_OperatingMode_Lambda_long);
+    }
+    if (ccdget_OperatingMode_Lambda == 1) {
+        ccdset_DataType_ad 3
+        printf("Lambda DataType has been switched to: %s\n", ccdget_DataType_ad);
+    }
+}'
+
+
+def ccdset_compr_params_ad_Lambda '{
+    if (epics_get("8LAMBDA1:IMM0:NDFileIMM_format_RBV","short") != 1) { ##IMM_Cmprs
+        epics_put("8LAMBDA1:IMM0:Capture",0);
+        epics_put("8LAMBDA1:IMM0:NDFileIMM_format",1);
+    }
+    if (epics_get("8LAMBDA1:IMM1:NDFileIMM_format_RBV","short") != 1) { ##IMM_Cmprs
+        epics_put("8LAMBDA1:IMM1:Capture",0);
+        epics_put("8LAMBDA1:IMM1:NDFileIMM_format",1);
+    }
+    if (epics_get("8LAMBDA1:IMM2:NDFileIMM_format_RBV","short") != 1) { ##IMM_Cmprs
+        epics_put("8LAMBDA1:IMM2:Capture",0);
+        epics_put("8LAMBDA1:IMM2:NDFileIMM_format",1);
+    }
+    if (epics_get("8LAMBDA1:IMMout:NDFileIMM_format_RBV","short") != 1) { ##IMM_Cmprs
+        epics_put("8LAMBDA1:IMMout:Capture",0);
+        epics_put("8LAMBDA1:IMMout:NDFileIMM_format",1);
+    }
+}'
+
+def ccdset_RawMode_params_ad_Lambda '{
+    if (epics_get("8LAMBDA1:IMM0:NDFileIMM_format_RBV","short") != 0) { ##IMM_Raw
+        epics_put("8LAMBDA1:IMM0:Capture",0);
+        epics_put("8LAMBDA1:IMM0:NDFileIMM_format",0);
+    }
+    if (epics_get("8LAMBDA1:IMM1:NDFileIMM_format_RBV","short") != 0) { ##IMM_Raw
+        epics_put("8LAMBDA1:IMM1:Capture",0);
+        epics_put("8LAMBDA1:IMM1:NDFileIMM_format",0);
+    }
+    if (epics_get("8LAMBDA1:IMM2:NDFileIMM_format_RBV","short") != 0) { ##IMM_Raw
+        epics_put("8LAMBDA1:IMM2:Capture",0);
+        epics_put("8LAMBDA1:IMM2:NDFileIMM_format",0);
+    }
+    if (epics_get("8LAMBDA1:IMMout:NDFileIMM_format_RBV","short") != 0) { ##IMM_Raw
+        epics_put("8LAMBDA1:IMMout:Capture",0);
+        epics_put("8LAMBDA1:IMMout:NDFileIMM_format",0);
+    }
+}'
+
+def ccd_getcounts_ad_Lambda '{
+    if (chk_ccdc()) {
+          if (COMPRESSION == 1) {
+          S[@CCD_CNTR] = epics_get(sprintf("%sNDFileIMM_num_imm_pixels_RBV",ADFILEPV));
+      } else {
+          S[@CCD_CNTR] = epics_get(sprintf("%sMeanValue_RBV",ADSTATPV));
+      }
+    }
+}'
+
+

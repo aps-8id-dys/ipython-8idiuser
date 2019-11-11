@@ -5,8 +5,6 @@ logger.info(__file__)
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 
-sg_control1 = APS_devices.TransformRecord("8idi:SGControl1", name="sg_control1")
-
 class Lambda750kCamLocal(Device):
     """
     local interface to the ADLambda 750k cam1 plugin

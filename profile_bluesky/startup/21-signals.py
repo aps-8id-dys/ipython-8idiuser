@@ -98,3 +98,6 @@ shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
 shutter_mode = EpicsSignal("8idi:softGlueC:AND-4_IN2_Signal", name="shutter_mode")
 
 shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")
+
+# TODO: this could have a better name
+sg_control1 = APS_devices.TransformRecord("8idi:SGControl1", name="sg_control1")

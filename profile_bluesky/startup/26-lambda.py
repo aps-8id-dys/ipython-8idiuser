@@ -212,7 +212,7 @@ class IMMoutLocal(Device):
     full_file_name = Component(EpicsSignalRO, "FullFileName_RBV", string=True, kind='config')
     num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind='config')
     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
-    num_pixels = Component(EpicsSignalWithRBV, "NDFileIMM_num_imm_pixels_RBV", kind='config')
+    num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind='config')
 
     unique_id = Component(EpicsSignalRO, 'NDFileIMM_uniqueID_RBV')
 

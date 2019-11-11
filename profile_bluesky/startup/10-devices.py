@@ -348,6 +348,9 @@ class PreampDevice(Device):
 
 class SoftGlueDevice(Device):
 
+    #
+    start_trigger_pulses = Component(EpicsSignal, '8idi:softGlueA:MUX2-1_IN0_Signal')
+
     # sends  external pulse train signal to the trigger
     # this is a stringout record, value is a str
     send_ext_pulse_tr_sig_to_trig = Component(EpicsSignal, '8idi:softGlueB:BUFFER-1_IN_Signal')
@@ -359,3 +362,10 @@ class SoftGlueDevice(Device):
     # sends detector signal pulse train to burst mode
     # this is a stringout record, value is a str
     send_det_sig_pulse_tr_mode = Component(EpicsSignal, '8idi:softGlueC:MUX2-2_SEL_Signal')
+
+    def start_trigger(self):
+        if self.set_shtr_sig_pulse_tr_mode.value == 0:
+            logger.info("Starting detector trigger pulses")
+            yield from bps.mv(self.start_trigger_pulses, "1\!")
+        else:
+            logger.info("Waiting for ****User Trigger**** to start acquisition")

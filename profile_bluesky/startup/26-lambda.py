@@ -23,6 +23,15 @@ class Lambda750kCamLocal(Device):
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
 
+    trigger_mode = Component(EpicsSignalWithRBV, 'TriggerMode', kind='config')
+
+    def ccdset_TriggerMode(self, mode):
+        """
+        mode = 0,1,2 for Internal, External_per_sequence, External_per_frame
+        """
+        # from SPEC macro: ccdset_TriggerMode_Lambda
+        yield from bps.mv(self.trigger_mode, mode)
+
 
 class IMMoutLocal(Device):
     """

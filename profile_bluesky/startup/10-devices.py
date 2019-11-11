@@ -348,10 +348,7 @@ class PreampDevice(Device):
 
 class SoftGlueDevice(Device):
 
-    #
     start_trigger_pulses_sig = Component(EpicsSignal, '8idi:softGlueA:MUX2-1_IN0_Signal')
-
-    #
     reset_trigger_pulses_sig = Component(EpicsSignal, '8idi:softGlueA:OR-1_IN2_Signal')
 
     # sends  external pulse train signal to the trigger
@@ -378,4 +375,3 @@ class SoftGlueDevice(Device):
         # from SPEC macro: Reset_SoftGlue_Trigger
         logger.info("Resetting detector trigger pulses")
         yield from bps.mv(self.reset_trigger_pulses_sig, r"1\!")
-

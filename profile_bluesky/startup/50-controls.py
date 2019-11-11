@@ -563,56 +563,16 @@ def select_RIGAKU():
     )
 
 
-nextpos = 0
-samxdata = np.linspace(0, 2, 21)    # example: user will change this
-samzdata = np.linspace(0, .5, 15)    # example: user will change this
-
-
 def movesample():
-    global nextpos
-    global samxdata
-    global samzdata
-    if dm_pars.geometry_num.value == 0: # transmission
-        xn = len(samxdata)
-        zn = len(samzdata)
-        if xn > zn:
-            x = nextpos % xn
-            z = int(nextpos/xn) % zn
-        else:
-            x = int(nextpos/zn) % xn
-            z = nextpos % zn
-    else:    # reflection
-        x = nextpos % len(samxdata)
-        z = nextpos % len(samzdata)
-
-    x = samxdata[x]
-    z = samzdata[z]
-    logger.info(f"Moving samx to {x}, samz to {z}")
-    yield from bps.mv(
-        samplestage.x, x,
-        samplestage.z, z,
-        )
-    nextpos += 1
+    yield from samplestage.movesample()
 
 
 def movesamx():
-    global nextpos
-    global samxdata
-    index = nextpos % len(samxdata)
-    p = samxdata[index]
-    logger.info(f"Moving samx to {p}")
-    yield from bps.mv(samplestage.x, p)
-    nextpos += 1
+    yield from samplestage.movesamx()
 
 
 def movesamz():
-    global nextpos
-    global samzdata
-    index = nextpos % len(samzdata)
-    p = samzdata[index]
-    logger.info(f"Moving samz to {p}")
-    yield from bps.mv(samplestage.z, p)
-    nextpos += 1
+    yield from samplestage.movesamz()
 
 
 # --------------------------------------------------------------------

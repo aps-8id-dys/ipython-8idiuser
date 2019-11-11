@@ -212,6 +212,48 @@ class SampleStage(Device):
     chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])     # roll
     table = Component(SampleStageTable, labels=["table",])
 
+    # used by the movesample plans
+    nextpos = 0
+    xdata = np.linspace(0, 2, 21)    # example: user will change this
+    zdata = np.linspace(0, .5, 15)    # example: user will change this
+
+    def movesample(self):
+        if dm_pars.geometry_num.value == 0: # transmission
+            xn = len(self.xdata)
+            zn = len(self.zdata)
+            if xn > zn:
+                x = self.nextpos % xn
+                z = int(self.nextpos/xn) % zn
+            else:
+                x = int(self.nextpos/zn) % xn
+                z = self.nextpos % zn
+        else:    # reflection
+            x = self.nextpos % len(self.xdata)
+            z = self.nextpos % len(self.zdata)
+
+        x = self.xdata[x]
+        z = self.zdata[z]
+        logger.info(f"Moving samx to {x}, samz to {z}")
+        yield from bps.mv(
+            self.x, x,
+            self.z, z,
+            )
+        self.nextpos += 1
+
+    def movesamx(self):
+        index = self.nextpos % len(self.xdata)
+        p = self.xdata[index]
+        logger.info(f"Moving samx to {p}")
+        yield from bps.mv(self.x, p)
+        self.nextpos += 1
+
+    def movesamz(self):
+        index = self.nextpos % len(self.zdata)
+        p = self.zdata[index]
+        logger.info(f"Moving samz to {p}")
+        yield from bps.mv(self.z, p)
+        self.nextpos += 1
+
 
 class LS336_LoopBase(APS_devices.ProcessController):
     """

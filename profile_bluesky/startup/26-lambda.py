@@ -19,6 +19,7 @@ class Lambda750kCamLocal(Device):
 
     bad_frame_counter = Component(EpicsSignal, 'BadFrameCounter', kind='config') 
     config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
+    data_type = Component(EpicsSignalWithRBV, 'DataType', kind='config')
     firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
     image_mode = Component(EpicsSignalWithRBV, 'ImageMode', kind='config')
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
@@ -43,11 +44,8 @@ class Lambda750kCamLocal(Device):
 
     @property
     def getDataType(self):
-        """
-        ???
-        """
         # from SPEC macro: ccdget_DataType_ad
-        raise NotImplementedError("Need to translate SPEC macro: ccdget_DataType_ad")
+        return self.data_type.value
 
     @property
     def getOperatingMode(self):
@@ -55,11 +53,10 @@ class Lambda750kCamLocal(Device):
 
     def setDataType(self, value):
         """
-        value = ??? 3 means ???
+        value: 0-7 for ('Int8', 'UInt8', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float32', 'Float64')
         """
         # from SPEC macro: ccdset_DataType_ad
-        # yield from bps.mv(self.some_signal, value)
-        raise NotImplementedError("Need to translate SPEC macro: ccdset_DataType_ad")
+        yield from bps.mv(self.self.data_type, value)
 
     def setImageMode(self, mode):
         """
@@ -85,13 +82,13 @@ class Lambda750kCamLocal(Device):
             logger.info(f"Lambda Operating Mode switched to: {mode}")
 
         if self.operating_mode.value == 1:
-            yield from self.setDataType(3)     # TODO: What does 3 mean?
+            yield from self.setDataType(3)     # 3: UInt16
             data_type = self.getDataType
             logger.info("Lambda DataType switched to: {data_type}")
 
     def setTime(self, exposure_time, exposure_period):
         """
-        ...
+        set exposure time and period
         """
         # from SPEC macro: ccdset_time_Lambda
         # set exp time always regardless of any mode
@@ -158,9 +155,6 @@ class Lambda750kCamLocal(Device):
         #     ccdset_OperatingMode_Lambda 0
         # }
 
-        if self.EXT_TRIGGER in (
-                self.MODE_TRIGGER_INTERNAL, 
-                self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE):
         yield from self.setTriggerMode(self.EXT_TRIGGER)
         # TODO: shutteroff_default
         if self.EXT_TRIGGER == self.MODE_TRIGGER_EXTERNAL_PER_FRAME:
@@ -215,11 +209,21 @@ class IMMoutLocal(Device):
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind='config')
     file_number = Component(EpicsSignalWithRBV, "FileNumber", kind='config')
     file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind='config')
-    full_file_name = Component(EpicsSignalRO, "FullFileName_RBV", string=True, kind='config')
+    full_file_name = Component(EpicsSignalRO, "FullFileName", string=True, kind='config')
     num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind='config')
     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
+    num_pixels = Component(EpicsSignalWithRBV, "NDFileIMM_num_imm_pixels_RBV", kind='config')
 
     unique_id = Component(EpicsSignalRO, 'NDFileIMM_uniqueID_RBV')
+
+
+class StatsLocal(Device):
+    """
+    local interface to the Stats plugin
+    """
+
+    # implement just the parts needed by our data acquisition
+    mean_value = Component(EpicsSignalWithRBV, "MeanValue", kind='config')
 
 
 class Lambda750kLocal(Device):
@@ -234,31 +238,40 @@ class Lambda750kLocal(Device):
     # only need cam1 and IMMout plugins
     cam = Component(Lambda750kCamLocal, "cam1:")
     immout = Component(IMMoutLocal, "IMMout:")
+    imm0 = Component(IMMoutLocal, "IMM0:")
+    imm1 = Component(IMMoutLocal, "IMM1:")
+    imm2 = Component(IMMoutLocal, "IMM2:")
+    stats1 = Component(StatsLocal, "Stats1:")
 
-    def trigger(self):
-        "trigger device acquisition and return a status object"
-        acquire_signal = self.cam.acquire
-        start_value = 1
-        done_value = 0
-        # watch_signal = self.cam.acquire
-        watch_signal = self.immout.capture
+    @property
+    def chk_ccdc(self):
+        """
+        check if there is a pseudo counter "ccdc" configured in spec
 
-        status = DeviceStatus(self)
+        Look through all the counters and report if 
+        any one of them is named `ccdc`.
+        """
+        return False
 
-        def closure(value, old_value, **kwargs):
-            if value == done_value and old_value != value:
-                watch_signal.clear_sub(closure)
-                print("closure() method ends")
-                print(f"cam.acquire.value={self.cam.acquire.value}")
-                print(f"immout.capture.value={self.immout.capture.value}")
-                print(f"immout.num_captured.value={self.immout.num_captured.value}")
-                status._finished()
-                print(f"status={status}")
-        
-        watch_signal.subscribe(closure)
-        self.immout.capture.put(1, wait=False)
-        acquire_signal.put(start_value, wait=False)
-        return status
+    @property
+    def getCounts(self):
+        """
+        get counts from IMM plugins
+        """
+        # from SPEC macro: ccd_getcounts_ad_Lambda
+        # FIXME: this routine needs attention
+
+        # BUT, this is only used when there is a 
+        # pseudo-counter named "ccdc" (that's what chk_ccdc() does)
+        if self.chk_ccdc:
+            if dm_pars.compression.value == 1:
+                return self.immout.num_pixels.value
+            else:
+                return self.stats1.mean_value.value
+    
+    @property
+    def images_received(self):
+        return self.immout.num_captured.get()
     
     @property
     def plugin_file_name(self):
@@ -269,19 +282,31 @@ class Lambda750kLocal(Device):
         """
         # cut the path from file name
         return os.path.basename(self.immout.full_file_name.value)
-    
-    @property
-    def images_received(self):
-        return self.immout.num_captured.get()
-    
-    def xpcs_loop(self, *args, **kwargs):
-        """
-        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
 
-        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+    def setIMM_Cmprs(self):
         """
-        pass    # TODO:
-    
+        set all IMM plugins for compression
+        """
+        # from SPEC macro: ccdset_compr_params_ad_Lambda
+        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+            if plugin.file_format.value not in (1, 'IMM_Cmprs'):
+                yield from bps.mv(
+                    plugin.capture, 'Done',             # ('Done', 'Capture')
+                    plugin.file_format, 'IMM_Cmprs',    # ('IMM_Raw', 'IMM_Cmprs')
+                )
+
+    def setIMM_Raw(self):
+        """
+        set all IMM plugins for raw (uncompressed)
+        """
+        # from SPEC macro: ccdset_RawMode_params_ad_Lambda
+        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+            if plugin.file_format.value not in (0, 'IMM_Raw'):
+                yield from bps.mv(
+                    plugin.capture, 'Done',             # ('Done', 'Capture')
+                    plugin.file_format, 'IMM_Raw',      # ('IMM_Raw', 'IMM_Cmprs')
+                )
+
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
@@ -310,6 +335,39 @@ class Lambda750kLocal(Device):
         self.immout.stage_sigs["file_number"] = 1
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
+
+    def trigger(self):
+        "trigger device acquisition and return a status object"
+        acquire_signal = self.cam.acquire
+        start_value = 1
+        done_value = 0
+        # watch_signal = self.cam.acquire
+        watch_signal = self.immout.capture
+
+        status = DeviceStatus(self)
+
+        def closure(value, old_value, **kwargs):
+            if value == done_value and old_value != value:
+                watch_signal.clear_sub(closure)
+                print("closure() method ends")
+                print(f"cam.acquire.value={self.cam.acquire.value}")
+                print(f"immout.capture.value={self.immout.capture.value}")
+                print(f"immout.num_captured.value={self.immout.num_captured.value}")
+                status._finished()
+                print(f"status={status}")
+        
+        watch_signal.subscribe(closure)
+        self.immout.capture.put(1, wait=False)
+        acquire_signal.put(start_value, wait=False)
+        return status
+    
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        pass    # TODO:
 
 
 try:

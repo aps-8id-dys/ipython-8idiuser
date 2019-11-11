@@ -5,6 +5,8 @@ logger.info(__file__)
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 
+sg_control1 = APS_devices.TransformRecord("8idi:SGControl1", name="sg_control1")
+
 class Lambda750kCamLocal(Device):
     """
     local interface to the ADLambda 750k cam1 plugin
@@ -19,20 +21,60 @@ class Lambda750kCamLocal(Device):
 
     config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
     firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
+    image_mode = Component(EpicsSignalWithRBV, 'ImageMode', kind='config')
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
     trigger_mode = Component(EpicsSignalWithRBV, 'TriggerMode', kind='config')
 
+    EXT_TRIGGER = 0
+
+    # constants
+    MODE_INTERNAL_TRIGGER = 1
+    MODE_MULTIPLE_IMAGE = 1
+
+    def setup_trigger_logic_external(self, num_triggers):
+        """
+        configure the number of triggers to be expected
+        """
+        # from SPEC macro: external_trigger_logic_setup_Data_Lambda
+        if self.getOperatingMode == 0:
+            num_triggers += 1
+        yield from bps.mv(sg_control1.channels.J.current_value, num_triggers)
+        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, 1) # external trigger
+        #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
+
+    def setup_trigger_mode_external(self):
+        """
+        configure EPICS area detector for external triggering
+
+        user can change chosen image mode via `self.EXT_TRIGGER`
+        """
+        # from SPEC macro: external_trigger_mode_setup_Lambda
+        yield from self.setTriggerMode(self.EXT_TRIGGER)
+        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
+
+    def setup_trigger_mode_internal(self):
+        """
+        configure EPICS area detector for internal triggering, multiple images
+        """
+        # from SPEC macro: internal_trigger_mode_setup_Lambda
+        yield from self.setTriggerMode(self.MODE_INTERNAL_TRIGGER)
+        yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
+
     @property
-    def get_DataType(self, value):
+    def getDataType(self, value):
         """
         ???
         """
         # from SPEC macro: ccdget_DataType_ad
         raise NotImplementedError("Need to translate SPEC macro: ccdget_DataType_ad")
 
-    def set_DataType(self, value):
+    @property
+    def getOperatingMode(self):
+        return self.operating_mode.value
+
+    def setDataType(self, value):
         """
         value = ??? 3 means ???
         """
@@ -40,7 +82,17 @@ class Lambda750kCamLocal(Device):
         # yield from bps.mv(self.some_signal, value)
         raise NotImplementedError("Need to translate SPEC macro: ccdset_DataType_ad")
 
-    def set_OperatingMode(self, mode):
+    def setImageMode(self, mode):
+        """
+        mode = 0, 1 for ('Single', 'Multiple')
+        """
+        # from SPEC macro: ccdset_ImageMode
+        if mode not in (0, 1):
+            msg = f"image mode {mode} not allowed, must be one of 0, 1"
+            raise ValueError(msg)
+        yield from bps.mv(self.image_mode, mode)
+
+    def setOperatingMode(self, mode):
         """
         mode = 0, 1 for ContinuousReadWrite(12-bit), TwentyFourBit
         """
@@ -54,11 +106,11 @@ class Lambda750kCamLocal(Device):
             logger.info(f"Lambda Operating Mode switched to: {mode}")
 
         if self.operating_mode.value == 1:
-            yield from self.set_DataType(3)     # TODO: What does 3 mean?
-            data_type = self.get_DataType
+            yield from self.setDataType(3)     # TODO: What does 3 mean?
+            data_type = self.getDataType
             logger.info("Lambda DataType switched to: {data_type}")
 
-    def set_TriggerMode(self, mode):
+    def setTriggerMode(self, mode):
         """
         mode = 0,1,2 for Internal, External_per_sequence, External_per_frame
         note: mode = 3 ("Gating_Mode", permitted by EPICS record) is not supported here

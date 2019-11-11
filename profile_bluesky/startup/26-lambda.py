@@ -29,7 +29,9 @@ class Lambda750kCamLocal(Device):
     EXT_TRIGGER = 0
 
     # constants
-    MODE_INTERNAL_TRIGGER = 1
+    MODE_TRIGGER_INTERNAL = 0
+    MODE_TRIGGER_EXTERNAL_PER_SEQUENCE = 1
+    MODE_TRIGGER_EXTERNAL_PER_FRAME = 2
     MODE_MULTIPLE_IMAGE = 1
 
     @property
@@ -141,6 +143,32 @@ class Lambda750kCamLocal(Device):
             raise ValueError(msg)
         yield from bps.mv(self.trigger_mode, mode)
 
+    def setup_modes(self, num_triggers):
+        """
+        set up modes accordingly, based on self.EXT_TRIGGER
+        """
+        # from SPEC macro: Lambda_modes_setup
+
+        # FIXME: this looks like useless code
+        # FIXME: we have no such self.LAMBDA_OPERATING_MODE now
+        yield from self.setOperatingMode(self.LAMBDA_OPERATING_MODE)
+        # if (LAMBDA_OPERATING_MODE == 1) { ##24-bit mode
+        #     ccdset_OperatingMode_Lambda 1
+        # } else { ##keep 12-bit ZDT as the default mode
+        #     ccdset_OperatingMode_Lambda 0
+        # }
+
+        if self.EXT_TRIGGER in (
+                self.MODE_TRIGGER_INTERNAL, 
+                self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE):
+        yield from self.setTriggerMode(self.EXT_TRIGGER)
+        # TODO: shutteroff_default
+        if self.EXT_TRIGGER == self.MODE_TRIGGER_EXTERNAL_PER_FRAME:
+            action = "OPEN AND CLOSE DURING"
+        else:   # self.MODE_TRIGGER_INTERNAL and self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE
+            action = "REMAIN OPEN THROUGH"
+        logger.info(f"Shutter will *{action}* the Acquisition...")
+
     def setup_trigger_logic_external(self, num_triggers):
         """
         configure the number of triggers to be expected
@@ -170,7 +198,7 @@ class Lambda750kCamLocal(Device):
         configure EPICS area detector for internal triggering, multiple images
         """
         # from SPEC macro: internal_trigger_mode_setup_Lambda
-        yield from self.setTriggerMode(self.MODE_INTERNAL_TRIGGER)
+        yield from self.setTriggerMode(self.MODE_TRIGGER_INTERNAL)
         yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
 
 

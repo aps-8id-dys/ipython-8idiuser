@@ -575,6 +575,30 @@ def movesamz():
     yield from samplestage.movesamz()
 
 
+def move_pind1_in():
+    yield from bps.mv(actuator_pind1, "IN")
+
+
+def move_pind1_out():
+    yield from bps.mv(actuator_pind1, "OUT")
+
+
+def move_pind2_in():
+    yield from bps.mv(actuator_pind2, "IN")
+
+
+def move_pind2_out():
+    yield from bps.mv(actuator_pind2, "OUT")
+
+
+def move_pind4z_in():
+    yield from bps.mv(actuator_flux, "IN")
+
+
+def move_pind4z_out():
+    yield from bps.mv(actuator_flux, "OUT")
+
+
 # --------------------------------------------------------------------
 
 """

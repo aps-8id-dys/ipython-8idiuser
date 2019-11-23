@@ -89,7 +89,8 @@ def AD_Acquire(areadet,
             f"_{dm_pars.data_begin.value:04.0f}"
             f"-{dm_pars.data_end.value:04.0f}"
         )
-        fullname = os.path.join(path, f"{fname}.hdf")
+        fullname = dm_workflow.cleanupFilename(
+            os.path.join(path, f"{fname}.hdf"))
         suffix = 0
         while os.path.exists(fullname):
             suffix += 1

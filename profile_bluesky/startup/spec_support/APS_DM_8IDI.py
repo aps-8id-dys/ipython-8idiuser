@@ -21,6 +21,7 @@ import h5py
 import logging
 import math
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -151,6 +152,39 @@ class DM_Workflow:
 
         self.hdf_workflow_file = None
 
+    def cleanupFilename(self, text):
+        """
+        convert text so it can be used as a file name
+        Given some input text string, return a clean version
+        remove troublesome characters, perhaps other cleanup as well.
+        This is best done with regular expression pattern matching.
+
+        This ONLY cleans the base name.
+
+        EXAMPLE:
+
+        This gets cleaned up::
+
+            cleanupFilename("/good/path/to/bad file &^$*&^(&) name.txt")
+
+        No changes with this::
+
+            cleanupFilename("/ bad $$ &^%%$ path with/good_file_name.txt")
+
+        """
+        path, base = os.path.split(text)
+        base, ext = os.path.splitext(base)
+
+        pattern = "[a-zA-Z0-9_]"
+
+        def mapper(c):
+            if re.match(pattern, c) is not None:
+                return c
+            return "_"
+
+        base = "".join([mapper(c) for c in base])
+        return os.path.join(path, base+ext)
+
     def get_workflow_filename(self):
         """
         decide absolute file name for the APS data management workflow
@@ -166,7 +200,7 @@ class DM_Workflow:
             f"_{registers.data_begin.value:04.0f}"
             f"-{registers.data_end.value:04.0f}"
         )
-        fullname = os.path.join(path, f"{fname}.hdf")
+        fullname = self.cleanupFilename(os.path.join(path, f"{fname}.hdf"))
         suffix = 0
         while os.path.exists(fullname):
             suffix += 1

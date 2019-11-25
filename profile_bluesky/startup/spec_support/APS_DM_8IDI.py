@@ -183,7 +183,11 @@ class DM_Workflow:
             return "_"
 
         base = "".join([mapper(c) for c in base])
-        return os.path.join(path, base+ext)
+        result = os.path.join(path, base+ext)
+        if result != text:
+            msg = f"cleaned file name, was: '{text}'   now: '{result}'"
+            logger.info(msg)
+        return result
 
     def get_workflow_filename(self):
         """

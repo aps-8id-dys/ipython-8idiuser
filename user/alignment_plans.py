@@ -30,7 +30,7 @@ def Rinaldi_group_alignment(_md={}):
         si1.vgap, 250,
     )
 
-    yield from lineup_and_center(channel, motor, -30, 30, 30, 1.0, md=md)
+    yield from lineup(channel, motor, -30, 30, 30, 1.0, md=md)
 
     # prints the flux, scaled to 100 mA APS current
     count_rate = channel.value / timebase.value * 1e6 * aps.current.value / 100

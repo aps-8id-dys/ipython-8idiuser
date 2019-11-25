@@ -24,7 +24,7 @@ Plans
     insert_flux_pind
     insert_pind1
     insert_pind2
-    lineup_and_center
+    lineup
     movesample
     movesamx
     movesamz
@@ -139,17 +139,17 @@ def remove_flux_pind():
 
 # alignment plans
 
-def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor=4, width_factor=0.8,_md={}):
+def lineup(counter, axis, minus, plus, npts, time_s=0.1, peak_factor=4, width_factor=0.8,_md={}):
     """
     lineup and center a given axis, relative to current position
 
     PARAMETERS
     
-    counter : scaler channel object
-        detector to be maximized
+    counter : Signal or scaler channel object
+        detector or Signal to be maximized
     
-    axis : motor
-        motor to use for alignment
+    axis : movable
+        Signal or EpicsMotor to use for alignment, the independent axis
     
     minus : float
         first point of scan at this offset from starting position
@@ -171,9 +171,9 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
 
     EXAMPLE:
 
-        RE(lineup_and_center("diode", foemirror.theta, -30, 30, 30, 1.0))
+        RE(lineup(diode, foemirror.theta, -30, 30, 30, 1.0))
     """
-    # first, determine if counter is part of a ScalerCH device
+     # first, determine if counter is part of a ScalerCH device
     scaler = None
     obj = counter.parent
     if isinstance(counter.parent, ScalerChannel):
@@ -187,17 +187,17 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
         scaler.stage_sigs["preset_time"] = time_s
         scaler.select_channels([counter.name])
 
-    if hasattr(motor, "position"):
-        old_position = motor.position
+    if hasattr(axis, "position"):
+        old_position = axis.position
     else:
-        old_position = motor.value
+        old_position = axis.value
 
     def peak_analysis():
         aligned = False
         if counter.name in bec.peaks["cen"]:
             table = pyRestTable.Table()
             table.labels = ("key", "value")
-            table.addRow(("motor", motor.name))
+            table.addRow(("axis", axis.name))
             table.addRow(("detector", counter.name))
             table.addRow(("starting position", old_position))
             for key in bec.peaks.ATTRS:
@@ -205,7 +205,7 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
             logger.info(f"alignment scan results:\n{table}")
 
             lo = bec.peaks["min"][counter.name][-1]  # [-1] means detector
-            hi = bec.peaks["max"][counter.name][-1]  # [0] means motor
+            hi = bec.peaks["max"][counter.name][-1]  # [0] means axis
             fwhm = bec.peaks["fwhm"][counter.name]
             final = bec.peaks["cen"][counter.name]
 
@@ -228,8 +228,8 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
             else:
                 aligned = True
             
-            logger.info(f"moving {motor.name} to {final}  (aligned: {aligned})")
-            yield from bps.mv(motor, final)
+            logger.info(f"moving {axis.name} to {final}  (aligned: {aligned})")
+            yield from bps.mv(axis, final)
         else:
             logger.error("no statistical analysis of scan peak!")
             yield from bps.null()
@@ -240,14 +240,14 @@ def lineup_and_center(counter, motor, minus, plus, npts, time_s=0.1, peak_factor
 
     md = dict(_md)
     md["purpose"] = "alignment"
-    yield from bp.rel_scan([counter], motor, minus, plus, npts, md=md)
+    yield from bp.rel_scan([counter], axis, minus, plus, npts, md=md)
     yield from peak_analysis()
 
     if bec.peaks.aligned:
         # again, tweak axis to maximize
         md["purpose"] = "alignment - fine"
         fwhm = bec.peaks["fwhm"][counter.name]
-        yield from bp.rel_scan([counter], motor, -fwhm, fwhm, npts, md=md)
+        yield from bp.rel_scan([counter], axis, -fwhm, fwhm, npts, md=md)
         yield from peak_analysis()
 
     if scaler is not None:

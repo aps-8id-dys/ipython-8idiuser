@@ -405,15 +405,19 @@ class SoftGlueDevice(Device):
     # this is a stringout record, value is a str
     send_det_sig_pulse_tr_mode = Component(EpicsSignal, '8idi:softGlueC:MUX2-2_SEL_Signal')
 
+    #this should be 0 or 1 to select the pulse source to be manual or external user device driven respectively
+    # this is a stringout record, value is a str
+    select_pulse_train_source = Component(EpicsSignal, '8idi:softGlueA:MUX2-1_SEL_Signal')
+
     def start_trigger(self):
         # from SPEC macro: Start_SoftGlue_Trigger
-        if self.set_shtr_sig_pulse_tr_mode.value == 0:
+        if self.select_pulse_train_source.value == '0':
             logger.info("Starting detector trigger pulses")
-            yield from bps.mv(self.start_trigger_pulses_sig, r"1\!")
+            yield from bps.mv(self.start_trigger_pulses_sig, "1!")
         else:
             logger.info("Waiting for ****User Trigger**** to start acquisition")
 
     def reset_trigger(self):
         # from SPEC macro: Reset_SoftGlue_Trigger
         logger.info("Resetting detector trigger pulses")
-        yield from bps.mv(self.reset_trigger_pulses_sig, r"1\!")
+        yield from bps.mv(self.reset_trigger_pulses_sig, "1!")

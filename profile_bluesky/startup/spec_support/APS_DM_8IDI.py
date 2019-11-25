@@ -651,7 +651,7 @@ class DM_Workflow:
         logger.info(
             "DM Workflow call is made for DATA transfer: "
             f"{hdf_with_fullpath}"
-            f"----{datetime.datetime.now()}"
+            f"  ----{datetime.datetime.now()}"
             )
         return unix(cmd)
 
@@ -695,8 +695,8 @@ class DM_Workflow:
 
         logger.info(
             f"DM Workflow call is made for XPCS Analysis: {hdf_with_fullpath}"
-            f",{qmapfile_with_fullpath}"
-            f"----{datetime.datetime.now()}"
+            f",  {qmapfile_with_fullpath}"
+            f"  ----{datetime.datetime.now()}"
             )
         return unix(cmd)
 

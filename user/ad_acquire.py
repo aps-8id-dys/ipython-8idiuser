@@ -40,6 +40,8 @@ def AD_Acquire(areadet,
     # select the detector's number
     yield from bps.mv(dm_pars.detNum, areadet.detector_number)
 
+    yield from areadet.cam.setup_modes(num_images)
+
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
@@ -200,6 +202,8 @@ def AD_Acquire(areadet,
         # do the acquisition (the scan)
         logger.info("before count()")
         yield from bp.count([areadet], md=md)
+        if areadet.cam.EXT_TRIGGER > 0:
+            yield from soft_glue.start_trigger()
         logger.info("after count()")
 
         yield from update_metadata_postscan()

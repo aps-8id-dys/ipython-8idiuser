@@ -184,9 +184,32 @@ def AD_Acquire(areadet,
             dm_pars.scan_id, int(RE.md["scan_id"]),
         )
 
+    def inner_count(devices, md={}):
+        yield from bps.open_run(md=md)
+        grp = bps._short_uid('trigger')
+        no_wait = True
+        for obj in devices:
+            if hasattr(obj, 'trigger'):
+                no_wait = False
+                yield from bps.trigger(obj, group=grp)
+        if areadet.cam.EXT_TRIGGER > 0:
+            yield from soft_glue.start_trigger()
+        # Skip 'wait' if none of the devices implemented a trigger method.
+        if not no_wait:
+            yield from bps.wait(group=grp)
+        yield from bps.create('primary')
+        # ret = {}  # collect and return readings to give plan access to them
+        for obj in devices:
+            reading = (yield from bps.read(obj))
+            # if reading is not None:
+            #     ret.update(reading)
+        yield from bps.save()
+        yield from bps.close_run()
+        # return ret
+
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
-    def inner():
+    def full_acquire_procedure():
         logger.info("before update_metadata_prescan()")
         yield from update_metadata_prescan()
         logger.info("after update_metadata_prescan()")
@@ -201,9 +224,8 @@ def AD_Acquire(areadet,
 
         # do the acquisition (the scan)
         logger.info("before count()")
-        yield from bp.count([areadet], md=md)
-        if areadet.cam.EXT_TRIGGER > 0:
-            yield from soft_glue.start_trigger()
+        # yield from bp.count([areadet], md=md)
+        yield from inner_count([areadet], md=md)
         logger.info("after count()")
 
         yield from update_metadata_postscan()
@@ -231,5 +253,5 @@ def AD_Acquire(areadet,
         if len(err) > 0:
             logger.error(err)
 
-    logger.info("calling inner()")
-    return (yield from inner())
+    logger.info("calling full_acquire_procedure()")
+    return (yield from full_acquire_procedure())

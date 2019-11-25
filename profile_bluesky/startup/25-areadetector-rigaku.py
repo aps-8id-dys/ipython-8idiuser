@@ -40,7 +40,6 @@ class UnixCommandSignal(Signal):
     def get(self):
         return self.unix_output, self.unix_error
 
-
 class Rigaku_8IDI(Device):
     """
     Supports non-epics communication with the new Rigaku detector
@@ -69,10 +68,6 @@ class Rigaku_8IDI(Device):
         cmd = f"echo FILE:F:{self.batch_name.value} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
     
-    # TODO: unstage? do we need/want a custom method?
-    #         shutter_mode.put("1UFXC") "align" mode for any detector
-
-
     def trigger(self):
         self.acquire_start.put(0)
         status = DeviceStatus(self)
@@ -119,6 +114,12 @@ class Rigaku_8IDI(Device):
         # acquire_period = args[4]
 
         self.batch_name.put(file_name)
+
+    def setup_modes(self, num_triggers):
+        """
+        set up modes accordingly, based on self.EXT_TRIGGER
+        """
+        yield from bps.null()
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

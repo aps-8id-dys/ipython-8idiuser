@@ -598,6 +598,26 @@ def move_pind4z_in():
 def move_pind4z_out():
     yield from bps.mv(actuator_flux, "OUT")
 
+def pre_align():
+    """
+    This is not a plan and so we should use it in command line, which means no use of RE
+    """
+    global att, default_counter
+    shutter.close()
+    shutter_mode.put("1UFXC")
+    actuator_flux.put("IN")
+    att.put(0)
+    default_counter = pind4
+
+def post_align():
+    """
+    This is not a plan and so we should use it in command line, which means no use of RE
+    """
+    global att
+    shutter.close()
+    #shutter_mode.put("1UFXC")
+    actuator_flux.put("OUT")
+    att.put(0) #att will be defined to att1 or att2
 
 # --------------------------------------------------------------------
 

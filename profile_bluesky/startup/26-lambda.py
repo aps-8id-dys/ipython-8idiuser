@@ -25,9 +25,10 @@ class Lambda750kCamLocal(Device):
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
-    trigger_mode = Component(EpicsSignalWithRBV, 'TriggerMode', kind='config')
+    trigger_mode = Component(EpicsSignal, 'TriggerMode', kind='config')
 
     EXT_TRIGGER = 0
+    LAMBDA_OPERATING_MODE = 0  # (0, 'ContinuousReadWrite', 1, 'TwentyFourBit')
 
     # constants
     MODE_TRIGGER_INTERNAL = 0
@@ -40,23 +41,23 @@ class Lambda750kCamLocal(Device):
         """
         """
         # from SPEC macro: ccdget_Lambda_BadFrameCount
-        return self.bad_frame_counter.value
+        return self.bad_frame_counter.get()
 
     @property
     def getDataType(self):
         # from SPEC macro: ccdget_DataType_ad
-        return self.data_type.value
+        return self.data_type.get()
 
     @property
     def getOperatingMode(self):
-        return self.operating_mode.value
+        return self.operating_mode.get()
 
     def setDataType(self, value):
         """
         value: 0-7 for ('Int8', 'UInt8', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float32', 'Float64')
         """
         # from SPEC macro: ccdset_DataType_ad
-        yield from bps.mv(self.self.data_type, value)
+        yield from bps.mv(self.data_type, value)
 
     def setImageMode(self, mode):
         """
@@ -75,6 +76,7 @@ class Lambda750kCamLocal(Device):
         # from SPEC macro: ccdset_OperatingMode_Lambda
         if mode not in (0, 1):
             msg = f"operating mode {mode} not allowed, must be one of 0, 1"
+            msg += " (0='ContinuousReadWrite', 1='TwentyFourBit')"
             raise ValueError(msg)
         if self.operating_mode.value != mode:
             yield from bps.mv(self.operating_mode, mode)
@@ -95,12 +97,13 @@ class Lambda750kCamLocal(Device):
         yield from bps.mv(self.acquire_time, exposure_time)
         # yield from bps.sleep(0.05)
 
+        extra = 1e-3     # 1 ms is typical for period
+        extra += 100e-6  # extra 100 us for 24-bit mode (empirical)
+
         # set period based on the mode
         if self.getOperatingMode == 0:      # continuous read/write mode
             yield from bps.mv(self.acquire_period, exposure_time)
-        else:
-            extra = 1e-3     # 1 ms is typical for period
-            extra += 100e-6  # extra 100 us for 24-bit mode (empirical)
+        else:            
             yield from bps.mv(
                 self.acquire_period, 
                 max(exposure_period, exposure_time + extra)
@@ -117,7 +120,7 @@ class Lambda750kCamLocal(Device):
         elif self.EXT_TRIGGER == 2 and self.getOperatingMode == 1:
             yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
             # yield from bps.sleep(0.05)
-            yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
+            yield from bps.mv(pvDELAY_A, max(exposure_period, exposure_time + extra))  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
 
         elif self.EXT_TRIGGER == 1 and self.getOperatingMode == 1:
@@ -146,19 +149,20 @@ class Lambda750kCamLocal(Device):
         """
         # from SPEC macro: Lambda_modes_setup
 
-        # FIXME: this looks like useless code
-        # FIXME: we have no such self.LAMBDA_OPERATING_MODE now
         yield from self.setOperatingMode(self.LAMBDA_OPERATING_MODE)
-        # if (LAMBDA_OPERATING_MODE == 1) { ##24-bit mode
-        #     ccdset_OperatingMode_Lambda 1
-        # } else { ##keep 12-bit ZDT as the default mode
-        #     ccdset_OperatingMode_Lambda 0
-        # }
+
+        if (self.EXT_TRIGGER == 0):
+            yield from self.setup_trigger_mode_internal()            
+        elif (self.EXT_TRIGGER == 2):
+            yield from self.setup_trigger_mode_external()
+        else:
+            yield from bps.null()
 
         yield from self.setTriggerMode(self.EXT_TRIGGER)
         # TODO: shutteroff_default
         if self.EXT_TRIGGER == self.MODE_TRIGGER_EXTERNAL_PER_FRAME:
             action = "OPEN AND CLOSE DURING"
+            yield from self.setup_trigger_logic_external(num_triggers)
         else:   # self.MODE_TRIGGER_INTERNAL and self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE
             action = "REMAIN OPEN THROUGH"
         logger.info(f"Shutter will *{action}* the Acquisition...")
@@ -174,7 +178,7 @@ class Lambda750kCamLocal(Device):
             num_triggers += 1
         yield from bps.mv(sg_num_frames, num_triggers)
 
-        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, 1) # external trigger
+        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, '1') # external trigger
         #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
 
     def setup_trigger_mode_external(self):

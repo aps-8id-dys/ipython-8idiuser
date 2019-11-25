@@ -193,14 +193,14 @@ class DM_Workflow:
         path = registers.root_folder.value
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
-        data_folder = registers.data_folder.value.strip('/')
+        data_folder = self.cleanupFilename(registers.data_folder.value.strip('/'))
         path = os.path.join(path, data_folder, registers.data_subfolder.value)
         fname = (
             f"{data_folder}"
             f"_{registers.data_begin.value:04.0f}"
             f"-{registers.data_end.value:04.0f}"
         )
-        fullname = self.cleanupFilename(os.path.join(path, f"{fname}.hdf"))
+        fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
         while os.path.exists(fullname):
             suffix += 1

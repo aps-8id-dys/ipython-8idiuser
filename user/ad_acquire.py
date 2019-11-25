@@ -29,6 +29,7 @@ def AD_Acquire(areadet,
     """
     logger.info("AD_Acquire starting")
     path = path or f"/home/8-id-i/{aps_cycle}/jemian_201908"
+    file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
@@ -91,8 +92,7 @@ def AD_Acquire(areadet,
             f"_{dm_pars.data_begin.value:04.0f}"
             f"-{dm_pars.data_end.value:04.0f}"
         )
-        fullname = dm_workflow.cleanupFilename(
-            os.path.join(path, f"{fname}.hdf"))
+        fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
         while os.path.exists(fullname):
             suffix += 1

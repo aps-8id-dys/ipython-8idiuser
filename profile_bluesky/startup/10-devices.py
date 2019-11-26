@@ -409,6 +409,8 @@ class SoftGlueDevice(Device):
     # this is a stringout record, value is a str
     select_pulse_train_source = Component(EpicsSignal, '8idi:softGlueA:MUX2-1_SEL_Signal')
 
+    acquire_ext_trig_status = Component(EpicsSignal, '8idi:softGlueA:FI2_BI')
+
     def start_trigger(self):
         # from SPEC macro: Start_SoftGlue_Trigger
         if self.select_pulse_train_source.value == '0':

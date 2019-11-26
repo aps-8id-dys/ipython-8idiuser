@@ -131,6 +131,25 @@ class Lambda750kCamLocal(Device):
             # yield from bps.sleep(0.05)
             yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
+        
+        if self.EXT_TRIGGER > 0:
+            if (exposure_period - exposure_time) >= 0.45 and exposure_time >= 0.05:
+                yield from bps.mv(
+                    soft_glue.set_shtr_sig_pulse_tr_mode, '0',
+                    soft_glue.send_det_sig_pulse_tr_mode, '0',
+                    shutter_override, 0,
+                )
+                msg = "REGULAR...opens and closes during exposure"
+            else:
+                #prevents user from operating shutter for fast duty cycle
+                yield from bps.mv(
+                    soft_glue.set_shtr_sig_pulse_tr_mode, '1',
+                    soft_glue.send_det_sig_pulse_tr_mode, '1',
+                    shutter_override, 1,
+                )
+                msg = "BURST...Stays open for the full sequence"
+            msg = "Setting Shutter Mode for Detector ===> " + msg
+            logger.info(msg)
 
     def setTriggerMode(self, mode):
         """
@@ -176,6 +195,7 @@ class Lambda750kCamLocal(Device):
         # Set number of frames in SGControl1 depending on the mode
         if self.getOperatingMode == 0:
             num_triggers += 1
+        logger.debug(f"num_triggers = {num_triggers}")
         yield from bps.mv(sg_num_frames, num_triggers)
 
         yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, '1') # external trigger
@@ -329,8 +349,7 @@ class Lambda750kLocal(Device):
         # logger.debug(f"staging_setup_DM({args})")
 
         self.cam.stage_sigs["num_images"] = num_images
-        self.cam.stage_sigs["acquire_time"] = acquire_time
-        self.cam.stage_sigs["acquire_period"] = acquire_period
+        # replaced by: self.cam.setTime(acquire_time, acquire_period)
         self.immout.stage_sigs["enable"] = 1
         self.immout.stage_sigs["blocking_callbacks"] = "Yes"
         self.immout.stage_sigs["parent.cam.array_callbacks"] = 1
@@ -364,6 +383,20 @@ class Lambda750kLocal(Device):
         watch_signal.subscribe(closure)
         self.immout.capture.put(1, wait=False)
         acquire_signal.put(start_value, wait=False)
+        if self.cam.EXT_TRIGGER > 0:
+            t0 = time.time()
+            # while soft_glue.acquire_ext_trig_status.value != 1:
+            #     # detector reports (to soft glue) when it is ready for frame triggers
+            #     # Lambda manufacturer recommends this is 0.5 sec or so
+            #     time.sleep(0.025)
+            #     t = time.time() - t0
+            #     if t > 5:
+            #         emsg = f"Lambda detector not ready for frame triggers after {t:.3f}s"
+            #         raise TimeoutError(emsg)
+            # t = time.time() - t0
+            # if t > .2e-10:
+            #     logger.debug(f"waited {t:.3f}s for detector to become ready for frame triggers")
+            time.sleep(0.5) # manufacturer's minimum recommendation
         return status
     
     def xpcs_loop(self, *args, **kwargs):

@@ -46,6 +46,9 @@ pdbs = scaler1.channels.chan06.s
 I_APS = scaler1.channels.chan07.s
 I0Mon = scaler1.channels.chan08.s
 # APD = scaler1.channels.chan09.s
+# cstar_l = scaler1.channels.chan10.s
+# cstar_h = scaler1.channels.chan11.s
+# oxygen = scaler1.channels.chan12.s
 
 # default_counter will be defined to be pind1,2,3 or 4
 default_counter = pind4

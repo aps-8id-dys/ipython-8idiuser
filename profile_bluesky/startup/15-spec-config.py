@@ -2,7 +2,7 @@ logger.info(__file__)
 
 """converted from SPEC config file using apstools.migration.spec2ophyd"""
 
-#flyz = EpicsMotor('8idiAERO:aero:c0:m1', name='flyz', labels=("motor",))
+flyz = EpicsMotor('8idiAERO:aero:c0:m1', name='flyz', labels=("motor",))
 # line 1: MOT001 =    NONE:2/64   2000  1  2000  200   50  125    0 0x003  StrainN  StrainN
 tth = EpicsMotor('8idi:sm1', name='tth', labels=("motor",))
 

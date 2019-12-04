@@ -481,6 +481,8 @@ class PSO_TaxiFly_Device(Device):
     pso_taxi = Component(EpicsSignal, "taxi.VAL", put_complete=True)
     pso_fly = Component(EpicsSignal, "fly.VAL", put_complete=True)
     busy = Signal(value=False, name="busy")
+
+    enabled = True  # True or False  (was `FLY_SCAN_YES_NO` in SPEC)
     
     def setup(self, start_pos, end_pos, slew_speed):
         """

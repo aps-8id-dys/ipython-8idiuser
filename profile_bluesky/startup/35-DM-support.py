@@ -13,6 +13,7 @@ class DataManagementMetadata(Device):
     """
     airgap = Component(EpicsSignal, "8idi:Reg4")
     angle = Component(EpicsSignal, "8idi:Reg19")
+    ARun_number = Component(EpicsSignal, "8idi:Reg173")
     attenuation = Component(EpicsSignal, "8idi:Reg110")
     beam_center_x = Component(EpicsSignal, "8idi:Reg11")
     beam_center_y = Component(EpicsSignal, "8idi:Reg12")
@@ -48,6 +49,7 @@ class DataManagementMetadata(Device):
     ## pid1 = Component(EpicsSignal, "8idi:pid1.VAL")
     pid1_set = Component(EpicsSignal, "8idi:Reg167")
     pid2_set = Component(EpicsSignal, "8idi:Reg168")
+    qmap_file = Component(EpicsSignal, "8idi:StrReg13", string=True)
     roi_x1 = Component(EpicsSignal, "8idi:Reg101")
     roi_x2 = Component(EpicsSignal, "8idi:Reg102")
     roi_y1 = Component(EpicsSignal, "8idi:Reg103")

@@ -158,6 +158,7 @@ class DataManagementMetadata(DMDBase):
     signals for the APS Data Management service
     """
     angle = MyPV("8idi:Reg19")
+    ARun_number = MyPV("8idi:Reg173")
     attenuation = MyPV("8idi:Reg110")
     beam_center_x = MyPV("8idi:Reg11")
     beam_center_y = MyPV("8idi:Reg12")
@@ -191,6 +192,7 @@ class DataManagementMetadata(DMDBase):
     ## pid1 = MyPV("8idi:pid1.VAL")
     pid1_set = MyPV("8idi:Reg167")
     pid2_set = MyPV("8idi:Reg168")
+    qmap_file = MyPV("8idi:StrReg13", string=True)
     roi_x1 = MyPV("8idi:Reg101")
     roi_x2 = MyPV("8idi:Reg102")
     roi_y1 = MyPV("8idi:Reg103")

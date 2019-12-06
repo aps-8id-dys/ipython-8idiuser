@@ -277,6 +277,12 @@ class LS336_LoopBase(APS_devices.ProcessController):
         self.loop_number = loop_number
         super().__init__(*args, **kwargs)
 
+    @property
+    def settled(self):
+        """Is temperature close enough to target?"""
+        diff = abs(self.temperature.get() - self.target.value)
+        return diff <= self.tolerance.value
+
 
 class LS336_LoopMore(LS336_LoopBase):
     """

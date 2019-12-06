@@ -123,11 +123,6 @@ def AD_Acquire(areadet,
         # logger.debug("dm_pars.data_folder")
 
         yield from bps.mv(
-            dm_pars.datafilename, areadet.plugin_file_name,
-        )
-        # logger.debug("dm_pars.datafilename")
-
-        yield from bps.mv(
             dm_pars.source_begin_datetime, timestamp_now(),
         )
         # logger.debug("dm_pars.source_begin_datetime")
@@ -183,7 +178,9 @@ def AD_Acquire(areadet,
             dm_pars.source_end_current, aps.current.value,
             dm_pars.uid, db[-1].start["uid"],
             dm_pars.scan_id, int(RE.md["scan_id"]),
+            dm_pars.datafilename, areadet.plugin_file_name,
         )
+        # logger.debug("dm_pars.datafilename")
 
     def inner_count(devices, md={}):
         yield from bps.open_run(md=md)

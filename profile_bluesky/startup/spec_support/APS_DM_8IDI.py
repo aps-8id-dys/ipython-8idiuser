@@ -389,7 +389,7 @@ class DM_Workflow:
                  False: "DISABLED"}[registers.compression.value == 1]
             f["/measurement/instrument/acquisition/compression"] = v
 
-            if registers.geometry_num.value == 1: ##reflection geometry
+            if registers.geometry_num.get() == 1: ##reflection geometry
                 f.create_dataset("/measurement/instrument/acquisition/xspec",
                     data=[[float(registers.xspec.value)]],
                     dtype='float64')
@@ -410,7 +410,7 @@ class DM_Workflow:
                     data=[[float(registers.angle.value)]],
                     dtype='float64')
 
-            elif registers.geometry_num.value == 0: ##transmission geometry
+            elif registers.geometry_num.get() == 0: ##transmission geometry
                 f["/measurement/instrument/acquisition/xspec"] = [[float(-1)]]
                 f["/measurement/instrument/acquisition/zspec"] = [[float(-1)]]
                 f["/measurement/instrument/acquisition/ccdxspec"] = [[float(-1)]]
@@ -584,7 +584,7 @@ class DM_Workflow:
             f.create_dataset("/measurement/instrument/detector/gain", data=[[1]], dtype='uint32')
 
             choices = {0: "TRANSMISSION", 1: "REFLECTION"}
-            v = choices.get(registers.geometry_num.value, "UNKNOWN")
+            v = choices.get(registers.geometry_num.get(), "UNKNOWN")
             f["/measurement/instrument/detector/geometry"] = v
 
             choices = {True: "ENABLED", False: "DISABLED"}

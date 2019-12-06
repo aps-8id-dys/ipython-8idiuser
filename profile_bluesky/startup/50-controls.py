@@ -427,8 +427,8 @@ def beam_params_backup():
     for i in range(PV_REG_MAP["registers/detector"]):
         target = PV_REG_MAP["registers"][i + offset]
         source = PV_REG_MAP["registers"][i + offset_current]
-        t.addRow((source.value, source.pvname, target.pvname))
-        yield from bps.mv(target, source.value)
+        t.addRow((source.get(), source.pvname, target.pvname))
+        yield from bps.mv(target, source.get())
     logger.debug(f"Detector {detName} Beam Params are Backed up\n{t}")
 
 
@@ -453,8 +453,8 @@ def beam_params_restore():
     for i in range(PV_REG_MAP["registers/detector"]):
         source = PV_REG_MAP["registers"][i + offset]
         target = PV_REG_MAP["registers"][i + offset_current]
-        t.addRow((source.value, source.pvname, target.pvname))
-        yield from bps.mv(target, source.value)
+        t.addRow((source.get(), source.pvname, target.pvname))
+        yield from bps.mv(target, source.get())
         # logger.debug(f"{target.pvname} = {target.value}")
     logger.debug(f"Detector {detName} Beam Params are restored\n{t}")
 

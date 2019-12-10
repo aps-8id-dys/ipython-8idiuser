@@ -1,4 +1,7 @@
 logger.info(__file__)
+import itertools
+import uuid
+from ophyd import Signal
 
 """X-Spectrum Lambda 750K (not `ophyd.areaDetector`)"""
 
@@ -26,6 +29,9 @@ class Lambda750kCamLocal(Device):
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
     trigger_mode = Component(EpicsSignal, 'TriggerMode', kind='config')
+
+    array_size_x = Component(EpicsSignalRO, 'ArraySizeX_RBV', kind='config')
+    array_size_y = Component(EpicsSignalRO, 'ArraySizeY_RBV', kind='config')
 
     EXT_TRIGGER = 0
     LAMBDA_OPERATING_MODE = 0  # (0, 'ContinuousReadWrite', 1, 'TwentyFourBit')
@@ -250,6 +256,209 @@ class StatsLocal(Device):
     mean_value = Component(EpicsSignalWithRBV, "MeanValue", kind='config')
 
 
+class ExternalFileReference(Signal):
+    """
+    A pure software signal where a Device can stash a datum_id
+    """
+    def describe(self):
+        res = super().describe()
+        res[self.name].update(dict(external="FILESTORE:"))
+        return res
+
+import struct
+import numpy as np
+
+from area_detector_handlers.handlers import HandlerBase
+
+imm_headformat = "ii32s16si16siiiiiiiiiiiiiddiiIiiI40sf40sf40sf40sf40sf40sf40sf40sf40sf40sfffiiifc295s84s12s"
+
+imm_fieldnames = [
+    'mode',
+    'compression',
+    'date',
+    'prefix',
+    'number',
+    'suffix',
+    'monitor',
+    'shutter',
+    'row_beg',
+    'row_end',
+    'col_beg',
+    'col_end',
+    'row_bin',
+    'col_bin',
+    'rows',
+    'cols',
+    'bytes',
+    'kinetics',
+    'kinwinsize',
+    'elapsed',
+    'preset',
+    'topup',
+    'inject',
+    'dlen',
+    'roi_number',
+    'buffer_number',
+    'systick',
+    'pv1',
+    'pv1VAL',
+    'pv2',
+    'pv2VAL',
+    'pv3',
+    'pv3VAL',
+    'pv4',
+    'pv4VAL',
+    'pv5',
+    'pv5VAL',
+    'pv6',
+    'pv6VAL',
+    'pv7',
+    'pv7VAL',
+    'pv8',
+    'pv8VAL',
+    'pv9',
+    'pv9VAL',
+    'pv10',
+    'pv10VAL',
+    'imageserver',
+    'CPUspeed',
+    'immversion',
+    'corecotick',
+    'cameratype',
+    'threshhold',
+    'byte632',
+    'empty_space',
+    'ZZZZ',
+    'FFFF'
+]
+
+def readHeader(fp):
+    bindata = fp.read(1024)
+    
+    imm_headerdat = struct.unpack(imm_headformat,bindata)
+    imm_header ={}
+    for k in range(len(imm_headerdat)):
+        imm_header[imm_fieldnames[k]]=imm_headerdat[k]
+        
+    return(imm_header)
+    
+class IMMHandler(HandlerBase):
+    def __init__(self, filename, frames_per_point):
+        self.file = open(filename, "rb")
+        self.frames_per_point = frames_per_point
+        header = readHeader(self.file)
+        self.rows , self.cols = header['rows'], header['cols']
+        self.is_compressed = bool(header['compression'] == 6)
+        self.file.seek(0)
+        self.toc = []  # (start byte, element count) pairs
+        while True:
+            try:
+                header = readHeader(self.file)
+                print('header rows and cols', header['rows'], header['cols'])
+                cur = self.file.tell()
+                payload_size = header['dlen'] * (6 if header['compression'] == 6 else 2)
+                self.toc.append((cur, header['dlen']))
+                file_pos = payload_size + cur
+                self.file.seek(file_pos)
+                # Check for end of file.
+                if not self.file.read(4):
+                    break
+                self.file.seek(file_pos)
+            except Exception as err:
+                raise IOError("IMM file doesn't seems to be of right type") from err
+            
+    def close(self):
+        self.file.close()
+
+    def __call__(self, index):
+        logger.info(f'index: {index}')
+        result = np.zeros((self.frames_per_point, self.rows * self.cols), np.uint32)
+        for i in range(self.frames_per_point):
+            # looping through plane 'i' of chunk 'index'
+            start_byte, num_pixels = self.toc[index * self.frames_per_point + i]
+            self.file.seek(start_byte)
+            indexes = np.fromfile(self.file, dtype=np.uint32, count=num_pixels)
+            values = np.fromfile(self.file, dtype=np.uint16, count=num_pixels)
+            # if self.is_compressed:
+            
+            result[i, indexes] = values
+            # else:
+            #    result = dense_array
+        return result.reshape(self.frames_per_point, self.rows, self.cols)
+
+db.reg.register_handler('IMM', IMMHandler, overwrite=True)
+
+
+# #####
+
+# import struct
+# import numpy as np
+
+# def read_header(f):
+#     """
+#     Read the header from an IMM file and seek to the start of the data.
+#     """
+    
+#     # TODO: Replace it with a better EOF check
+#     # if f.read(4) == '':
+#     #     raise EOFError
+
+#     compression = struct.unpack('i', f.read(4))[0]
+#     f.seek(108, 1) # 116
+#     size = struct.unpack('i', f.read(4))[0]  # we "should not rely on this"
+#     f.seek(32, 1) #152
+#     dlen = struct.unpack('i', f.read(4))[0]
+#     f.seek(4, 1) #160
+#     bufferno = struct.unpack('i', f.read(4))[0]
+
+#     metadata = {}
+#     metadata['compression'] = bool(compression)
+#     bytes_per_pixel = 2 if compression else 6
+#     metadata['bytes_per_pixel'] = bytes_per_pixel
+#     metadata['num_pixels'] = dlen
+#     metadata['frame_no'] = bufferno
+    
+#     # Move it to the beginning of the data. 
+#     f.seek((1024 - 160), 1)
+
+#     #TODO Need additional attributes. 
+#     return metadata
+
+# from area_detector_handlers.handlers import HandlerBase
+
+
+# class IMMHandler(HandlerBase):
+#     def __init__(self, filename):
+#         self.file = open(filename, "rb")
+#         self.toc = []  # (start byte, element count) pairs
+#         while True:
+#             try:
+#                 header = read_header(self.file)
+#                 logger.info(f'header: {header}')
+#                 cur = self.file.tell()
+#                 payload_size = header['num_pixels'] * header['bytes_per_pixel']
+#                 self.toc.append((cur, header['num_pixels']))
+#                 file_pos = payload_size + cur
+#                 self.file.seek(file_pos)
+#                 # Check for end of file.
+#                 if not self.file.read(4):
+#                     break
+#                 self.file.seek(file_pos)
+#             except Exception as err:
+#                 raise IOError("IMM file doesn't seems to be of right type") from err
+#         logger.info(f'TOC: {self.toc}')
+
+#     def close(self):
+#         self.file.close()
+
+#     def __call__(self, index):
+#         start_byte, num_pixels = self.toc[index]
+#         logger.info(f'start_byte, num_pixels: {start_byte}, {num_pixels}')
+#         self.file.seek(start_byte)
+#         sparsed_array = np.fromfile(self.file, dtype=np.uint16, count=2)
+#         dense_array = np.fromfile(self.file, dtype=np.uint16, count=6)
+#         return dense_array
+
 class Lambda750kLocal(Device):
     """
     local interface to the Lambda 750k detector
@@ -266,6 +475,11 @@ class Lambda750kLocal(Device):
     imm1 = Component(IMMoutLocal, "IMM1:")
     imm2 = Component(IMMoutLocal, "IMM2:")
     stats1 = Component(StatsLocal, "Stats1:")
+    image = Component(ExternalFileReference, value="")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._assets_docs_cache = []
 
     @property
     def chk_ccdc(self):
@@ -341,8 +555,8 @@ class Lambda750kLocal(Device):
         """
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
-        file_path = args[0]
-        file_name = args[1]
+        self._file_path = args[0]
+        self._file_name = args[1]
         num_images = args[2]
         acquire_time = args[3]
         acquire_period = args[4]
@@ -353,12 +567,42 @@ class Lambda750kLocal(Device):
         self.immout.stage_sigs["enable"] = 1
         self.immout.stage_sigs["blocking_callbacks"] = "Yes"
         self.immout.stage_sigs["parent.cam.array_callbacks"] = 1
-        self.immout.stage_sigs["file_path"] = file_path
-        self.immout.stage_sigs["file_name"] = file_name
+        self.immout.stage_sigs["file_path"] = self._file_path
+        self.immout.stage_sigs["file_name"] = self._file_name
         self.immout.stage_sigs["num_capture"] = num_images
         self.immout.stage_sigs["file_number"] = 1
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
+
+
+    def stage(self):
+        super().stage()
+        root = os.path.join("/", "home", "8-id-i/")
+        if self._file_path.startswith("/data/"):
+            self._file_path = self._file_path[len("/data/"):]
+        elif self._file_path.startswith("/home/8-id-i/"):
+            self._file_path = self._file_path[len("/home/8-id-i/"):]
+
+        fname = (
+            f"{self._file_name}"
+            f"_{dm_pars.data_begin.value:05.0f}"
+            f"-{dm_pars.data_end.value:05.0f}"
+            ".imm"
+        )
+        full_name = os.path.join(root, self._file_path, fname)
+        logger.info(f"full_name: {full_name}")
+        self._resource_uid = str(uuid.uuid4())
+        resource_doc = {'uid': self._resource_uid,
+                        'spec': 'IMM',
+                        'resource_path': os.path.join(self._file_path, fname),
+                        'root': root,
+                        'resource_kwargs': {'frames_per_point': self.get_frames_per_point()},
+                        'path_semantics': 'posix',
+                        # can't add new stuff, such as: 'full_name': full_name,
+                        }
+        self._datum_counter = itertools.count()
+
+        self._assets_docs_cache.append(('resource', resource_doc))
 
     def trigger(self):
         "trigger device acquisition and return a status object"
@@ -397,6 +641,14 @@ class Lambda750kLocal(Device):
             # if t > .2e-10:
             #     logger.debug(f"waited {t:.3f}s for detector to become ready for frame triggers")
             time.sleep(0.5) # manufacturer's minimum recommendation
+        index = next(self._datum_counter)
+        datum_id = f'{self._resource_uid}/{index}'
+        datum_doc = {'resource': self._resource_uid,
+                     'datum_id': datum_id,
+                     'datum_kwargs': {'index': index}}
+        self.image.set(datum_id)
+        self._assets_docs_cache.append(('datum', datum_doc))
+
         return status
     
     def xpcs_loop(self, *args, **kwargs):
@@ -407,6 +659,13 @@ class Lambda750kLocal(Device):
         """
         pass    # TODO:
 
+    def collect_asset_docs(self):
+        cache = self._assets_docs_cache.copy()
+        yield from cache
+        self._assets_docs_cache.clear()
+
+    def get_frames_per_point(self):
+        return self.cam.num_images.get()
 
 try:
     lambdadet = Lambda750kLocal(
@@ -415,7 +674,7 @@ try:
         labels=["lambda",]
         )
 
-    lambdadet.read_attrs += ["immout", ]
+    lambdadet.read_attrs += ["immout", "image"]
     
 except TimeoutError:
     m = "Could not connect Lambda 750K detector"

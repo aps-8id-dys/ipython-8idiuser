@@ -2,6 +2,8 @@
 
 """
 test issue #114 for FailedStatus exception
+
+see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/114
 """
 
 #from apstools.devices import DeviceMixinBase
@@ -24,8 +26,7 @@ import time
 # logger.setLevel("DEBUG")
 
 
-# logging.basicConfig(level=logging.DEBUG)
-# logger = stdlogpj.standard_logging_setup("test3", level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 if len(sys.argv) == 1:
     CYCLES = 10
 elif len(sys.argv) == 2:

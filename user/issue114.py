@@ -14,6 +14,7 @@ from bluesky.utils import get_history
 from bluesky.utils import ProgressBarManager
 import bluesky.plan_stubs as bps
 from databroker import Broker
+import datetime
 import epics
 import logging
 from ophyd import Component, EpicsSignal
@@ -21,12 +22,12 @@ import os
 import sys
 import time
 
-# import ophyd
+import ophyd
 # logger = logging.getLogger('ophyd.event_dispatcher')
-# logger.setLevel("DEBUG")
+logger = logging.getLogger('ophyd.signal')
+logger.setLevel("DEBUG")
 
 
-logging.basicConfig(level=logging.DEBUG)
 if len(sys.argv) == 1:
     CYCLES = 10
 elif len(sys.argv) == 2:
@@ -56,7 +57,7 @@ def move(signal, label, dest, delay_s):
     yield from bps.mv(signal, dest)
     msg = f"{label}:  {dest} {signal.value}"
     # print(msg, os.system("uptime"))
-    print(msg)
+    print(msg, datetime.datetime.now())
     yield from bps.sleep(delay_s)
 
 i = 0

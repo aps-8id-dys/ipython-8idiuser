@@ -28,7 +28,7 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = path or f"/home/8-id-i/{aps_cycle}/jemian_201908"
+    path = path or f"/home/8-id-i/{aps_cycle}/bluesky"
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):

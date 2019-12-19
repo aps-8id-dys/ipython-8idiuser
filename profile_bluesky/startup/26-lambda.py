@@ -272,6 +272,7 @@ class ExternalFileReference(Signal):
 import struct
 import numpy as np
 
+# pip install area_detector_handlers
 from area_detector_handlers.handlers import HandlerBase
 
 imm_headformat = "ii32s16si16siiiiiiiiiiiiiddiiIiiI40sf40sf40sf40sf40sf40sf40sf40sf40sf40sfffiiifc295s84s12s"

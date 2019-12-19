@@ -260,9 +260,13 @@ class ExternalFileReference(Signal):
     """
     A pure software signal where a Device can stash a datum_id
     """
+    def __init__(self, *args, shape, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.shape = shape
+
     def describe(self):
         res = super().describe()
-        res[self.name].update(dict(external="FILESTORE:"))
+        res[self.name].update(dict(external="FILESTORE:", dtype="array", shape=self.shape))
         return res
 
 import struct
@@ -389,76 +393,6 @@ class IMMHandler(HandlerBase):
 db.reg.register_handler('IMM', IMMHandler, overwrite=True)
 
 
-# #####
-
-# import struct
-# import numpy as np
-
-# def read_header(f):
-#     """
-#     Read the header from an IMM file and seek to the start of the data.
-#     """
-    
-#     # TODO: Replace it with a better EOF check
-#     # if f.read(4) == '':
-#     #     raise EOFError
-
-#     compression = struct.unpack('i', f.read(4))[0]
-#     f.seek(108, 1) # 116
-#     size = struct.unpack('i', f.read(4))[0]  # we "should not rely on this"
-#     f.seek(32, 1) #152
-#     dlen = struct.unpack('i', f.read(4))[0]
-#     f.seek(4, 1) #160
-#     bufferno = struct.unpack('i', f.read(4))[0]
-
-#     metadata = {}
-#     metadata['compression'] = bool(compression)
-#     bytes_per_pixel = 2 if compression else 6
-#     metadata['bytes_per_pixel'] = bytes_per_pixel
-#     metadata['num_pixels'] = dlen
-#     metadata['frame_no'] = bufferno
-    
-#     # Move it to the beginning of the data. 
-#     f.seek((1024 - 160), 1)
-
-#     #TODO Need additional attributes. 
-#     return metadata
-
-# from area_detector_handlers.handlers import HandlerBase
-
-
-# class IMMHandler(HandlerBase):
-#     def __init__(self, filename):
-#         self.file = open(filename, "rb")
-#         self.toc = []  # (start byte, element count) pairs
-#         while True:
-#             try:
-#                 header = read_header(self.file)
-#                 logger.info(f'header: {header}')
-#                 cur = self.file.tell()
-#                 payload_size = header['num_pixels'] * header['bytes_per_pixel']
-#                 self.toc.append((cur, header['num_pixels']))
-#                 file_pos = payload_size + cur
-#                 self.file.seek(file_pos)
-#                 # Check for end of file.
-#                 if not self.file.read(4):
-#                     break
-#                 self.file.seek(file_pos)
-#             except Exception as err:
-#                 raise IOError("IMM file doesn't seems to be of right type") from err
-#         logger.info(f'TOC: {self.toc}')
-
-#     def close(self):
-#         self.file.close()
-
-#     def __call__(self, index):
-#         start_byte, num_pixels = self.toc[index]
-#         logger.info(f'start_byte, num_pixels: {start_byte}, {num_pixels}')
-#         self.file.seek(start_byte)
-#         sparsed_array = np.fromfile(self.file, dtype=np.uint16, count=2)
-#         dense_array = np.fromfile(self.file, dtype=np.uint16, count=6)
-#         return dense_array
-
 class Lambda750kLocal(Device):
     """
     local interface to the Lambda 750k detector
@@ -475,7 +409,7 @@ class Lambda750kLocal(Device):
     imm1 = Component(IMMoutLocal, "IMM1:")
     imm2 = Component(IMMoutLocal, "IMM2:")
     stats1 = Component(StatsLocal, "Stats1:")
-    image = Component(ExternalFileReference, value="")
+    image = Component(ExternalFileReference, value="", shape=[])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -601,7 +535,7 @@ class Lambda750kLocal(Device):
                         # can't add new stuff, such as: 'full_name': full_name,
                         }
         self._datum_counter = itertools.count()
-
+        self.image.shape = [self.get_frames_per_point(), self.cam.array_size_y.get(), self.cam.array_size_x.get()]
         self._assets_docs_cache.append(('resource', resource_doc))
 
     def trigger(self):

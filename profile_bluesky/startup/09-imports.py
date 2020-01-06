@@ -35,9 +35,9 @@ from ophyd import SingleTrigger, SimDetector
 from ophyd.areadetector.filestore_mixins import FileStoreIterativeWrite
 from ophyd.areadetector.filestore_mixins import FileStoreHDF5IterativeWrite
 from ophyd.areadetector.plugins import PluginBase
-# new in ophyd 1.4.0rc1
-from ophyd.areadetector.plugins import GatherPlugin
-from ophyd.areadetector.plugins import ScatterPlugin
+# # new in ophyd 1.4.0rc1
+# from ophyd.areadetector.plugins import GatherPlugin
+# from ophyd.areadetector.plugins import ScatterPlugin
 
 import apstools.callbacks as APS_callbacks
 import apstools.devices as APS_devices

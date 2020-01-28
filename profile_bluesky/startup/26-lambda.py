@@ -509,7 +509,6 @@ class Lambda750kLocal(Device):
         self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
         self.immout.stage_sigs["capture"] = 1
 
-
     def stage(self):
         super().stage()
         root = os.path.join("/", "home", "8-id-i/")

@@ -16,6 +16,11 @@ import threading
 import time
 import uuid
 
+import ophyd
+
+# set default timeout for ANY PV to 10 s
+ophyd.EpicsSignal.set_default_timeout(timeout=10)
+
 from ophyd import Component, Device, DeviceStatus, Signal
 from ophyd import EpicsMotor, MotorBundle
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV

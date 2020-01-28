@@ -74,6 +74,7 @@ class DataManagementMetadata(Device):
     stage_z = Component(EpicsSignal, "8idi:Reg120")
     stage_zero_x = Component(EpicsSignal, "8idi:Reg13")
     stage_zero_z = Component(EpicsSignal, "8idi:Reg14")
+    stop_before_next_scan = Component(EpicsSignal, "8idi:Reg174")
 
     temperature_A = Component(EpicsSignal, "8idi:Reg154")
     temperature_B = Component(EpicsSignal, "8idi:Reg155")

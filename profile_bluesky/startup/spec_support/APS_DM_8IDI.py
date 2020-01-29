@@ -51,21 +51,22 @@ def unix(command, raises=True):
         emsg = f"Cannot call unix() when OS={sys.platform}"
         raise RuntimeError(emsg)
 
-    process = subprocess.Popen(
+    stdout, stderr = "", ""
+    with subprocess.Popen(
         command, 
         shell=True,
         stdin = subprocess.PIPE,
         stdout = subprocess.PIPE,
         stderr = subprocess.PIPE,
-        )
+        ) as process:
 
-    stdout, stderr = process.communicate()
+        stdout, stderr = process.communicate()
 
-    if len(stderr) > 0:
-        emsg = f"unix({command}) returned error:\n{stderr}"
-        logger.error(emsg)
-        if raises:
-            raise RuntimeError(emsg)
+        if len(stderr) > 0:
+            emsg = f"unix({command}) returned error:\n{stderr}"
+            logger.error(emsg)
+            if raises:
+                raise RuntimeError(emsg)
 
     return stdout, stderr
 

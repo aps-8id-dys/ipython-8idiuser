@@ -9,6 +9,7 @@ test that we can run user ops continuously - use Lambda detector
 """
 
 def lambda_test(num_iter=10):
+    bec.disable_plots()
     for i in range(num_iter):
         if dm_pars.stop_before_next_scan.get() != 0:
             logger.info("received signal to STOP before next scan")
@@ -24,6 +25,8 @@ def lambda_test(num_iter=10):
             num_images=100, file_name=file_name,
             submit_xpcs_job=True,
             atten=None, path=None)
+
+    bec.enable_plots()
 
 
 def trubble():

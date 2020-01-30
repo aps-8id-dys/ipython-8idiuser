@@ -497,6 +497,9 @@ class Lambda750kLocal(Device):
         acquire_period = args[4]
         # logger.debug(f"staging_setup_DM({args})")
 
+        if self._file_path.startswith("/home/8-id-i/"):
+            self._file_path = "/data/" + self._file_path.lstrip("/home/8-id-i/")
+
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
         self.immout.stage_sigs["enable"] = 1

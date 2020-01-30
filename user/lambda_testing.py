@@ -28,6 +28,7 @@ def lambda_test(num_iter=10):
             num_images=100, file_name=file_name,
             submit_xpcs_job=True,
             atten=None, path=None)
+        logger.info("-"*20 + " end of acquire")
 
     bec.enable_baseline()
     bec.enable_table()

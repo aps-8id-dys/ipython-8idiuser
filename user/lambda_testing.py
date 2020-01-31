@@ -39,7 +39,7 @@ def trubble():
     """
     demonstrate a problem when using bluesky 1.6.0rc3
 
-    latest release (bluesky 1.4.1) does not raise tihs exception
+    latest release (bluesky 1.4.1) does not raise this exception
 
     see: https://github.com/bluesky/bluesky/issues/1282
     """

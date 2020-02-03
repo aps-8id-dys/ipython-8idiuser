@@ -40,7 +40,7 @@ class UnixCommandSignal(Signal):
     def get(self):
         return self.unix_output, self.unix_error
 
-class Rigaku_8IDI(Device):
+class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     """
     Supports non-epics communication with the new Rigaku detector
 
@@ -83,27 +83,23 @@ class Rigaku_8IDI(Device):
     
     @property
     def plugin_file_name(self):
+        """
+        return the file name the plugin wrote
+        
+        from DM_DeviceMixinAreaDetector
+        """
         return f"{self.batch_name.get()}.bin"
     
     @property
     def images_received(self):
         """Rigaku tells us not to change this.  100k images every time."""
         return 100000
-    
-    def xpcs_loop(self, *args, **kwargs):
-        """
-        Combination of `xpcs_pre_start_RIGAKU` and `user_xpcs_loop_RIGAKU`
-
-        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
-        """
-        pass    # TODO:
 
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
         
-        Implement this method in _any_ Device that requires custom
-        setup for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")

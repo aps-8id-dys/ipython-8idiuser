@@ -394,7 +394,7 @@ class IMMHandler(HandlerBase):
 db.reg.register_handler('IMM', IMMHandler, overwrite=True)
 
 
-class Lambda750kLocal(Device):
+class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     """
     local interface to the Lambda 750k detector
     """
@@ -452,7 +452,7 @@ class Lambda750kLocal(Device):
         """
         return the file name the plugin wrote
         
-        Implement for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         # cut the path from file name
         return os.path.basename(self.immout.full_file_name.get())
@@ -485,8 +485,7 @@ class Lambda750kLocal(Device):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
         
-        Implement this method in _any_ Device that requires custom
-        setup for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
@@ -587,14 +586,6 @@ class Lambda750kLocal(Device):
         self._assets_docs_cache.append(('datum', datum_doc))
 
         return status
-    
-    def xpcs_loop(self, *args, **kwargs):
-        """
-        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
-
-        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
-        """
-        pass    # TODO:
 
     def collect_asset_docs(self):
         cache = self._assets_docs_cache.copy()

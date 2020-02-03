@@ -3,14 +3,13 @@ logger.info(__file__)
 """detectors (area detectors handled separately)"""
 
 # class LocalScalerCH(ScalerCH):
-class LocalScalerCH(FixScalerCH):
+class LocalScalerCH(DM_DeviceMixinScaler, FixScalerCH):
     
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the scaler's stage_sigs for acquisition with the DM workflow
 
-        Implement this method in _any_ Device that requires custom
-        setup for the DM workflow.
+        from DM_DeviceMixinScaler
         """
         assert len(args) == 1
         acquire_period = args[0]

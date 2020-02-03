@@ -107,6 +107,6 @@ xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5
 dm_pars = DataManagementMetadata(name="dm_pars")
 dm_workflow = APS_DM_8IDI.DM_Workflow(
     dm_pars, aps_cycle, xpcs_qmap_file,
-    transfer=dm_pars.transfer.value,
-    analysis=dm_pars.analysis.value,
+    transfer=dm_pars.transfer.get(),
+    analysis=dm_pars.analysis.get(),
     )

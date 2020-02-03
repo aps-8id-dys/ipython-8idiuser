@@ -55,7 +55,7 @@ pv.wait_for_connection()
 def move(signal, label, dest, delay_s):
     yield from bps.checkpoint()
     yield from bps.mv(signal, dest)
-    msg = f"{label}:  {dest} {signal.value}"
+    msg = f"{label}:  {dest} {signal.get()}"
     # print(msg, os.system("uptime"))
     print(msg, datetime.datetime.now())
     yield from bps.sleep(delay_s)

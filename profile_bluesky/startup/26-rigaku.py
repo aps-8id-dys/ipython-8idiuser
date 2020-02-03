@@ -65,7 +65,7 @@ class Rigaku_8IDI(Device):
         shutter_mode.put("UFXC")    # data mode
         shutter_control.put("Open")
         shutter_override.put("High")
-        cmd = f"echo FILE:F:{self.batch_name.value} | nc rigaku1.xray.aps.anl.gov 10000"
+        cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
     
     def trigger(self):
@@ -83,7 +83,7 @@ class Rigaku_8IDI(Device):
     
     @property
     def plugin_file_name(self):
-        return f"{self.batch_name.value}.bin"
+        return f"{self.batch_name.get()}.bin"
     
     @property
     def images_received(self):

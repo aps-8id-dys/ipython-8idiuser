@@ -45,8 +45,8 @@ class Metadata:
                     title,
                     n+1,
                     register.prefix,
-                    register.description.value,
-                    register.signal.value,
+                    register.description.get(),
+                    register.signal.get(),
                 ]
             )
 

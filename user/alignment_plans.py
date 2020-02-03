@@ -33,7 +33,7 @@ def Rinaldi_group_alignment(_md={}):
     yield from lineup(channel, motor, -30, 30, 30, 1.0, md=md)
 
     # prints the flux, scaled to 100 mA APS current
-    count_rate = channel.value / timebase.value * 1e6 * aps.current.value / 100
+    count_rate = channel.get() / timebase.get() * 1e6 * aps.current.get() / 100
     v = flux(pind1, count_rate)
     if v < 1e12:
         logger.warning(f"computed flux {v} is low, expected at least 1e12")

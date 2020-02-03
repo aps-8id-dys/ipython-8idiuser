@@ -146,8 +146,8 @@ class DMDBase(object):
                     obj.data_type,
                     k,
                     obj.pv.pvname,
-                    obj.description.value,
-                    obj.value,
+                    obj.description.get(),
+                    obj.get(),
                 ]
             )
         return tbl
@@ -264,9 +264,9 @@ class WorkflowHelper:
         self.workflow = APS_DM_8IDI.DM_Workflow(
             self.registers, 
             aps_cycle(), 
-            self.registers.xpcs_qmap_file.value,
-            transfer=self.registers.transfer.value,
-            analysis=self.registers.analysis.value,
+            self.registers.xpcs_qmap_file.get(),
+            transfer=self.registers.transfer.get(),
+            analysis=self.registers.analysis.get(),
             )
 
         # local attributes to control the polling loop
@@ -276,7 +276,7 @@ class WorkflowHelper:
     
     def incrementTicker(self):
         """increment the ticker to show process is working"""
-        n = max(int(self.registers.workflow_ticker.value), 0)
+        n = max(int(self.registers.workflow_ticker.get()), 0)
         self.registers.workflow_ticker.put((n + 1) % self.increment_modulo)
 
     def runPollingLoop(self):
@@ -300,36 +300,36 @@ class WorkflowHelper:
                 t_next_increment = t_now + self.increment_interval
                 self.incrementTicker()
 
-            if (self.registers.workflow_start.value != 0
+            if (self.registers.workflow_start.get() != 0
                 and 
-                self.registers.workflow_caller.value.lower() == "spec"
+                self.registers.workflow_caller.get().lower() == "spec"
                 and
                 not work_in_progress
             ):
                 work_in_progress = True
                 logger.debug("workflow handling triggered")
                 self.workflow.set_xpcs_qmap_file(
-                    self.registers.xpcs_qmap_file.value)    # in case this changed
+                    self.registers.xpcs_qmap_file.get())    # in case this changed
                 
-                self.workflow.transfer = self.registers.transfer.value
-                self.workflow.analysis = self.registers.analysis.value
+                self.workflow.transfer = self.registers.transfer.get()
+                self.workflow.analysis = self.registers.analysis.get()
                 
-                logger.info(f"calling start_workflow(analysis={self.registers.workflow_submit_xpcs_job.value})")
+                logger.info(f"calling start_workflow(analysis={self.registers.workflow_submit_xpcs_job.get()})")
                 t0 = time.time()
                 self.workflow.start_workflow(
-                    analysis=self.registers.workflow_submit_xpcs_job.value)
+                    analysis=self.registers.workflow_submit_xpcs_job.get())
                 dt = time.time() - t0
                 logger.info(f"after starting data management workflow ({dt:.3f}s)")
                 logger.info(f"workflow file: {self.workflow.hdf_workflow_file}")
                 calls = 0
-                while self.registers.workflow_start.value != 0:
+                while self.registers.workflow_start.get() != 0:
                     self.registers.workflow_start.put(0, wait=True, timeout=0.1)
                     calls += 1
                     if (calls % 10) == 0:
                         logger.warning("retrying caput(trigger PV, 0) {calls} times")
                 if calls > 1:
                     logger.warning(f"RETRY: put trigger PV value took {calls} tries")
-                logger.debug(f"reset trigger: {self.registers.workflow_start.value} (should be '0')")
+                logger.debug(f"reset trigger: {self.registers.workflow_start.get()} (should be '0')")
                 work_in_progress = False
 
             time.sleep(self.loop_sleep)

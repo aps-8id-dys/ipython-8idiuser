@@ -251,7 +251,7 @@ class SampleStage(Device):
     zdata = np.linspace(0, .5, 15)    # example: user will change this
 
     def movesample(self):
-        if dm_pars.geometry_num.value == 0: # transmission
+        if dm_pars.geometry_num.get() == 0: # transmission
             xn = len(self.xdata)
             zn = len(self.zdata)
             if xn > zn:
@@ -313,8 +313,8 @@ class LS336_LoopBase(APS_devices.ProcessController):
     @property
     def settled(self):
         """Is temperature close enough to target?"""
-        diff = abs(self.temperature.get() - self.target.value)
-        return diff <= self.tolerance.value
+        diff = abs(self.temperature.get() - self.target.get())
+        return diff <= self.tolerance.get()
 
 
 class LS336_LoopMore(LS336_LoopBase):
@@ -354,7 +354,7 @@ class LS336Device(Device):
     @property
     def value(self):
         """designate one loop as the default signal to return"""
-        return self.loop1.signal.value
+        return self.loop1.signal.get()
 
 
 class PSS_Parameters(Device):
@@ -381,7 +381,7 @@ class PSS_Parameters(Device):
         
         # I station operations are enabled if D shutter is OPEN
         """
-        enabled = self.d_shutter_open_chain_A.value == "ON"
+        enabled = self.d_shutter_open_chain_A.get() == "ON"
         return enabled
 
 
@@ -452,7 +452,7 @@ class SoftGlueDevice(Device):
 
     def start_trigger(self):
         # from SPEC macro: Start_SoftGlue_Trigger
-        if self.select_pulse_train_source.value == '0':
+        if self.select_pulse_train_source.get() == '0':
             logger.info("Starting detector trigger pulses")
             yield from bps.mv(self.start_trigger_pulses_sig, "1!")
         else:
@@ -535,7 +535,7 @@ class PSO_TaxiFly_Device(Device):
             msg + " received " + str(value)
             raise ValueError(msg)
 
-        if self.busy.value:
+        if self.busy.get():
             raise RuntimeError("PSO device is operating")
 
         status = DeviceStatus(self)

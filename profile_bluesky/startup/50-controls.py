@@ -191,7 +191,7 @@ def lineup(counter, axis, minus, plus, npts, time_s=0.1, peak_factor=4, width_fa
     if hasattr(axis, "position"):
         old_position = axis.position
     else:
-        old_position = axis.value
+        old_position = axis.get()
 
     def peak_analysis():
         aligned = False
@@ -397,7 +397,7 @@ def pv_reg_read(num):
     """read a value from PV register (indexed by number)"""
     register = PV_REG_MAP["registers"][num]
     if register is not None:
-        return register.value
+        return register.get()
 
 
 def pv_reg_write(num, value):
@@ -411,7 +411,7 @@ def beam_params_backup():
     """
     copy detector registers from current to detector
     """
-    detNum = dm_pars.detNum.value
+    detNum = dm_pars.detNum.get()
     detName = PV_REG_MAP["detectors"].get(detNum)
 
     if detName is None:
@@ -437,7 +437,7 @@ def beam_params_restore():
     """
     copy detector registers from detector to current
     """
-    detNum = dm_pars.detNum.value
+    detNum = dm_pars.detNum.get()
     detName = PV_REG_MAP["detectors"].get(detNum)
 
     if detName is None:
@@ -456,7 +456,7 @@ def beam_params_restore():
         target = PV_REG_MAP["registers"][i + offset_current]
         t.addRow((source.get(), source.pvname, target.pvname))
         yield from bps.mv(target, source.get())
-        # logger.debug(f"{target.pvname} = {target.value}")
+        # logger.debug(f"{target.pvname} = {target.get()}")
     logger.debug(f"Detector {detName} Beam Params are restored\n{t}")
 
 
@@ -470,7 +470,7 @@ def select_LAMBDA(distance=None):
         dm_pars.detector_distance, 3930.00, #moved sample 7 inches closer to detector
         dm_pars.airgap, 240.00,
     )
-    # logger.info(f"******** detector number {dm_pars.detNum.value} ************************")
+    # logger.info(f"******** detector number {dm_pars.detNum.get()} ************************")
     yield from beam_params_restore()
     yield from bps.sleep(1)
     yield from blockbeam()
@@ -479,7 +479,7 @@ def select_LAMBDA(distance=None):
 
     distance = distance or "4 m"
     if distance == "4 m":
-        # logger.debug(f"ccdx0={dm_pars.ccdx0.value}, ccdz0={dm_pars.ccdz0.value}")
+        # logger.debug(f"ccdx0={dm_pars.ccdx0.get()}, ccdz0={dm_pars.ccdz0.get()}")
         yield from bps.mv(
             detu.x, dm_pars.ccdx0.get(),
             detu.z, dm_pars.ccdz0.get(),
@@ -534,14 +534,14 @@ def select_RIGAKU():
         dm_pars.detector_distance, 3930.00, #moved sample 7 inches closer to detector
         dm_pars.airgap, 100.00,
     )
-    logger.info(f"******** detector number {dm_pars.detNum.value} ************************")
+    logger.info(f"******** detector number {dm_pars.detNum.get()} ************************")
     yield from beam_params_restore()
     yield from bps.sleep(1)
     yield from blockbeam()
     
     logger.info("Moving RIGAKU to the direct beam position")
 
-    # logger.debug(f"ccdx0={dm_pars.ccdx0.value}, ccdz0={dm_pars.ccdz0.value}")
+    # logger.debug(f"ccdx0={dm_pars.ccdx0.get()}, ccdz0={dm_pars.ccdz0.get()}")
     yield from bps.mv(
         detu.x, dm_pars.ccdx0.get(),
         detu.z, dm_pars.ccdz0.get(),
@@ -884,8 +884,8 @@ def AD_Acquire(areadet,
                 logger.debug(f"created path: {path}")
         fname = (
             f"{file_name}"
-            f"_{dm_pars.data_begin.value:04.0f}"
-            f"-{dm_pars.data_end.value:04.0f}"
+            f"_{dm_pars.data_begin.get():04.0f}"
+            f"-{dm_pars.data_end.get():04.0f}"
         )
         fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
@@ -897,7 +897,7 @@ def AD_Acquire(areadet,
         return fullname
 
     def update_metadata_prescan():
-        detNum = int(dm_pars.detNum.value)
+        detNum = int(dm_pars.detNum.get())
         det_pars = dm_workflow.detectors.getDetectorByNumber(detNum)
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
@@ -923,7 +923,7 @@ def AD_Acquire(areadet,
 
         yield from bps.mv(
             # Reg 121
-            dm_pars.source_begin_current, aps.current.value,
+            dm_pars.source_begin_current, aps.current.get(),
             # Reg 101-110 in order
             dm_pars.roi_x1, 0,
             dm_pars.roi_x2, det_pars["ccdHardwareColSize"]-1,
@@ -934,7 +934,7 @@ def AD_Acquire(areadet,
             dm_pars.kinetics_state, 0,                  # FIXME: SPEC generated this
             dm_pars.kinetics_window_size, 0,            # FIXME:
             dm_pars.kinetics_top, 0,                    # FIXME:
-            dm_pars.attenuation, atten.value,
+            dm_pars.attenuation, atten.get(),
         )
         # logger.debug("Reg 121, 101-110 done")
 
@@ -954,7 +954,7 @@ def AD_Acquire(areadet,
 
         yield from bps.mv(
             # Reg 123-127 in order
-            dm_pars.I0mon, I0Mon.value,
+            dm_pars.I0mon, I0Mon.get(),
             dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
             dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
             dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
@@ -969,7 +969,7 @@ def AD_Acquire(areadet,
         yield from bps.mv(
             # source end values
             dm_pars.source_end_datetime, timestamp_now(),
-            dm_pars.source_end_current, aps.current.value,
+            dm_pars.source_end_current, aps.current.get(),
             dm_pars.uid, db[-1].start["uid"],
             dm_pars.scan_id, int(RE.md["scan_id"]),
             dm_pars.datafilename, areadet.plugin_file_name,
@@ -1034,8 +1034,8 @@ def AD_Acquire(areadet,
         dm_workflow.create_hdf5_file(hdf_with_fullpath)
         
         # update these str values from the string registers
-        dm_workflow.transfer = dm_pars.transfer.value
-        dm_workflow.analysis = dm_pars.analysis.value
+        dm_workflow.transfer = dm_pars.transfer.get()
+        dm_workflow.analysis = dm_pars.analysis.get()
 
         # no need to yield from since the function is not a plan
         kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)

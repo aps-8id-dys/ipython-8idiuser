@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/125
+# do NOT define PYTHONPATH
+if [ "${PYTHONPATH}" != "" ]; then
+    unset PYTHONPATH
+fi
+
+CONDA_ENVIRONMENT=bluesky
+CONDA_ACTIVATE=/APSshare/miniconda/x86_64/bin/activate
+IPYTHON_DIR=~/.ipython-bluesky
+IPYTHON_PROFILE=bluesky
+
+# see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/125
+# clean up the PATH definition
+PATH=/bin:/usr/bin:/usr/sbin:/sbin
+# prepend these to PATH
+PATH=/usr/local/bin:${PATH}
+PATH=/opt/yorick-2.1/yorick:${PATH}
+PATH=/usr/local/globus/bin:${PATH}
+PATH=${HOME}:${PATH}
+PATH=${HOME}/bin:${PATH}
+PATH=${HOME}/.local/bin:${PATH}
+PATH=${HOME}/.local/bin/globus:${PATH}
+# append these to PATH
+PATH=${PATH}:${HOME}/perl5/bin
+PATH=${PATH}:/usr/lib64/ccache
+PATH=${PATH}:/opt/puppetlabs/bin
+PATH=${PATH}:/APSshare/epics/extensions-base/3.14.12.3-ext1/bin/linux-x86_64
+PATH=${PATH}:/APSshare/epics/extensions/bin/linux-x86_64
+PATH=${PATH}:/net/s8iddserv/APSshare/caqtdm/bin
+PATH=${PATH}:.
+export PATH
+
+source ${CONDA_ACTIVATE} ${CONDA_ENVIRONMENT}
+
+# export PYEPICS_LIBCA=/APSshare/epics/base-3.14.12.7/lib/rhel7-x86_64/libca.so.3.14
+ipython \
+    --profile=${IPYTHON_PROFILE} \
+    --ipython-dir=${IPYTHON_DIR} \
+    --IPCompleter.use_jedi=False

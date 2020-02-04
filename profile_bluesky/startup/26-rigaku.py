@@ -40,7 +40,25 @@ class UnixCommandSignal(Signal):
     def get(self):
         return self.unix_output, self.unix_error
 
-class Rigaku_8IDI(Device):
+
+class RigakuFakeCam(Device):
+
+    EXT_TRIGGER = 0
+
+    def setup_modes(self, num_triggers):
+        """
+        Rigaku detector will ignore this request
+        """
+        yield from bps.null()
+
+    def setTime(self, *args):
+        """
+        Rigaku detector will ignore this request
+        """
+        yield from bps.null()
+
+
+class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     """
     Supports non-epics communication with the new Rigaku detector
 
@@ -61,11 +79,13 @@ class Rigaku_8IDI(Device):
 
     detector_number = 46    # 8-ID-I numbering of this detector
 
+    cam = Component(RigakuFakeCam)
+
     def stage(self):
         shutter_mode.put("UFXC")    # data mode
         shutter_control.put("Open")
         shutter_override.put("High")
-        cmd = f"echo FILE:F:{self.batch_name.value} | nc rigaku1.xray.aps.anl.gov 10000"
+        cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
     
     def trigger(self):
@@ -83,27 +103,23 @@ class Rigaku_8IDI(Device):
     
     @property
     def plugin_file_name(self):
-        return f"{self.batch_name.value}.bin"
+        """
+        return the file name the plugin wrote
+        
+        from DM_DeviceMixinAreaDetector
+        """
+        return f"{self.batch_name.get()}.bin"
     
     @property
     def images_received(self):
         """Rigaku tells us not to change this.  100k images every time."""
         return 100000
-    
-    def xpcs_loop(self, *args, **kwargs):
-        """
-        Combination of `xpcs_pre_start_RIGAKU` and `user_xpcs_loop_RIGAKU`
-
-        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
-        """
-        pass    # TODO:
 
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
         
-        Implement this method in _any_ Device that requires custom
-        setup for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
@@ -114,12 +130,6 @@ class Rigaku_8IDI(Device):
         # acquire_period = args[4]
 
         self.batch_name.put(file_name)
-
-    def setup_modes(self, num_triggers):
-        """
-        set up modes accordingly, based on self.EXT_TRIGGER
-        """
-        yield from bps.null()
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

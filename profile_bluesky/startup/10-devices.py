@@ -251,7 +251,7 @@ class SampleStage(Device):
     zdata = np.linspace(0, .5, 15)    # example: user will change this
 
     def movesample(self):
-        if dm_pars.geometry_num.value == 0: # transmission
+        if dm_pars.geometry_num.get() == 0: # transmission
             xn = len(self.xdata)
             zn = len(self.zdata)
             if xn > zn:
@@ -313,8 +313,58 @@ class LS336_LoopBase(APS_devices.ProcessController):
     @property
     def settled(self):
         """Is temperature close enough to target?"""
-        diff = abs(self.temperature.get() - self.target.value)
-        return diff <= self.tolerance.value
+        diff = abs(self.temperature.get() - self.target.get())
+        return diff <= self.tolerance.get()
+
+    def get(self, *args, **kwargs):
+        return self.signal.get(*args, **kwargs)
+
+    def wait_until_settled(self, timeout=None, timeout_fail=False):
+        """
+        plan: wait for controller signal to reach target within tolerance
+        """
+        # see: https://stackoverflow.com/questions/2829329/catch-a-threads-exception-in-the-caller-thread-in-python
+        t0 = time.time()
+        _st = DeviceStatus(self.signal)
+
+        if self.settled:
+            # just in case signal already at target
+            _st._finished(success=True)
+        else:
+            started = False
+    
+            def changing_cb(*args, **kwargs):
+                if started and self.settled:
+                    _st._finished(success=True)
+    
+            token = self.signal.subscribe(changing_cb)
+            started = True
+            report = 0
+            while not _st.done and not self.settled:
+                elapsed = time.time() - t0
+                if timeout is not None and elapsed > timeout:
+                    _st._finished(success=self.settled)
+                    msg = f"{self.controller_name} Timeout after {elapsed:.2f}s"
+                    msg += f", target {self.target.get():.2f}{self.units.get()}"
+                    msg += f", now {self.signal.get():.2f}{self.units.get()}"
+                    print(msg)
+                    if timeout_fail:
+                        raise TimeoutError(msg)
+                    continue
+                if elapsed >= report:
+                    report += self.report_interval_s
+                    msg = f"Waiting {elapsed:.1f}s"
+                    msg += f" to reach {self.target.get():.2f}{self.units.get()}"
+                    msg += f", now {self.temperature.get():.2f}{self.units.get()}"
+                    print(msg)
+                yield from bps.sleep(self.poll_s)
+
+            self.signal.unsubscribe(token)
+            _st._finished(success=self.settled)
+
+        self.record_signal()
+        elapsed = time.time() - t0
+        print(f"Total time: {elapsed:.3f}s, settled:{_st.success}")
 
 
 class LS336_LoopMore(LS336_LoopBase):
@@ -354,7 +404,7 @@ class LS336Device(Device):
     @property
     def value(self):
         """designate one loop as the default signal to return"""
-        return self.loop1.signal.value
+        return self.loop1.signal.get()
 
 
 class PSS_Parameters(Device):
@@ -381,7 +431,7 @@ class PSS_Parameters(Device):
         
         # I station operations are enabled if D shutter is OPEN
         """
-        enabled = self.d_shutter_open_chain_A.value == "ON"
+        enabled = self.d_shutter_open_chain_A.get() == "ON"
         return enabled
 
 
@@ -452,7 +502,7 @@ class SoftGlueDevice(Device):
 
     def start_trigger(self):
         # from SPEC macro: Start_SoftGlue_Trigger
-        if self.select_pulse_train_source.value == '0':
+        if self.select_pulse_train_source.get() == '0':
             logger.info("Starting detector trigger pulses")
             yield from bps.mv(self.start_trigger_pulses_sig, "1!")
         else:
@@ -535,7 +585,7 @@ class PSO_TaxiFly_Device(Device):
             msg + " received " + str(value)
             raise ValueError(msg)
 
-        if self.busy.value:
+        if self.busy.get():
             raise RuntimeError("PSO device is operating")
 
         status = DeviceStatus(self)
@@ -558,3 +608,53 @@ class PSO_TaxiFly_Device(Device):
         
         threading.Thread(target=run_and_wait, daemon=True).start()
         return status
+
+
+class DM_DeviceMixinBase(Device):
+    """
+    methods and attributes used by the APS Data Management workflow support
+    """
+
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the device's stage_sigs for acquisition with the DM workflow
+
+        Implement this method in _any_ Device that requires custom
+        setup for the DM workflow.
+
+        Not a bluesky "plan" (no "yield from")
+        """
+        # logger.debug(f"staging_setup_DM({args})")
+        raise NotImplementedError("must override in subclass")
+
+
+class DM_DeviceMixinScaler(DM_DeviceMixinBase):
+    """for use with ScalerCH and the DM workflow"""
+
+
+class DM_DeviceMixinAreaDetector(DM_DeviceMixinBase):
+    """for use with area detector and the DM workflow"""
+
+    qmap_file = ""              # TODO: documentation?
+    detector_number = None      # 8-ID-I numbering of this detector
+    
+    @property
+    def plugin_file_name(self):
+        """
+        return the (base, no path) file name the plugin wrote
+        
+        Implement for the DM workflow.
+
+        Not a bluesky "plan" (no "yield from")
+        """
+        # logger.debug(f"plugin_file_name({args})")
+        raise NotImplementedError("must override in subclass")
+
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        # logger.debug(f"xpcs_loop({args})")
+        raise NotImplementedError("must override in subclass")

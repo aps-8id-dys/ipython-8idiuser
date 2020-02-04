@@ -84,12 +84,12 @@ class Lambda750kCamLocal(Device):
             msg = f"operating mode {mode} not allowed, must be one of 0, 1"
             msg += " (0='ContinuousReadWrite', 1='TwentyFourBit')"
             raise ValueError(msg)
-        if self.operating_mode.value != mode:
+        if self.operating_mode.get() != mode:
             yield from bps.mv(self.operating_mode, mode)
             # yield from bps.sleep(5.0)     # TODO: still needed?
             logger.info(f"Lambda Operating Mode switched to: {mode}")
 
-        if self.operating_mode.value == 1:
+        if self.operating_mode.get() == 1:
             yield from self.setDataType(3)     # 3: UInt16
             data_type = self.getDataType
             logger.info("Lambda DataType switched to: {data_type}")
@@ -394,7 +394,7 @@ class IMMHandler(HandlerBase):
 db.reg.register_handler('IMM', IMMHandler, overwrite=True)
 
 
-class Lambda750kLocal(Device):
+class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     """
     local interface to the Lambda 750k detector
     """
@@ -438,10 +438,10 @@ class Lambda750kLocal(Device):
         # BUT, this is only used when there is a 
         # pseudo-counter named "ccdc" (that's what chk_ccdc() does)
         if self.chk_ccdc:
-            if dm_pars.compression.value == 1:
-                return self.immout.num_pixels.value
+            if dm_pars.compression.get() == 1:
+                return self.immout.num_pixels.get()
             else:
-                return self.stats1.mean_value.value
+                return self.stats1.mean_value.get()
     
     @property
     def images_received(self):
@@ -452,10 +452,10 @@ class Lambda750kLocal(Device):
         """
         return the file name the plugin wrote
         
-        Implement for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         # cut the path from file name
-        return os.path.basename(self.immout.full_file_name.value)
+        return os.path.basename(self.immout.full_file_name.get())
 
     def setIMM_Cmprs(self):
         """
@@ -463,7 +463,7 @@ class Lambda750kLocal(Device):
         """
         # from SPEC macro: ccdset_compr_params_ad_Lambda
         for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.value not in (1, 'IMM_Cmprs'):
+            if plugin.file_format.get() not in (1, 'IMM_Cmprs'):
                 yield from bps.mv(
                     plugin.capture, 'Done',             # ('Done', 'Capture')
                     plugin.file_format, 'IMM_Cmprs',    # ('IMM_Raw', 'IMM_Cmprs')
@@ -475,7 +475,7 @@ class Lambda750kLocal(Device):
         """
         # from SPEC macro: ccdset_RawMode_params_ad_Lambda
         for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.value not in (0, 'IMM_Raw'):
+            if plugin.file_format.get() not in (0, 'IMM_Raw'):
                 yield from bps.mv(
                     plugin.capture, 'Done',             # ('Done', 'Capture')
                     plugin.file_format, 'IMM_Raw',      # ('IMM_Raw', 'IMM_Cmprs')
@@ -485,8 +485,7 @@ class Lambda750kLocal(Device):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
         
-        Implement this method in _any_ Device that requires custom
-        setup for the DM workflow.
+        from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
@@ -522,8 +521,8 @@ class Lambda750kLocal(Device):
 
         fname = (
             f"{self._file_name}"
-            f"_{dm_pars.data_begin.value:05.0f}"
-            f"-{dm_pars.data_end.value:05.0f}"
+            f"_{dm_pars.data_begin.get():05.0f}"
+            f"-{dm_pars.data_end.get():05.0f}"
             ".imm"
         )
         full_name = os.path.join(root, self._file_path, fname)
@@ -555,9 +554,9 @@ class Lambda750kLocal(Device):
             if value == done_value and old_value != value:
                 watch_signal.clear_sub(closure)
                 print("closure() method ends")
-                print(f"cam.acquire.value={self.cam.acquire.value}")
-                print(f"immout.capture.value={self.immout.capture.value}")
-                print(f"immout.num_captured.value={self.immout.num_captured.value}")
+                print(f"cam.acquire.get()={self.cam.acquire.get()}")
+                print(f"immout.capture.get()={self.immout.capture.get()}")
+                print(f"immout.num_captured.get()={self.immout.num_captured.get()}")
                 status._finished()
                 print(f"status={status}")
         
@@ -566,7 +565,7 @@ class Lambda750kLocal(Device):
         acquire_signal.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:
             t0 = time.time()
-            # while soft_glue.acquire_ext_trig_status.value != 1:
+            # while soft_glue.acquire_ext_trig_status.get() != 1:
             #     # detector reports (to soft glue) when it is ready for frame triggers
             #     # Lambda manufacturer recommends this is 0.5 sec or so
             #     time.sleep(0.025)
@@ -587,14 +586,6 @@ class Lambda750kLocal(Device):
         self._assets_docs_cache.append(('datum', datum_doc))
 
         return status
-    
-    def xpcs_loop(self, *args, **kwargs):
-        """
-        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
-
-        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
-        """
-        pass    # TODO:
 
     def collect_asset_docs(self):
         cache = self._assets_docs_cache.copy()

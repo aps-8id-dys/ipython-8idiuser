@@ -195,15 +195,15 @@ class DM_Workflow:
         decide absolute file name for the APS data management workflow
         """
         registers = self.registers
-        path = registers.root_folder.value
+        path = registers.root_folder.get()
         if path.startswith("/data"):
             path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
-        data_folder = self.cleanupFilename(registers.data_folder.value.strip('/'))
-        path = os.path.join(path, data_folder, registers.data_subfolder.value)
+        data_folder = self.cleanupFilename(registers.data_folder.get().strip('/'))
+        path = os.path.join(path, data_folder, registers.data_subfolder.get())
         fname = (
             f"{data_folder}"
-            f"_{registers.data_begin.value:04.0f}"
-            f"-{registers.data_end.value:04.0f}"
+            f"_{registers.data_begin.get():04.0f}"
+            f"-{registers.data_end.get():04.0f}"
         )
         fullname = os.path.join(path, f"{fname}.hdf")
         suffix = 0
@@ -302,113 +302,113 @@ class DM_Workflow:
         with h5py.File(filename, "w-") as f:
             # get a version number so we can make changes without breaking client code
             f.create_dataset("/hdf_metadata_version",
-                data=[[registers.hdf_metadata_version.value]]) #same as batchinfo_ver for now
+                data=[[registers.hdf_metadata_version.get()]]) #same as batchinfo_ver for now
             ##version 15 (May 2019) is start of burst mode support (rigaku) 
 
             #######/measurement/instrument/acquisition
             #######some new acq fields to replace batchinfo
             f.create_dataset("/measurement/instrument/acquisition/dark_begin",
-                data=[[registers.dark_begin.value]],
+                data=[[registers.dark_begin.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/dark_end",
-                data=[[registers.dark_end.value]],
+                data=[[registers.dark_end.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/data_begin",
-                data=[[registers.data_begin.value]],
+                data=[[registers.data_begin.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/data_end",
-                data=[[registers.data_end.value]],
+                data=[[registers.data_end.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/specscan_dark_number",
-                data=[[registers.specscan_dark_number.value]],
+                data=[[registers.specscan_dark_number.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/specscan_data_number",
-                data=[[registers.specscan_data_number.value]],
+                data=[[registers.specscan_data_number.get()]],
                 dtype='uint64'
                 )
 
             f.create_dataset("/measurement/instrument/acquisition/attenuation",
-                data=[[registers.attenuation.value]])
+                data=[[registers.attenuation.get()]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_H",
-                data=[[registers.beam_size_H.value]])
+                data=[[registers.beam_size_H.get()]])
             
             f.create_dataset("/measurement/instrument/acquisition/beam_size_V",
-                data=[[registers.beam_size_V.value]])
+                data=[[registers.beam_size_V.get()]])
 
-            f["/measurement/instrument/acquisition/specfile"] = registers.specfile.value
+            f["/measurement/instrument/acquisition/specfile"] = registers.specfile.get()
 
             # registers.root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/'
             # registers.data_subfolder: 'A186_DOHE04_Yb010_att0_Uq0_00150'
             # root_folder: '/home/8-id-i/2019-2/jemian_201908/A024/A186_DOHE04_Yb010_att0_Uq0_00150/'
             root_folder = os.path.join(
-                registers.root_folder.value,
-                registers.data_subfolder.value
+                registers.root_folder.get(),
+                registers.data_subfolder.get()
             ).rstrip("/") + "/"  # ensure one and only one trailing `/`
             f["/measurement/instrument/acquisition/root_folder"] = root_folder
 
-            # In [1]: registers.user_data_folder.value
+            # In [1]: registers.user_data_folder.get()
             # Out[1]: '/home/8-id-i/2019-2/jemian_201908/A024'
             # pick "jemian_201908" part
-            parent_folder = registers.user_data_folder.value
+            parent_folder = registers.user_data_folder.get()
             if parent_folder.find("/") > -1:
                 parent_folder = parent_folder.split("/")[-2]
             f["/measurement/instrument/acquisition/parent_folder"] = parent_folder
 
-            f["/measurement/instrument/acquisition/data_folder"] = registers.data_folder.value
-            f["/measurement/instrument/acquisition/datafilename"] = registers.datafilename.value
+            f["/measurement/instrument/acquisition/data_folder"] = registers.data_folder.get()
+            f["/measurement/instrument/acquisition/datafilename"] = registers.datafilename.get()
 
             f.create_dataset("/measurement/instrument/acquisition/beam_center_x",
-                data=[[registers.beam_center_x.value]])
+                data=[[registers.beam_center_x.get()]])
 
             f.create_dataset("/measurement/instrument/acquisition/beam_center_y",
-                data=[[registers.beam_center_y.value]])
+                data=[[registers.beam_center_y.get()]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_zero_x",
-                data=[[registers.stage_zero_x.value]])
+                data=[[registers.stage_zero_x.get()]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_zero_z",
-                data=[[registers.stage_zero_z.value]])
+                data=[[registers.stage_zero_z.get()]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_x",
-                data=[[registers.stage_x.value]])
+                data=[[registers.stage_x.get()]])
 
             f.create_dataset("/measurement/instrument/acquisition/stage_z",
-                data=[[registers.stage_z.value]])
+                data=[[registers.stage_z.get()]])
 
             v = {True: "ENABLED", 
-                 False: "DISABLED"}[registers.compression.value == 1]
+                 False: "DISABLED"}[registers.compression.get() == 1]
             f["/measurement/instrument/acquisition/compression"] = v
 
             if registers.geometry_num.get() == 1: ##reflection geometry
                 f.create_dataset("/measurement/instrument/acquisition/xspec",
-                    data=[[float(registers.xspec.value)]],
+                    data=[[float(registers.xspec.get())]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/zspec",
-                    data=[[float(registers.zspec.value)]],
+                    data=[[float(registers.zspec.get())]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdxspec",
-                    data=[[float(registers.ccdxspec.value)]],
+                    data=[[float(registers.ccdxspec.get())]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/ccdzspec",
-                    data=[[float(registers.ccdzspec.value)]],
+                    data=[[float(registers.ccdzspec.get())]],
                     dtype='float64')
 
                 f.create_dataset("/measurement/instrument/acquisition/angle",
-                    data=[[float(registers.angle.value)]],
+                    data=[[float(registers.angle.get())]],
                     dtype='float64')
 
             elif registers.geometry_num.get() == 0: ##transmission geometry
@@ -420,49 +420,49 @@ class DM_Workflow:
 
             #/measurement/instrument/source_begin
             f.create_dataset("/measurement/instrument/source_begin/beam_intensity_incident",
-                data=[[registers.source_begin_beam_intensity_incident.value]])
+                data=[[registers.source_begin_beam_intensity_incident.get()]])
 
             f.create_dataset("/measurement/instrument/source_begin/beam_intensity_transmitted",
-                data=[[registers.source_begin_beam_intensity_transmitted.value]])
+                data=[[registers.source_begin_beam_intensity_transmitted.get()]])
 
             f.create_dataset("/measurement/instrument/source_begin/current",
-                data=[[registers.source_begin_current.value]])
+                data=[[registers.source_begin_current.get()]])
         
             f.create_dataset("/measurement/instrument/source_begin/energy",
-			     data=[[registers.source_begin_energy.value]])
+			     data=[[registers.source_begin_energy.get()]])
 
-            f["/measurement/instrument/source_begin/datetime"] = registers.source_begin_datetime.value
+            f["/measurement/instrument/source_begin/datetime"] = registers.source_begin_datetime.get()
 
             #/measurement/instrument/source_end (added in January 2019)
             f.create_dataset("/measurement/instrument/source_end/current",
-                data=[[registers.source_end_current.value]])
+                data=[[registers.source_end_current.get()]])
 
-            f["/measurement/instrument/source_end/datetime"] = registers.source_end_datetime.value
+            f["/measurement/instrument/source_end/datetime"] = registers.source_end_datetime.get()
 
             ########################################################################################
             #/measurement/instrument/sample
             f.create_dataset("/measurement/sample/thickness", data=[[1.0]])
             
             f.create_dataset("/measurement/sample/temperature_A",
-                data=[[registers.temperature_A.value]])
+                data=[[registers.temperature_A.get()]])
 
             f.create_dataset("/measurement/sample/temperature_B",
-                data=[[registers.temperature_B.value]])
+                data=[[registers.temperature_B.get()]])
 
             f.create_dataset("/measurement/sample/temperature_A_set",
-                data=[[registers.temperature_A_set.value]])
-            # data=[[registers.pid1.value]])
+                data=[[registers.temperature_A_set.get()]])
+            # data=[[registers.pid1.get()]])
 
             f.create_dataset("/measurement/sample/temperature_B_set",
-                data=[[registers.temperature_B_set.value ]])
+                data=[[registers.temperature_B_set.get() ]])
 
             f.create_dataset(
                 "/measurement/sample/translation",
                 data=[
                     [
-                        registers.translation_x.value,
-                        registers.translation_y.value,
-                        registers.translation_z.value,
+                        registers.translation_x.get(),
+                        registers.translation_y.get(),
+                        registers.translation_z.get(),
                         ]
                     ]
                 )
@@ -472,9 +472,9 @@ class DM_Workflow:
                 "/measurement/sample/translation_table",
                 data=[
                     [
-                        registers.translation_table_x.value,
-                        registers.translation_table_y.value,
-                        registers.translation_table_z.value,
+                        registers.translation_table_x.get(),
+                        registers.translation_table_y.get(),
+                        registers.translation_table_z.get(),
                          ]
                     ]
                 )
@@ -483,15 +483,15 @@ class DM_Workflow:
                 "/measurement/sample/orientation",
                 data=[
                     [
-                        registers.sample_pitch.value,
-                        registers.sample_roll.value,
-                        registers.sample_yaw.value
+                        registers.sample_pitch.get(),
+                        registers.sample_roll.get(),
+                        registers.sample_yaw.get()
                         ]
                     ]
                 )
 
             #######/measurement/instrument/detector#########################
-            detector_specs = masterDict[registers.detNum.value]
+            detector_specs = masterDict[registers.detNum.get()]
 
             f["/measurement/instrument/detector/manufacturer"] = detector_specs["manufacturer"]
 
@@ -526,20 +526,20 @@ class DM_Workflow:
                 dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/exposure_time",
-                data=[[registers.exposure_time.value]])
+                data=[[registers.exposure_time.get()]])
 
             f.create_dataset("/measurement/instrument/detector/exposure_period",
-                data=[[registers.exposure_period.value]])
+                data=[[registers.exposure_period.get()]])
 
-            if registers.burst_mode_state.value == 1:
+            if registers.burst_mode_state.get() == 1:
                 f.create_dataset("/measurement/instrument/detector/burst/number_of_bursts",
-                    data=[[registers.number_of_bursts.value]], dtype='uint32')
+                    data=[[registers.number_of_bursts.get()]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/burst/first_usable_burst",
-                    data=[[registers.first_usable_burst.value]], dtype='uint32')
+                    data=[[registers.first_usable_burst.get()]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/burst/last_usable_burst",
-                    data=[[registers.last_usable_burst.value]], dtype='uint32')
+                    data=[[registers.last_usable_burst.get()]], dtype='uint32')
             else:
                 f.create_dataset("/measurement/instrument/detector/burst/number_of_bursts",
                     data=[[0]], dtype='uint32')
@@ -551,7 +551,7 @@ class DM_Workflow:
                     data=[[0]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/distance",
-                data=[[registers.detector_distance.value]])
+                data=[[registers.detector_distance.get()]])
 
 
             choices = {True: "ENABLED", False: "DISABLED"}
@@ -589,26 +589,26 @@ class DM_Workflow:
             f["/measurement/instrument/detector/geometry"] = v
 
             choices = {True: "ENABLED", False: "DISABLED"}
-            v = choices[registers.kinetics_state.value == 1]
+            v = choices[registers.kinetics_state.get() == 1]
             f["/measurement/instrument/detector/kinetics_enabled"] = v
 
-            v = choices[registers.burst_mode_state.value == 1]
+            v = choices[registers.burst_mode_state.get() == 1]
             f["/measurement/instrument/detector/burst_enabled"] = v
 
             #######/measurement/instrument/detector/kinetics/######
-            if registers.kinetics_state.value == 1:
+            if registers.kinetics_state.get() == 1:
                 f.create_dataset("/measurement/instrument/detector/kinetics/first_usable_window", 
                     data=[[2]], dtype='uint32')
 
-                v = int(registers.kinetics_top.value/registers.kinetics_window_size.value)-1
+                v = int(registers.kinetics_top.get()/registers.kinetics_window_size.get())-1
                 f.create_dataset("/measurement/instrument/detector/kinetics/last_usable_window", 
                     data=[[v]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/kinetics/top", 
-                    data=[[registers.kinetics_top.value]], dtype='uint32')
+                    data=[[registers.kinetics_top.get()]], dtype='uint32')
 
                 f.create_dataset("/measurement/instrument/detector/kinetics/window_size", 
-                    data=[[registers.kinetics_window_size.value]], dtype='uint32')
+                    data=[[registers.kinetics_window_size.get()]], dtype='uint32')
             else :
                 f.create_dataset("/measurement/instrument/detector/kinetics/first_usable_window", 
                     data=[[0]], dtype='uint32')
@@ -624,16 +624,16 @@ class DM_Workflow:
 
             #######/measurement/instrument/detector/roi/######
             f.create_dataset("/measurement/instrument/detector/roi/x1", 
-                data=[[registers.roi_x1.value]], dtype='uint32')
+                data=[[registers.roi_x1.get()]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/y1", 
-                data=[[registers.roi_y1.value]], dtype='uint32')
+                data=[[registers.roi_y1.get()]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/x2", 
-                data=[[registers.roi_x2.value]], dtype='uint32')
+                data=[[registers.roi_x2.get()]], dtype='uint32')
 
             f.create_dataset("/measurement/instrument/detector/roi/y2", 
-                data=[[registers.roi_y2.value]], dtype='uint32')
+                data=[[registers.roi_y2.get()]], dtype='uint32')
 
         #####################################################################################
         # Close file closes automatically due to the "with" opener

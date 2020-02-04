@@ -21,7 +21,7 @@ def lambda_test(num_iter=10):
 
         # increment the run number
         yield from bps.mvr(dm_pars.ARun_number, 1)
-        file_name = f"A{dm_pars.ARun_number.value:03.0f}"
+        file_name = f"A{dm_pars.ARun_number.get():03.0f}"
 
         yield from AD_Acquire(lambdadet, 
             acquire_time=0.1, acquire_period=0.11, 

@@ -360,6 +360,7 @@ class LS336_LoopBase(APS_devices.ProcessController):
                 yield from bps.sleep(self.poll_s)
 
             self.signal.unsubscribe(token)
+            _st._finished(success=self.settled)
 
         self.record_signal()
         elapsed = time.time() - t0

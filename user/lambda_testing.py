@@ -8,10 +8,13 @@ logger.info(__file__)
 test that we can run user ops continuously - use Lambda detector
 """
 
-def lambda_test(num_iter=10):
+def lambda_test(num_iter=10, sample_name="test", sample_prefix="A"):
     bec.disable_plots()
     bec.disable_table()
     bec.disable_baseline()
+
+    # increment the run number
+    yield from bps.mvr(dm_pars.ARun_number, 1)
 
     for i in range(num_iter):
         if dm_pars.stop_before_next_scan.get() != 0:
@@ -19,9 +22,7 @@ def lambda_test(num_iter=10):
             yield from bps.mv(dm_pars.stop_before_next_scan, 0)
             break
 
-        # increment the run number
-        yield from bps.mvr(dm_pars.ARun_number, 1)
-        file_name = f"A{dm_pars.ARun_number.get():03.0f}"
+        file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}"
 
         yield from AD_Acquire(lambdadet, 
             acquire_time=0.1, acquire_period=0.11, 

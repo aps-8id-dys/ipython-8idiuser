@@ -413,6 +413,7 @@ def beam_params_backup():
     """
     detNum = dm_pars.detNum.get()
     detName = PV_REG_MAP["detectors"].get(detNum)
+    logger.debug(f"Backing up {detName} detector Beam Params\n{t}")
 
     if detName is None:
         msg = f"Unknown detector number {detNum}"
@@ -806,7 +807,7 @@ def AD_Acquire(areadet,
         acquire_time=0.1, acquire_period=0.11, 
         num_images=100, file_name="A001",
         submit_xpcs_job=True,
-        atten=None, path=None):
+        atten=None, path=None, md={}):
     """
     acquisition sequence initiating data management workflow
 
@@ -828,6 +829,9 @@ def AD_Acquire(areadet,
     if not file_path.endswith(os.path.sep):
         file_path += os.path.sep
     logger.info(f"file_path = {file_path}")
+
+    md["ARun_number"] = file_name
+    md["full_sample_name"] = f"{file_name} {md.get('sample_name','')}"
     
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
@@ -1005,15 +1009,15 @@ def AD_Acquire(areadet,
 
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
-    def full_acquire_procedure():
+    def full_acquire_procedure(md={}):
         logger.debug("before update_metadata_prescan()")
         yield from update_metadata_prescan()
         logger.debug("after update_metadata_prescan()")
 
-        md = {
+        _md = {
             "file_name": file_name,
             "file_path": file_path
-        }
+        }.update(md)
         # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
         logger.info("scaler should be autocounting now")
@@ -1021,7 +1025,7 @@ def AD_Acquire(areadet,
         # do the acquisition (the scan)
         logger.debug("before count()")
         # yield from bp.count([areadet], md=md)
-        yield from inner_count([areadet], md=md)
+        yield from inner_count([areadet], md=_md)
         logger.debug("after count()")
 
         yield from update_metadata_postscan()
@@ -1053,4 +1057,4 @@ def AD_Acquire(areadet,
             logger.error(err)
 
     logger.info("calling full_acquire_procedure()")
-    return (yield from full_acquire_procedure())
+    return (yield from full_acquire_procedure(md=md))

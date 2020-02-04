@@ -316,6 +316,9 @@ class LS336_LoopBase(APS_devices.ProcessController):
         diff = abs(self.temperature.get() - self.target.get())
         return diff <= self.tolerance.get()
 
+    def get(self, *args, **kwargs):
+        return self.signal.get(*args, **kwargs)
+
 
 class LS336_LoopMore(LS336_LoopBase):
     """

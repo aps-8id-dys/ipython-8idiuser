@@ -40,6 +40,24 @@ class UnixCommandSignal(Signal):
     def get(self):
         return self.unix_output, self.unix_error
 
+
+class RigakuFakeCam(Device):
+
+    EXT_TRIGGER = 0
+
+    def setup_modes(self, num_triggers):
+        """
+        Rigaku detector will ignore this request
+        """
+        yield from bps.null()
+
+    def setTime(self, *args):
+        """
+        Rigaku detector will ignore this request
+        """
+        yield from bps.null()
+
+
 class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     """
     Supports non-epics communication with the new Rigaku detector
@@ -60,6 +78,8 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     batch_name = Component(Signal, value="A001")
 
     detector_number = 46    # 8-ID-I numbering of this detector
+
+    cam = Component(RigakuFakeCam)
 
     def stage(self):
         shutter_mode.put("UFXC")    # data mode
@@ -110,12 +130,6 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         # acquire_period = args[4]
 
         self.batch_name.put(file_name)
-
-    def setup_modes(self, num_triggers):
-        """
-        set up modes accordingly, based on self.EXT_TRIGGER
-        """
-        yield from bps.null()
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

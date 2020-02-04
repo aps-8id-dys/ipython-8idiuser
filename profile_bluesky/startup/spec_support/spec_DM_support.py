@@ -87,7 +87,11 @@ class MyPV(object):
 
     @property
     def value(self):
-        return self.pv.get(as_string=self.string)
+        return self.get(as_string=self.string)
+
+    def get(self, as_string=None, **kwargs):
+        as_string = as_string or self.string
+        return self.pv.get(as_string=as_string)
 
     def put(self, value, wait=False, timeout=30):
         if "8idi:Reg171" == self.pv.pvname:     # ticker increment

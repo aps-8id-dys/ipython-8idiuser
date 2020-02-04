@@ -413,7 +413,7 @@ def beam_params_backup():
     """
     detNum = dm_pars.detNum.get()
     detName = PV_REG_MAP["detectors"].get(detNum)
-    logger.debug(f"Backing up {detName} detector Beam Params\n{t}")
+    logger.debug(f"Backing up {detName} detector Beam Params")
 
     if detName is None:
         msg = f"Unknown detector number {detNum}"

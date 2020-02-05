@@ -16,6 +16,11 @@ def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", analysis_true
     # increment the run number
     yield from bps.mvr(dm_pars.ARun_number, 1)
 
+    # these numbers are not changeable for the Rigaku detector
+    acquire_time = 19.586e-6
+    acquire_period = acquire_time + 0.528e-6
+    num_images = 100000
+
     for i in range(num_iter):
         if dm_pars.stop_before_next_scan.get() != 0:
             logger.info("received signal to STOP before next scan")
@@ -30,11 +35,9 @@ def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", analysis_true
         #     detu.x, 213.9,
         #     detu.z, 36.8)
 
-        acquire_time = 19.586e-6
-        acquire_period = acquire_time + 0.528e-6
         yield from AD_Acquire(rigaku, 
             acquire_time=acquire_time, acquire_period=acquire_period, 
-            num_images=100000, file_name=file_name,
+            num_images=num_images, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/qzhang202002b/',
             md={"sample_name": sample_name})

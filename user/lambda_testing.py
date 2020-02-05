@@ -8,7 +8,7 @@ logger.info(__file__)
 test that we can run user ops continuously - use Lambda detector
 """
 
-def lambda_test(num_iter=10, sample_name="test", sample_prefix="A", analysis_true_false=True):
+def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix="Lq0", analysis_true_false=True):
     bec.disable_plots()
     bec.disable_table()
     bec.disable_baseline()
@@ -23,20 +23,21 @@ def lambda_test(num_iter=10, sample_name="test", sample_prefix="A", analysis_tru
     for i in range(num_iter):
         if dm_pars.stop_before_next_scan.get() != 0:
             logger.info("received signal to STOP before next scan")
-            yield from bps.mv(dm_pars.stop_before_next_scan, 0)
+            yield from bps.mv(dm_pars.stop_before_next_scan, 0)            
             break
 
-        file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{i+1:05.0f}"
-
-        lambdadet.qmap_file='qzhang202002_qmap_Aerogel_Lq0_S270_D54.h5'
+        file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{sample_suffix}_{i+1:03.0f}"
+        yield from movesample()
+        
+        lambdadet.qmap_file='richards202002_qmap_Lq0_S270_D54.h5'
 
         yield from bps.mv(
             detu.x, 213.8,
             detu.z, 36.85)
 
         yield from AD_Acquire(lambdadet, 
-            acquire_time=0.001, acquire_period=0.1, 
-            num_images=5000, file_name=file_name,
+            acquire_time=0.005, acquire_period=0.005, 
+            num_images=1000, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/richards202002/',
             md={"sample_name": sample_name})

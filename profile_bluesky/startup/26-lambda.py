@@ -27,6 +27,9 @@ class Lambda750kCamLocal(Device):
     image_mode = Component(EpicsSignalWithRBV, 'ImageMode', kind='config')
     operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
     serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
+    detector_state = Component(EpicsSignalRO, 'DetectorState_RBV', kind='config', string=True)
+    state = Component(EpicsSignalRO, 'LambdaState', kind='config', string=True)
+    status_msg = Component(EpicsSignalRO, 'StatusMessage_RBV', kind='config', string=True)
     temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
     trigger_mode = Component(EpicsSignal, 'TriggerMode', kind='config')
 
@@ -550,6 +553,18 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
 
         status = DeviceStatus(self)
 
+        def watch_state(value, old_value, **kwargs):
+            """
+            close the shutter once self.cam.state != "RECEIVING_IMAGES"
+            """
+            logger.debug(f"lambdadet.cam.state={value}")
+            logger.debug(f"old value={old_value}")
+            logger.debug(f"capture={self.immout.capture.get()}")
+            if (value in (5, "FINISHED", 6, "PROCESSING_IMAGES") and old_value in (4, "RECEIVING_IMAGES")):
+                shutter.close()
+                self.cam.state.clear_sub(watch_state)
+                logger.debug("closed shutter")
+
         def closure(value, old_value, **kwargs):
             if value == done_value and old_value != value:
                 watch_signal.clear_sub(closure)
@@ -558,8 +573,12 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
                 print(f"immout.capture.get()={self.immout.capture.get()}")
                 print(f"immout.num_captured.get()={self.immout.num_captured.get()}")
                 status._finished()
+                shutter.close()
                 print(f"status={status}")
         
+        shutter.open()
+        time.sleep(0.005)       # wait for the shutter to move out of the way
+        self.cam.state.subscribe(watch_state)
         watch_signal.subscribe(closure)
         self.immout.capture.put(1, wait=False)
         acquire_signal.put(start_value, wait=False)

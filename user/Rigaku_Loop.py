@@ -24,7 +24,11 @@ def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", analysis_true
 
         file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{i+1:05.0f}"
 
-        rigaku.qmap_file='qzhang202002_Rq0_Log_S270_D27.h5'
+        rigaku.qmap_file='qzhang202002b_Rq0_Log_S270_D27.h5'
+
+        # yield from bps.mv(
+        #     detu.x, 213.9,
+        #     detu.z, 36.8)
 
         yield from AD_Acquire(rigaku, 
             acquire_time=0.1, acquire_period=0.11, 

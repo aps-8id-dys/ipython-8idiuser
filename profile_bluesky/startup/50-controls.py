@@ -556,8 +556,8 @@ def select_RIGAKU():
     # def xpcs_pre_start \'xpcs_pre_start_RIGAKU\';
     # def user_xpcs_loop \'user_xpcs_loop_RIGAKU\';
 
-    dm_workflow.transfer = "xpcs8-01"
-    dm_workflow.analysis = "xpcs8-02-Rigaku-bin"
+    dm_workflow.transfer = "xpcs8-01-stage"
+    dm_workflow.analysis = "xpcs8-02-Rigaku-bin-stage"
     yield from bps.mv(
         dm_pars.burst_mode_state, 0,    # 2019-05, set default status
         dm_pars.transfer, dm_workflow.transfer,
@@ -832,6 +832,7 @@ def AD_Acquire(areadet,
 
     md["ARun_number"] = file_name
     md["full_sample_name"] = f"{file_name} {md.get('sample_name','')}"
+    logging.info(f"md={md}")
     
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
@@ -981,6 +982,7 @@ def AD_Acquire(areadet,
         # logger.debug("dm_pars.datafilename")
 
     def inner_count(devices, md={}):
+        logging.info(f"md={md}")
         yield from bps.open_run(md=md)
         for obj in devices:
             yield from bps.stage(obj)
@@ -1010,6 +1012,7 @@ def AD_Acquire(areadet,
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def full_acquire_procedure(md={}):
+        logging.info(f"md={md}")
         logger.debug("before update_metadata_prescan()")
         yield from update_metadata_prescan()
         logger.debug("after update_metadata_prescan()")

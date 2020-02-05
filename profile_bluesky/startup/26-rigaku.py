@@ -95,10 +95,13 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         def closure(value,old_value,**kwargs):
             if value == 1 and old_value == 0:
                 self.acquire_start.put(0)
+                self.acquire_complete.clear_sub(closure)
                 status._finished()
 
         self.acquire_complete.subscribe(closure)
         self.acquire_start.put(1)
+        time.sleep(0.1)     # could be shorter, this works now
+        self.acquire_start.put(0)
         return status
     
     @property

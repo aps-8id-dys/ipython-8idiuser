@@ -830,7 +830,20 @@ def AD_Acquire(areadet,
         file_path += os.path.sep
     logger.info(f"file_path = {file_path}")
 
+    plan_args = dict(
+        detector_name = areadet.name,
+        acquire_time = acquire_time,
+        acquire_period = acquire_period,
+        num_images = num_images,
+        file_name = file_name,
+        submit_xpcs_job = str(submit_xpcs_job),
+    )
+    if atten is not None:
+        plan_args["atten"] = atten
+    if path is not None:
+        plan_args["path"] = path
     md["ARun_number"] = file_name
+    md["plan_args"] = plan_args
     
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)

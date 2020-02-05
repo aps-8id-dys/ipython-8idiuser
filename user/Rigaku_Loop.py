@@ -32,7 +32,7 @@ def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", analysis_true
 
         yield from AD_Acquire(rigaku, 
             acquire_time=0.1, acquire_period=0.11, 
-            num_images=100, file_name=file_name,
+            num_images=100000, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/qzhang202002b/',
             md={"sample_name": sample_name})

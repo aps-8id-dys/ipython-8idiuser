@@ -831,8 +831,6 @@ def AD_Acquire(areadet,
     logger.info(f"file_path = {file_path}")
 
     md["ARun_number"] = file_name
-    md["full_sample_name"] = f"{file_name} {md.get('sample_name','')}"
-    logging.info(f"md={md}")
     
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
@@ -982,7 +980,6 @@ def AD_Acquire(areadet,
         # logger.debug("dm_pars.datafilename")
 
     def inner_count(devices, md={}):
-        logging.info(f"md={md}")
         yield from bps.open_run(md=md)
         for obj in devices:
             yield from bps.stage(obj)
@@ -1012,7 +1009,6 @@ def AD_Acquire(areadet,
     @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def full_acquire_procedure(md={}):
-        logging.info(f"md={md}")
         logger.debug("before update_metadata_prescan()")
         yield from update_metadata_prescan()
         logger.debug("after update_metadata_prescan()")
@@ -1020,7 +1016,8 @@ def AD_Acquire(areadet,
         _md = {
             "file_name": file_name,
             "file_path": file_path
-        }.update(md)
+        }
+        _md.update(md)
         # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
         logger.info("scaler should be autocounting now")

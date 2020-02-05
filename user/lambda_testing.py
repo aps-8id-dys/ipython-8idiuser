@@ -28,7 +28,7 @@ def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix
 
         file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{sample_suffix}_{i+1:03.0f}"
         yield from movesample()
-        
+
         lambdadet.qmap_file='richards202002_qmap_Lq0_S270_D54.h5'
 
         yield from bps.mv(
@@ -36,7 +36,7 @@ def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix
             detu.z, 36.85)
 
         yield from AD_Acquire(lambdadet, 
-            acquire_time=0.005, acquire_period=0.005, 
+            acquire_time=0.01, acquire_period=0.01, 
             num_images=1000, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/richards202002/',

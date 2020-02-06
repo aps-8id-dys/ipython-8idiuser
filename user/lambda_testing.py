@@ -50,8 +50,8 @@ def lambda_test(num_iter=1,
             detu.z, 36.85)
 
         yield from AD_Acquire(lambdadet, 
-            acquire_time=0.0005, acquire_period=0.0005, 
-            num_images=10000, file_name=file_name,
+            acquire_time=acquire_time, acquire_period=acquire_period, 
+            num_images=num_images, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/richards202002/',
             md={"sample_name": sample_name})

@@ -2,6 +2,7 @@ logger.info(__file__)
 
 """detector: Rigaku (not EPICS area detector though)"""
 
+import itertools
 
 class UnixCommandSignal(Signal):
 
@@ -44,6 +45,8 @@ class UnixCommandSignal(Signal):
 class RigakuFakeCam(Device):
 
     EXT_TRIGGER = 0
+    array_size_x = Component(Signal, value=1024.0)   # FIXME:  1024x512 ?or? 512x1024
+    array_size_y = Component(Signal, value=512.0)
 
     def setup_modes(self, num_triggers):
         """
@@ -58,15 +61,25 @@ class RigakuFakeCam(Device):
         yield from bps.null()
 
 
+class RigakuFakeImage(Device):
+    """
+    """
+
+    shape = []
+
+    def set(self, *args, **kwargs):
+        pass    # TODO: what to do
+
+
 class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     """
     Supports non-epics communication with the new Rigaku detector
 
     How to use:
     
-    1. R1 = Rigaku_8IDI(name = 'R1')
-    2. yield from bps.mv(R1.batch_name, 'A001_Test')
-    3. yield from bps.count([R1])
+    1. rigaku = Rigaku_8IDI(name = 'rigaku')
+    2. yield from bps.mv(rigaku.batch_name, 'A001_Test')
+    3. yield from bps.count([rigaku])
     """
     qmap_file = "qzhang1026_rerun_minus_streak.h5"
 
@@ -79,15 +92,48 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
 
     detector_number = 46    # 8-ID-I numbering of this detector
 
+    _assets_docs_cache = []
+    _datum_counter = None
+    _file_name = None
+    _resource_uid = None
+
     cam = Component(RigakuFakeCam)
+    image = Component(RigakuFakeImage)
 
     def stage(self):
+        # prepare to write the document stream for Xi-CAM handling
+        root = os.path.join("/", "home", "8-id-i/")
+        folder = self._file_name
+        fname = (
+            f"{folder}",
+            f"_{dm_pars.data_begin.get():05.0f}"
+            f"-{dm_pars.data_end.get():05.0f}"
+            ".bin"
+        )
+        self._resource_uid = str(uuid.uuid4())
+        resource_doc = {'uid': self._resource_uid,
+                        'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
+                        'resource_path': os.path.join(folder, fname),
+                        'root': root,
+                        'resource_kwargs': {
+                            'frames_per_point': self.get_frames_per_point(),
+                            },
+                        'path_semantics': 'posix',
+                        # can't add new stuff, such as: 'full_name': full_name,
+                        }
+        self._datum_counter = itertools.count()
+        self.image.shape = [
+            self.get_frames_per_point(), 
+            self.cam.array_size_y.get(), 
+            self.cam.array_size_x.get()]
+        self._assets_docs_cache.append(('resource', resource_doc))
+
         shutter_mode.put("UFXC")    # data mode
         shutter_control.put("Open")
         shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
-    
+
     def trigger(self):
         self.acquire_start.put(0)
         status = DeviceStatus(self)
@@ -102,7 +148,25 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         self.acquire_start.put(1)
         time.sleep(0.1)     # could be shorter, this works now
         self.acquire_start.put(0)
+
+        # write the document stream for Xi-CAM handling
+        index = next(self._datum_counter)
+        datum_id = f'{self._resource_uid}/{index}'
+        datum_doc = {'resource': self._resource_uid,
+                     'datum_id': datum_id,
+                     'datum_kwargs': {'index': index}}
+        self.image.set(datum_id)
+        self._assets_docs_cache.append(('datum', datum_doc))
+
         return status
+
+    def collect_asset_docs(self):
+        cache = self._assets_docs_cache.copy()
+        yield from cache
+        self._assets_docs_cache.clear()
+
+    def get_frames_per_point(self):
+        return 100000           # TODO: check this
     
     @property
     def plugin_file_name(self):
@@ -127,12 +191,12 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         if len(args) != 5:
             raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
         # file_path = args[0]
-        file_name = args[1]
+        self._file_name = args[1]
         # num_images = args[2]
         # acquire_time = args[3]
         # acquire_period = args[4]
 
-        self.batch_name.put(file_name)
+        self.batch_name.put(self._file_name)
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

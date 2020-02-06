@@ -8,7 +8,20 @@ import subprocess
 import datetime
 
 
-def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", sample_suffix="Rq0", analysis_true_false=True):
+def rigaku_test(num_iter=2, 
+                acquire_time=19.586e-6,   # cannot be changed
+                acquire_period=20.114e-6, # cannot be changed
+                num_images=100000,        # cannot be changed
+                sample_name="test", 
+                sample_prefix="A", 
+                sample_suffix="Rq0", 
+                analysis_true_false=True):
+    """
+    test XPCS acquisition with the Rigaku detector
+
+    keep same arguments as similar Lambda test
+    """
+
     bec.disable_plots()
     bec.disable_table()
     bec.disable_baseline()
@@ -29,7 +42,7 @@ def rigaku_test(num_iter=2, sample_name="test", sample_prefix="A", sample_suffix
 
         file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{sample_suffix}_{i+1:05.0f}"
 
-        rigaku.qmap_file='richards202002_qmap_Lq0_S270_D54.h5'
+        rigaku.qmap_file='qzhang202002b_Rq0_Log_S270_D27.h5'
 
         # yield from bps.mv(
         #     detu.x, 213.9,

@@ -8,7 +8,21 @@ logger.info(__file__)
 test that we can run user ops continuously - use Lambda detector
 """
 
-def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix="Lq0", analysis_true_false=True):
+
+def lambda_test(num_iter=1, 
+                acquire_time=0.1, 
+                acquire_period=0.11,
+                num_images=100,
+                sample_name="test", 
+                sample_prefix="A",
+                sample_suffix="Lq0", 
+                analysis_true_false=True):
+    """
+    test XPCS acquisition with the Lambda detector
+
+    keep same arguments as similar Rigaku test
+    """
+
     bec.disable_plots()
     bec.disable_table()
     bec.disable_baseline()
@@ -27,7 +41,7 @@ def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix
             break
 
         file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{sample_suffix}_{i+1:03.0f}"
-        yield from movesample()
+#        yield from movesample()
 
         lambdadet.qmap_file='richards202002_qmap_Lq0_S270_D54.h5'
 
@@ -36,8 +50,8 @@ def lambda_test(num_iter=1, sample_name="test", sample_prefix="A", sample_suffix
             detu.z, 36.85)
 
         yield from AD_Acquire(lambdadet, 
-            acquire_time=0.01, acquire_period=0.01, 
-            num_images=1000, file_name=file_name,
+            acquire_time=0.0005, acquire_period=0.0005, 
+            num_images=10000, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
             atten=None, path='/home/8-id-i/2020-1/richards202002/',
             md={"sample_name": sample_name})

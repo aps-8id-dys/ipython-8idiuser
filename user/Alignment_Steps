@@ -1,0 +1,34 @@
+pre_align() 
+
+RE(align_x())
+
+####RE(bp.rel_scan([pind4,lakeshore],samplestage.x,-2, 2, 51)) 
+RE(align_x())
+mov samplestage.x 2.2
+
+
+RE(align_z())
+mov samplestage.z -0.35
+
+post_align() 
+
+
+samplestage.xdata = np.linspace(2,2.6,21)  
+samplestage.zdata = np.linspace(-.65,-.05,21) 
+
+
+%run -m lambda_testing
+RE(lambda_test(num_iter=200, sample_name="WLM_RbCl_1p0_W2p4_att1_15C", 
+sample_prefix="A", sample_suffix="Lq0", analysis_true_false=True))  
+
+
+def align_x():  
+    yield from sb() 
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,-3,3,61) 
+    yield from bb() 
+                                                                                                                                                     
+
+def align_z():  
+    yield from sb() 
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,-2,2,41) 
+    yield from bb() 

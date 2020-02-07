@@ -229,6 +229,15 @@ class Lambda750kCamLocal(Device):
         yield from self.setImageMode(self.MODE_MULTIPLE_IMAGE)
 
 
+class IMMnLocal(Device):
+    """
+    local interface to the IMM0, IMM1, & IMM2 plugins
+    """
+    capture = Component(EpicsSignalWithRBV, "Capture", kind='config')
+    file_format = Component(EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config")
+    num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
+
+
 class IMMoutLocal(Device):
     """
     local interface to the IMMout plugin
@@ -406,12 +415,11 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     # implement just the parts needed by our data acquisition
     detector_number = 25    # 8-ID-I numbering of this detector
 
-    # only need cam1 and IMMout plugins
     cam = Component(Lambda750kCamLocal, "cam1:")
     immout = Component(IMMoutLocal, "IMMout:")
-    imm0 = Component(IMMoutLocal, "IMM0:")
-    imm1 = Component(IMMoutLocal, "IMM1:")
-    imm2 = Component(IMMoutLocal, "IMM2:")
+    imm0 = Component(IMMnLocal, "IMM0:")
+    imm1 = Component(IMMnLocal, "IMM1:")
+    imm2 = Component(IMMnLocal, "IMM2:")
     stats1 = Component(StatsLocal, "Stats1:")
     image = Component(ExternalFileReference, value="", shape=[])
 
@@ -545,11 +553,8 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
 
     def trigger(self):
         "trigger device acquisition and return a status object"
-        acquire_signal = self.cam.acquire
         start_value = 1
         done_value = 0
-        # watch_signal = self.cam.acquire
-        watch_signal = self.immout.capture
 
         status = DeviceStatus(self)
 
@@ -565,23 +570,28 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
                 self.cam.state.clear_sub(watch_state)
                 logger.debug("closed shutter")
 
-        def closure(value, old_value, **kwargs):
+        def watch_acquire(value, old_value, **kwargs):
+            """
+            watch the acquire button, waiting for it to Stop (0)
+            """
             if value == done_value and old_value != value:
-                watch_signal.clear_sub(closure)
-                print("closure() method ends")
-                print(f"cam.acquire.get()={self.cam.acquire.get()}")
-                print(f"immout.capture.get()={self.immout.capture.get()}")
-                print(f"immout.num_captured.get()={self.immout.num_captured.get()}")
+                self.immout.capture.clear_sub(watch_acquire)
+                logger.info("watch_acquire() method ends")
+                logger.info(f"cam.acquire.get()={self.cam.acquire.get()}")
+                logger.info(f"immout.capture.get()={self.immout.capture.get()}")
+                logger.info(f"immout.num_captured.get()={self.immout.num_captured.get()}")
                 status._finished()
                 shutter.close()
-                print(f"status={status}")
+                logger.info(f"status={status}")
         
         shutter.open()
         time.sleep(0.005)       # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
-        watch_signal.subscribe(closure)
+        self.immout.capture.subscribe(watch_acquire)
+        for plugin in (self.imm0, self.imm1, self.imm2):
+            plugin.capture.put(1, wait=False)
         self.immout.capture.put(1, wait=False)
-        acquire_signal.put(start_value, wait=False)
+        self.cam.acquire.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:
             t0 = time.time()
             # while soft_glue.acquire_ext_trig_status.get() != 1:

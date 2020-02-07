@@ -41,7 +41,7 @@ def lambda_test(num_iter=1,
             break
 
         file_name = f"{sample_prefix}{dm_pars.ARun_number.get():03.0f}_{sample_name}_{sample_suffix}_{i+1:03.0f}"
-#        yield from movesample()
+        yield from movesample()
 
         lambdadet.qmap_file='richards202002_qmap_Lq0_S270_D54.h5'
 
@@ -53,8 +53,10 @@ def lambda_test(num_iter=1,
             acquire_time=acquire_time, acquire_period=acquire_period, 
             num_images=num_images, file_name=file_name,
             submit_xpcs_job=analysis_true_false,
-            atten=None, path='/home/8-id-i/2020-1/richards202002/',
+            atten=None, path='/home/8-id-i/2020-1/bluesky/',
             md={"sample_name": sample_name})
+        logger.info("diagnostic sleep")
+        yield from bps.sleep(2) # diagnostic
         logger.info("-"*20 + " end of acquire")
 
     bec.enable_baseline()

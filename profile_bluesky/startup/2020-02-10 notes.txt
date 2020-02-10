@@ -1,0 +1,243 @@
+2020-02-10 notes
+
+quartz% spec8IDI 
+
+                   Welcome to "spec" Release 6.08.07
+         Copyright (c) 1987-2019 Certified Scientific Software
+                          All rights reserved
+                          [2019-12-05-102084]
+
+(Portions derived from a program developed at Harvard University.)
+(Linked with BSD libedit library for command line editing.)
+
+Using "/home/beams/S8SPEC/spec/install/spec_6.08.07_ce77_x64_APS/spec.d"
+ for auxiliary file directory (SPECD).
+Warning:  Old file "/var/tmp/foo1" is no longer around.
+Restored state from "SPECD/spec8IDI/userfiles/8idiuser_ttyp#S".
+
+Getting configuration parameters from "SPECD/spec8IDI/config".
+
+
+=
+Type h changes for info on latest changes.
+Type mstartup for menu-based general setup.
+Browse to http://www.certif.com for complete documentation.
+=
+
+Reading file "SPECD/site.mac".
+Reading file "SPECD/spec8IDI/conf.mac".
+
+Reading SITE specific macros after every spec start
+Reading file "/home/beams/8IDIUSER/local_macros/peltier_gpib_8idi.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/beamparams_8id_all_4.0.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/ccd_common.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/xpcs_common.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/ccd_ad.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/xpcs_adsmd.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/xpcs_ad_nofpga.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/xpcs_ad_nofpga_Lambda_AD3p0_EXTTRIG.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/shutter_trigger_burst_logic.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/PADdetectors_macros.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/UFXC_shutter_logic.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/write_shortfile_log.mac" (level 2).
+Reading file "/home/beams/S8SPEC/macros/BCDA/CCD_HOOKS_COMMON/CCD_DAQ_Error_Flags.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/do_sleep_new.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/HPC_Data_Transfer.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/multi_ccd_config_8idi.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/beamparams_backup_restore_8idi.mac" (level 3).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/series_params_8idi.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/ccdmacros_8idi.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/beamparams_backup_restore_8idi.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/beamparams_registers_default_8idi.mac" (level 2).
+
+Beam Parameter Registers for CCDX and CCDZ are set to DEFAULT for regular XPCS Experiments
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/series_params_8idi.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/slit_si6_settings.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/write_CCD_MetaData_hdf.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/Create_and_Submit_XPCS_Job.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/DM_Workflow_macros.mac" (level 2).
+Now in "/home/beams10/8IDIUSER/spec_data/2020/Feb2020".
+Reading file "/home/beams/8IDIUSER/local_macros/crl_slit_settings.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/align_sample.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/batches/2020/Feb2020/ccd_settings.do" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/lake336epics_8idi.mac" (level 2).
+Setting all the macro hooks for att at 7 keV
+Reading file "/home/beams/8IDIUSER/local_macros/sis.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/ls_globus.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/CCD_macros/switch_lambda_mode.mac" (level 2).
+Reading file "/home/beams/8IDIUSER/local_macros/Aerotech_flyscan.mac" (level 2).
+
+
+
+
+...
+
+
+
+1212.SPEC8IDI> qdo ~8idiuser/batches/2020/Feb2020//Lambda_Noah.do
+Reading file "/home/beams/8IDIUSER/batches/2020/Feb2020/Lambda_Noah.do".
+Reading file "/home/beams/8IDIUSER/batches/2020/Feb2020/ccd_settings.do" (level 2).
+
+Attenuation changed to  0 from  0 
+
+Attenuation of the Beam (excl. Foils 2,3,4 in XIA S2) = 1.000000
+
+
+FAILED: counter "ccdc" would not set to be plotted.
+
+Moving samx to 0, samz to 0
+
+       samx        samz 
+   0.000000    0.000000 
+
+                samx       samz      samth 
+                samx       samz      samth 
+User
+ High       11.99600   21.72490    7.67850 
+ Current     0.00000    0.00000    0.00000 
+ Low       -10.35400  -16.68000   -8.27150 
+Dial
+ High       11.12700   42.00000  277.95000 
+ Current    -0.86900   20.27510  270.27150 
+ Low       -11.22300    3.59510  262.00000 
+
+Moved Flux Measuring PIN Diode IN...
+Measuring background:
+Mon Feb 10 13:32:29 2020
+
+     Seconds        pind1        I0Mon        pind2        pind3        pind4         pdbs
+           1         1025            8         1480            1         3572          868
+
+       I_APS         ccdc       Atten1       Atten2          T_A        T_SET          APD
+         501           12            1            1       -9.074           24            1
+
+Ring Current =  -0.00 mA
+Measuring intensity:
+Mon Feb 10 13:32:31 2020
+
+CCD control of shutter has been surrendered ...
+
+     Seconds        pind1        I0Mon        pind2        pind3        pind4         pdbs
+           1         1025           19         1480            1         3586          867
+
+       I_APS         ccdc       Atten1       Atten2          T_A        T_SET          APD
+         501           12            1            1       -9.074           24            1
+
+
+Moved Flux Measuring PIN Diode OUT...
+14 cps is a current of 7e-10 Amps 
+2.15e+06 photons per second 
+-5.94e+10 photons per second per 100 mA 
+Setting LAMBDA Operating Mode, Triggering Mode and Shutter Mode...
+
+CCD control of shutter has been surrendered ...
+Shutter will *REMAIN OPEN THROUGH* the Acquisition...
+Setting Shutter Mode for Detector ===> BURST...Stays open for the full sequence
+
+DATA 1 - 1000 (1000) 	0.001 sec exposures
+Total 1000 points, 100 seconds (0:01:40)
+
+Scan 16139   Mon Feb 10 13:32:35 2020   file = richards20200207  spec8IDI  user = 8idiuser
+xpcsscan 1000 0.001
+
+   #  img_n        ccdc    Seconds       pind1       I0Mon       pind2       pind3       pind4        pdbs       I_APS      Atten1      Atten2         T_A       T_SET         APD 
+Waiting for Lambda Acquisition to start...
+Lambda Acquisition STARTING:A119_Test_000C_att0_Lq0_001 : Mon Feb 10 13:32:36 2020
+  0 335       14        0.1      103        0      149        1      265       88       51        1        1   -9.072       24        1 
+Images are Done Acquiring, Processing Ongoing, Closing Shutter: Mon Feb 10 13:32:37 2020....
+  1 1000       10        0.1      103        1      149        1      265       88       51        1        1   -9.072       24        1 
+#########################################################################################
+Creating Batchinfo and HDF MetaData Files:...Mon Feb 10 13:32:39 2020
+#########################################################################################
+HDF5 MetaData File: /home/8-id-i/2020-1/sanat202002/A119_Test_000C_att0_Lq0_001/A119_Test_000C_att0_Lq0_001_0001-1000.hdf:Mon Feb 10 13:32:39 2020
+DM Workflow Call is being Kicked off...
+Measurement conditions and Motor positions are written to a CSV file: ~8idiuser/User_XPCS_DATA_Logs/2020-1/sanat202002_DataLogs.csv
+Completed Data Acquisition and Transfer: A119_Test_000C_att0_Lq0_001----Mon Feb 10 13:32:39 2020
+#########################################################################################
+
+
+FAILED: counter "ccdc" would not set to be plotted.
+
+Moving samx to 0, samz to 0
+
+       samx        samz 
+   0.000000    0.000000 
+
+                samx       samz      samth 
+                samx       samz      samth 
+User
+ High       11.99600   21.72490    7.67850 
+ Current     0.00000    0.00000    0.00000 
+ Low       -10.35400  -16.68000   -8.27150 
+Dial
+ High       11.12700   42.00000  277.95000 
+ Current    -0.86900   20.27510  270.27150 
+ Low       -11.22300    3.59510  262.00000 
+
+Moved Flux Measuring PIN Diode IN...
+Measuring background:
+Mon Feb 10 13:32:40 2020
+
+     Seconds        pind1        I0Mon        pind2        pind3        pind4         pdbs
+           1         1027           15         1481            1         3567          861
+
+       I_APS         ccdc       Atten1       Atten2          T_A        T_SET          APD
+         502           10            1            1       -9.072           24            1
+
+Ring Current =  -0.00 mA
+Measuring intensity:
+Mon Feb 10 13:32:42 2020
+
+CCD control of shutter has been surrendered ...
+
+     Seconds        pind1        I0Mon        pind2        pind3        pind4         pdbs
+           1         1026           11         1481            1         3566          860
+
+       I_APS         ccdc       Atten1       Atten2          T_A        T_SET          APD
+         501           10            1            1       -9.071           24            1
+
+
+Moved Flux Measuring PIN Diode OUT...
+-1 cps is a current of -5e-11 Amps 
+-1.53e+05 photons per second 
+ 4.8e+09 photons per second per 100 mA 
+Setting LAMBDA Operating Mode, Triggering Mode and Shutter Mode...
+
+CCD control of shutter has been surrendered ...
+Shutter will *REMAIN OPEN THROUGH* the Acquisition...
+Setting Shutter Mode for Detector ===> BURST...Stays open for the full sequence
+
+DATA 1 - 1000 (1000) 	0.001 sec exposures
+Total 1000 points, 100 seconds (0:01:40)
+
+Scan 16140   Mon Feb 10 13:32:46 2020   file = richards20200207  spec8IDI  user = 8idiuser
+xpcsscan 1000 0.001
+
+   #  img_n        ccdc    Seconds       pind1       I0Mon       pind2       pind3       pind4        pdbs       I_APS      Atten1      Atten2         T_A       T_SET         APD 
+Waiting for Lambda Acquisition to start...
+Lambda Acquisition STARTING:A119_Test_000C_att0_Lq0_002 : Mon Feb 10 13:32:47 2020
+  0 361       12        0.1      104        0      149        1      261       86       51        1        1    -9.07       24        1 
+Images are Done Acquiring, Processing Ongoing, Closing Shutter: Mon Feb 10 13:32:48 2020....
+  1 1000        9        0.1      104        1      148        1      262       86       51        1        1    -9.07       24        1 
+#########################################################################################
+Creating Batchinfo and HDF MetaData Files:...Mon Feb 10 13:32:50 2020
+#########################################################################################
+HDF5 MetaData File: /home/8-id-i/2020-1/sanat202002/A119_Test_000C_att0_Lq0_002/A119_Test_000C_att0_Lq0_002_0001-1000.hdf:Mon Feb 10 13:32:50 2020
+DM Workflow Call is being Kicked off...
+Measurement conditions and Motor positions are written to a CSV file: ~8idiuser/User_XPCS_DATA_Logs/2020-1/sanat202002_DataLogs.csv
+Completed Data Acquisition and Transfer: A119_Test_000C_att0_Lq0_002----Mon Feb 10 13:32:50 2020
+#########################################################################################
+
+} # End of the outermost te loop 
+ ^
+Syntax error on "}" at line 74 of "/home/beams/8IDIUSER/batches/2020/Feb2020//Lambda_Noah.do".
+
+1212.SPEC8IDI> EPICS exception:  Virtual circuit disconnect.
+EPICS exception:  Virtual circuit disconnect.
+
+
+1212.SPEC8IDI> 
+
+1212.SPEC8IDI> 
+
+1212.SPEC8IDI> 

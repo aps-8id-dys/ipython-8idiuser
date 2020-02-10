@@ -61,3 +61,5 @@ from apstools.filewriters import SpecWriterCallback, spec_comment
 _ipython_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.append(os.path.join(_ipython_path, "user"))
 sys.path.append(os.path.dirname(__file__))
+
+from instrument.utils import *

@@ -2,7 +2,10 @@
 configure session logging
 """
 
+__all__ = ['logger', ]
+
 import logging
+import os
 import stdlogpj
 
 _log_path = os.path.join(os.getcwd(), ".logs")

@@ -12,7 +12,7 @@ from instrument.session_logs import logger
 logger.info(__file__)
 
 import apstools.suspenders 
-from instrument.framework import RE
+from ..framework import RE
 from ophyd import Component, Device, EpicsSignalRO
 
 

@@ -13,7 +13,7 @@ logger.info(__file__)
 
 import apstools.devices
 
-from ..framework.initialize import sd
+from ..framework import sd
 
 
 aps = apstools.devices.ApsMachineParametersDevice(name="aps")

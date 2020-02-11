@@ -17,9 +17,10 @@ logger.info(__file__)
 from area_detector_handlers.handlers import HandlerBase
 from bluesky import plan_stubs as bps
 from .data_management import DM_DeviceMixinAreaDetector, dm_pars
+from ..framework import db
 import itertools
 import numpy as np
-from ophyd import Component, Device
+from ophyd import Component, Device, Signal
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV
 from .shutters import shutter, shutter_override
 from .soft_glue_fpga import pvDELAY_A, pvDELAY_B, sg_num_frames, soft_glue

@@ -11,7 +11,7 @@ logger.info(__file__)
 from ophyd import Component, Device, EpicsMotor
 
 
-class TableOptics(Device):  
+class OpticsTable(Device):  
     """
     Optics Table 2 in 8-ID-I which holds optics and slits
     """    
@@ -32,5 +32,5 @@ class FlightPathTable(Device):
     xd = Component(EpicsMotor, '8idi:m29', labels=["motor", ])
  
  
-opticstable = TableOptics(name="opticstable")
+opticstable = OpticsTable(name="opticstable")
 flightpathtable = FlightPathTable(name="flightpathtable")

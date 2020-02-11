@@ -3,10 +3,10 @@
 Command-line functions for alignment - NOT bluesky plans
 """
 
-__all__ = """
-    pre_align
-    post_align
-""".strip()
+__all__ = [
+    "pre_align",
+    "post_align",
+]
 
 from instrument.session_logs import logger
 logger.info(__file__)

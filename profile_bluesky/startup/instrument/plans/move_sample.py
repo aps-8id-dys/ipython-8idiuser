@@ -11,9 +11,9 @@ __all__ = """
     move_pind1_out
     move_pind2_in
     move_pind2_out
-    move_pindz_in
-    move_pindz_out
-""".strip()
+    move_pind4z_in
+    move_pind4z_out
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)

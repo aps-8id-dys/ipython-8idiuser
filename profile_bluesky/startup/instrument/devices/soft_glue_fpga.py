@@ -19,7 +19,6 @@ from bluesky import plan_stubs as bps
 from ophyd import Component, Device, EpicsSignal
 
 
-
 class SoftGlueDevice(Device):
 
     start_trigger_pulses_sig = Component(EpicsSignal, '8idi:softGlueA:MUX2-1_IN0_Signal')

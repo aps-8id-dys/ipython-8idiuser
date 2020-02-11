@@ -9,7 +9,7 @@ __all__ = """
     block_directbeam_common
     sb
     showbeam
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)

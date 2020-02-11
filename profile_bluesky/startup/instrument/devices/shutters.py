@@ -8,6 +8,7 @@ __all__ = [
     'shutter_control',
     'shutter_mode',
     'shutter_override',
+    'shutterstage',
 ]
 
 from instrument.session_logs import logger
@@ -19,6 +20,7 @@ from bluesky.suspenders import SuspendFloor
 from instrument.devices import aps
 from instrument.devices import operations_in_8idi
 from instrument.framework import RE, sd
+from ophyd import Component, Device, EpicsMotor
 from ophyd import EpicsSignal
 
 
@@ -48,9 +50,17 @@ else:
     shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
 
-shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
+class ShutterStage(Device):  
+    """
+    Shutter Stage at 8-ID-I
+    """    
+    x = Component(EpicsMotor, '8idi:m1', labels=["motor", "shutter"])
+    z = Component(EpicsMotor, '8idi:m2', labels=["motor", "shutter"])
+
 
 # values: "UFXC" : acquire mode, "1UFXC" : align mode
 shutter_mode = EpicsSignal("8idi:softGlueC:AND-4_IN2_Signal", name="shutter_mode")
 
+shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
 shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")
+shutterstage = ShutterStage(name="shutterstage")

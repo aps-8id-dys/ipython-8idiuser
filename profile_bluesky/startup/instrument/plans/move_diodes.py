@@ -12,14 +12,14 @@ __all__ = """
     remove_pind2
     insert_flux_pind
     remove_flux_pind
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)
 
 from bluesky import plan_stubs as bps
 from ..devices import *
-import namedtuple
+from collections import namedtuple
 
 
 # access by subscript or by name (obj[0]= same as obj.insert)

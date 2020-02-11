@@ -5,7 +5,7 @@ Acquire an XPCS measurement with a supported area detector
 
 __all__ = """
     AD_Acquire
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)
@@ -14,7 +14,7 @@ import apstools.utils
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import datetime
-from ..devices import aps_cycle, dm_pars, dm_workflow
+from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import timebase, pind1, pind2, T_A, T_SET
@@ -46,7 +46,7 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = path or f"/home/8-id-i/{aps_cycle}/bluesky"
+    path = path or f"/home/8-id-i/{aps.aps_cycle}/bluesky"
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):

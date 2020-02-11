@@ -17,8 +17,7 @@ logger.info(__file__)
 
 import datetime
 from ophyd import Component, Device, EpicsMotor, EpicsSignal
-import spec_support
-
+from spec_support.APS_DM_8IDI import DM_Workflow
 
 # What APS run cycle are we in?  Hackulate it.
 dt = datetime.datetime.now()
@@ -119,7 +118,7 @@ class DataManagementMetadata(Device):
 
 
 dm_pars = DataManagementMetadata(name="dm_pars")
-dm_workflow = spec_support.APS_DM_8IDI.DM_Workflow(
+dm_workflow = DM_Workflow(
     dm_pars, aps_cycle, xpcs_qmap_file,
     transfer=dm_pars.transfer.get(),
     analysis=dm_pars.analysis.get(),

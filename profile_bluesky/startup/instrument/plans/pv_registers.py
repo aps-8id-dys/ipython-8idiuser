@@ -11,7 +11,7 @@ __all__ = """
     beam_params_restore
     select_LAMBDA
     select_RIGAKU
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)
@@ -19,6 +19,7 @@ logger.info(__file__)
 from bluesky import plan_stubs as bps
 from ..devices import detu, detd, dm_pars, dm_workflow
 from ..devices import shutter_mode, shutter_override, soft_glue
+from ophyd import EpicsSignal
 import pyRestTable
 from .shutters import blockbeam
 

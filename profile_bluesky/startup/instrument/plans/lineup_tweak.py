@@ -6,7 +6,7 @@ Bluesky plans to move the sample stage and actuators
 __all__ = """
     lineup
     tw
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)

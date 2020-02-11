@@ -8,7 +8,7 @@ __all__ = """
     flux
     flux_params
     print_flux_params
-""".strip()
+""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)

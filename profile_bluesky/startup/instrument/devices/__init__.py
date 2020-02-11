@@ -23,7 +23,6 @@ from .preamps import *
 from .sample_stage import *
 from .scaler import *
 from .shutters import *
-from .shutter_stage import *
 from .slits import *
 from .soft_glue_fpga import *
 from .tables import *

@@ -1,12 +1,18 @@
 
-# get all the symbols from the IPython shell
-import IPython
-globals().update(IPython.get_ipython().user_ns)
-logger.info(__file__)
-
 """
 test that we can run user ops continuously - use Lambda detector
 """
+
+__all__ = """
+    lambda_test
+""".strip()
+
+from instrument.session_logs import logger
+logger.info(__file__)
+
+from bluesky import plan_stubs as bps
+from instrument.devices import bec, detu, dm_pars, lambdadet
+from instrument.plans import AD_Acquire, movesample
 
 
 def lambda_test(num_iter=1, 
@@ -62,36 +68,3 @@ def lambda_test(num_iter=1,
     bec.enable_baseline()
     bec.enable_table()
     bec.enable_plots()
-
-
-def trubble():
-    """
-    demonstrate a problem when using bluesky 1.6.0rc3
-
-    latest release (bluesky 1.4.1) does not raise this exception
-
-    see: https://github.com/bluesky/bluesky/issues/1282
-    """
-    import databroker
-    md = {
-        "demonstrate": "trouble",
-        "versions" : {
-            "bluesky": bluesky.__version__,
-            "ophyd": ophyd.__version__,
-            "databroker": databroker.__version__,
-        }
-    }
-    print(md)
-    yield from bps.open_run(md=md)
-    # FIXME: exception here
-    """
-    ProgrammingError: SQLite objects created in a thread can only be used in that same thread. The object was created in thread id 139836100364096 and this is thread id 139834963904256.
-
-    not a problem with bluesky 1.4.1
-    exception with bluesky v1.6.0rc3 and master (2020-01-28)
-    """
-    yield from bps.create('primary')
-    # dm_pars.ARun_number = Component(EpicsSignal, "8idi:Reg173")
-    yield from bps.read(dm_pars.ARun_number)
-    yield from bps.save()
-    yield from bps.close_run()

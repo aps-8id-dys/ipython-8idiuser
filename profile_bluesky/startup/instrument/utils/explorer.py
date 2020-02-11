@@ -70,7 +70,7 @@ def object_explorer(obj):
     t.addLabel("PV reference")
     t.addLabel("value")
     items = miner(obj)
-    print(len(items))
+    # print(len(items))
 
     def sorter(obj):
         return obj.dotted_name

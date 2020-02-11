@@ -14,7 +14,7 @@ from .mpl.console import *
 
 logger.info("bluesky framework")
 
-from .startup import *
+from .framework import *
 from .devices import *
 # TODO:
 # from .plans import *

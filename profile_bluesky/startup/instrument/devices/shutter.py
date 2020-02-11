@@ -18,7 +18,7 @@ from apstools.devices import SimulatedApsPssShutterWithStatus
 from bluesky.suspenders import SuspendFloor
 from instrument.devices import aps
 from instrument.devices import operations_in_8idi
-from instrument.startup import RE, sd
+from instrument.framework import RE, sd
 from ophyd import EpicsSignal
 
 

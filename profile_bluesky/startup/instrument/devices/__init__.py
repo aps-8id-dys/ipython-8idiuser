@@ -22,14 +22,14 @@ from .motors import *
 from .preamps import *
 from .sample_stage import *
 from .scaler import *
-from .shutter import *
+from .shutters import *
 from .shutter_stage import *
 from .slits import *
-from .soft_glue import *
+from .soft_glue_fpga import *
 from .tables import *
 
 # area detectors
-# from .lambda_750k import *    # TODO:
+from .lambda_750k import *
 # from .rigaku_qxfc import *    # TODO:
 
 # non-hardware support

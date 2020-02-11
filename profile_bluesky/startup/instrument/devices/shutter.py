@@ -16,8 +16,8 @@ logger.info(__file__)
 from apstools.devices import EpicsOnOffShutter
 from apstools.devices import SimulatedApsPssShutterWithStatus
 from bluesky.suspenders import SuspendFloor
-from instrument.devices.aps import aps
-from instrument.devices.pss import operations_in_8idi
+from instrument.devices import aps
+from instrument.devices import operations_in_8idi
 from instrument.startup import RE, sd
 from ophyd import EpicsSignal
 

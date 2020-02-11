@@ -4,6 +4,9 @@
 
 __all__ = []
 
+from ..session_logs import logger
+logger.info(__file__)
+
 import apstools
 import bluesky
 import databroker
@@ -19,10 +22,7 @@ import pyRestTable
 import socket
 import spec2nexus
 
-from ..startup.framework import RE
-
-from ..session_logs import logger
-logger.info(__file__)
+from .initialize import RE
 
 # Set up default metadata
 

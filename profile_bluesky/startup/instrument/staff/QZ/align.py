@@ -11,9 +11,10 @@ __all__ = [
 from instrument.session_logs import logger
 logger.info(__file__)
 
+from bluesky import plans as bp
+from bluesky import plan_stubs as bps
 from instrument.devices import pind4, lakeshore, samplestage
 from instrument.plans import sb, bb
-from instrument.startup import bp, bps
 
 logger.warning("Call pre_align() with shutter OPEN before you run RE(align_x())")
 

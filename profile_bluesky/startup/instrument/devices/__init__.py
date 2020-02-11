@@ -2,7 +2,7 @@
 local, custom Device definitions
 """
 
-from .aps import *
+from .aps_source import *
 from .pss import *
 
 # upstream devices

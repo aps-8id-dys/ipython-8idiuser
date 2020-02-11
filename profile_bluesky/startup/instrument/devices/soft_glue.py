@@ -15,7 +15,7 @@ from instrument.session_logs import logger
 logger.info(__file__)
 
 import apstools.devices
-from instrument.startup import bps
+from bluesky import plan_stubs as bps
 from ophyd import Component, Device, EpicsSignal
 
 

@@ -11,7 +11,7 @@ __all__ = [
 from instrument.session_logs import logger
 logger.info(__file__)
 
-from instrument.startup import bps
+from bluesky import plan_stubs as bps
 from ophyd import Component, Device, EpicsMotor, EpicsSignal, Signal
 from ophyd import DeviceStatus
 import threading

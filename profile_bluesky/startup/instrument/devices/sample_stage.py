@@ -9,7 +9,7 @@ from instrument.session_logs import logger
 logger.info(__file__)
 
 from instrument.devices.data_management import dm_pars
-from instrument.startup import bps
+from bluesky import plan_stubs as bps
 import numpy as np
 from ophyd import Component, Device, EpicsMotor
 

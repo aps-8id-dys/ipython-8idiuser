@@ -1,36 +1,5 @@
 """
 local, custom Device definitions
-
-DEVICES
-
-*    BeamSplittingMonochromatorDevice()
-*    BeWindow()
-*    CompoundRefractiveLensDevice()
-*    DetStageDownstream()
-*    DetStageUpstream()
-*    FlightPathTable()
-*    FOEmirrorDevice()
-*    FOEpinholeDevice()
-*    LS336Device()
-*    MonochromatorDevice()
-*    MonochromatorTableDevice()
-*    PreampDevice()
-*    PreampUnitNumberDevice()
-*    PSO_TaxiFly_Device()
-*    PSS_Parameters()
-*    #SamplePiezo()
-*    SampleStage()
-*    SampleStageTable()
-*    ShutterStage()
-*    SlitI1Device()
-*    SlitI2Device()
-*    SlitI3Device()
-*    SlitI4Device()
-*    SlitI5Device()
-*    SlitIpinkDevice()
-*    SoftGlueDevice()
-*    TableOptics()
-*    WBslitDevice()
 """
 
 from .aps import *

@@ -2,6 +2,9 @@
 """
 X-Spectrum Lambda 750K area detector (EPICS)
 
+* detector name: LAMBDA
+* detector number: 25
+
 Mimics an ophyd.areaDetector object without subclassing it.
 """
 

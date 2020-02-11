@@ -2,6 +2,9 @@
 """
 Rigaku Ultra-Fast X-ray Camera area detector (LabView, not EPICS)
 
+* detector name: RIGAKU500K_NoGap
+* detector number: 46
+
 Mimics an ophyd.areaDetector object without subclassing it.
 """
 

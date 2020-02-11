@@ -1,6 +1,6 @@
 
 """
-X-Spectrum Lambda 750K area detector
+X-Spectrum Lambda 750K area detector (EPICS)
 
 Mimics an ophyd.areaDetector object without subclassing it.
 """
@@ -12,7 +12,6 @@ logger.info(__file__)
 
 # pip install area_detector_handlers
 from area_detector_handlers.handlers import HandlerBase
-from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 from .data_management import DM_DeviceMixinAreaDetector, dm_pars
 import itertools
@@ -648,3 +647,4 @@ except TimeoutError:
         "Could not connect Lambda 750K detector"
         f" with prefix  {LAMBDA_750K_IOC_PREFIX}"
     )
+    lambdadet = None

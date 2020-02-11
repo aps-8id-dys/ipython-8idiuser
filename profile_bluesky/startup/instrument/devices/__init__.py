@@ -29,6 +29,7 @@ from .tables import *
 
 # area detectors
 from .lambda_750k import *
+# from .lambda_2m import *
 from .rigaku_ufxc import *
 
 # non-hardware support

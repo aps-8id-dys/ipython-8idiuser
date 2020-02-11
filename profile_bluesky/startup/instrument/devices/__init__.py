@@ -30,7 +30,7 @@ from .tables import *
 
 # area detectors
 from .lambda_750k import *
-# from .rigaku_qxfc import *    # TODO:
+from .rigaku_ufxc import *
 
 # non-hardware support
 from .data_management import *

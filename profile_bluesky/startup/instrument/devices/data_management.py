@@ -3,7 +3,14 @@
 APS Data Management support
 """
 
-__all__ = ['dm_pars', 'dm_workflow', 'xpcs_qmap_file']
+__all__ = [
+    'dm_pars', 
+    'dm_workflow', 
+    'xpcs_qmap_file', 
+    'DM_DeviceMixinBase',
+    'DM_DeviceMixinAreaDetector',
+    'DM_DeviceMixinScaler',
+]
 
 from instrument.session_logs import logger
 logger.info(__file__)
@@ -117,3 +124,53 @@ dm_workflow = spec_support.APS_DM_8IDI.DM_Workflow(
     transfer=dm_pars.transfer.get(),
     analysis=dm_pars.analysis.get(),
     )
+
+
+class DM_DeviceMixinBase(Device):
+    """
+    methods and attributes used by the APS Data Management workflow support
+    """
+
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the device's stage_sigs for acquisition with the DM workflow
+
+        Implement this method in _any_ Device that requires custom
+        setup for the DM workflow.
+
+        Not a bluesky "plan" (no "yield from")
+        """
+        # logger.debug(f"staging_setup_DM({args})")
+        raise NotImplementedError("must override in subclass")
+
+
+class DM_DeviceMixinScaler(DM_DeviceMixinBase):
+    """for use with ScalerCH and the DM workflow"""
+
+
+class DM_DeviceMixinAreaDetector(DM_DeviceMixinBase):
+    """for use with area detector and the DM workflow"""
+
+    qmap_file = ""              # TODO: documentation?
+    detector_number = None      # 8-ID-I numbering of this detector
+    
+    @property
+    def plugin_file_name(self):
+        """
+        return the (base, no path) file name the plugin wrote
+        
+        Implement for the DM workflow.
+
+        Not a bluesky "plan" (no "yield from")
+        """
+        # logger.debug(f"plugin_file_name({args})")
+        raise NotImplementedError("must override in subclass")
+
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        # logger.debug(f"xpcs_loop({args})")
+        raise NotImplementedError("must override in subclass")

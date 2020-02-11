@@ -28,10 +28,9 @@ from .slits import *
 from .soft_glue import *
 from .tables import *
 
+# area detectors
+# from .lambda_750k import *    # TODO:
+# from .rigaku_qxfc import *    # TODO:
+
 # non-hardware support
 from .data_management import *
-
-# TODO:
-# from .calcs import *
-# from .signals import *
-# from .simdet import *

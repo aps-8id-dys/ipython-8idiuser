@@ -5,6 +5,7 @@ APS Personnel Safety System
 
 __all__ = [
     'pss',
+    'operations_in_8idi',
 ]
 
 from instrument.session_logs import logger
@@ -41,6 +42,13 @@ class PSS_Parameters(Device):
         """
         enabled = self.d_shutter_open_chain_A.get() == "ON"
         return enabled
+
+
+def operations_in_8idi():
+    """
+    returns True if allowed to use X-ray beam in 8-ID-I station
+    """
+    return pss.i_station_enabled
 
 
 pss = PSS_Parameters(name="pss")

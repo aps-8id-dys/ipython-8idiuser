@@ -15,12 +15,14 @@ from .actuators import *
 from .attenuators import *
 from .crl import *
 from .detector_stages import *
+from .epid import *
 from .fly import *
 from .lakeshore import *
 from .motors import *
 from .preamps import *
 from .sample_stage import *
 from .scaler import *
+from .shutter import *
 from .shutter_stage import *
 from .slits import *
 from .soft_glue import *

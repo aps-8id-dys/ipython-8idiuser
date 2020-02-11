@@ -14,8 +14,8 @@ DEVICES
     LS336Device()
 *    MonochromatorDevice()
 *    MonochromatorTableDevice()
-    PreampDevice()
-    PreampUnitNumberDevice()
+*    PreampDevice()
+*    PreampUnitNumberDevice()
 *    PSO_TaxiFly_Device()
 *    PSS_Parameters()
 *    #SamplePiezo()
@@ -45,6 +45,7 @@ from .actuators import *
 from .crl import *
 from .fly import *
 from .motors import *
+from .preamps import *
 from .sample_stage import *
 from .soft_glue import *
 from .tables import *

@@ -1,10 +1,22 @@
-# get all the symbols from the IPython shell
-import IPython
-globals().update(IPython.get_ipython().user_ns)
+
+"""
+QZ's collection
+"""
+
+__all__ = [
+    'align_x',
+    'align_z',
+]
+
+from instrument.session_logs import logger
 logger.info(__file__)
 
+from instrument.devices import pind4, lakeshore, samplestage
+from instrument.plans import sb, bb
+from instrument.startup import bp, bps
 
-print("Don't forget to call pre_align() with shutter OPEN before you run RE(align_x())")
+logger.warning("Call pre_align() with shutter OPEN before you run RE(align_x())")
+
 
 def align_x(pos_start=-3,
             pos_stop=-3,

@@ -12,7 +12,8 @@ logger.info(__file__)
 
 from bluesky import plan_stubs as bps
 import datetime
-from instrument.devices import bec, detu, dm_pars, rigaku
+from instrument.devices import detu, dm_pars, rigaku
+from instrument.framework import bec
 from instrument.plans import AD_Acquire, movesample
 import subprocess 
 

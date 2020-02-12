@@ -6,10 +6,15 @@ if [ "${PYTHONPATH}" != "" ]; then
     unset PYTHONPATH
 fi
 
-CONDA_ENVIRONMENT=bluesky
-CONDA_ACTIVATE=/APSshare/miniconda/x86_64/bin/activate
-IPYTHON_DIR=~/.ipython-bluesky
-IPYTHON_PROFILE=bluesky
+export CONDA_ENVIRONMENT=bluesky
+export CONDA_ACTIVATE=/APSshare/miniconda/x86_64/bin/activate
+export IPYTHONDIR=~/.ipython-bluesky
+export IPYTHON_PROFILE=bluesky
+
+IPYTHON_OPTIONS=
+IPYTHON_OPTIONS="${IPYTHON_OPTIONS} --profile=${IPYTHON_PROFILE}"
+IPYTHON_OPTIONS="${IPYTHON_OPTIONS} --ipython-dir=${IPYTHONDIR}"
+IPYTHON_OPTIONS="${IPYTHON_OPTIONS} --IPCompleter.use_jedi=False"
 
 # see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/125
 # clean up the PATH definition
@@ -32,10 +37,10 @@ PATH=${PATH}:/net/s8iddserv/APSshare/caqtdm/bin
 PATH=${PATH}:.
 export PATH
 
+# need to find libstdc++.so with CXXABI_1.3.9
+export LD_LIBRARY_PATH=/home/beams/8IDIUSER/.conda/envs/bluesky/lib/
+
 source ${CONDA_ACTIVATE} ${CONDA_ENVIRONMENT}
 
 # export PYEPICS_LIBCA=/APSshare/epics/base-3.14.12.7/lib/rhel7-x86_64/libca.so.3.14
-ipython \
-    --profile=${IPYTHON_PROFILE} \
-    --ipython-dir=${IPYTHON_DIR} \
-    --IPCompleter.use_jedi=False
+ipython ${IPYTHON_OPTIONS}

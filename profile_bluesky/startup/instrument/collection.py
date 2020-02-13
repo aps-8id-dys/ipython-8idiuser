@@ -6,7 +6,7 @@ configure for data collection in a console session
 from .session_logs import *
 logger.info(__file__)
 
-from .mpl.console import *
+from .mpl import *
 
 logger.info("bluesky framework")
 

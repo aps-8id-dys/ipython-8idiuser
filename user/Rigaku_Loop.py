@@ -1,11 +1,21 @@
 
-# get all the symbols from the IPython shell
-import IPython
-globals().update(IPython.get_ipython().user_ns)
+"""
+test that we can run user ops continuously - use Rigaku UFXC detector
+"""
+
+__all__ = """
+    lambda_test
+""".strip()
+
+from instrument.session_logs import logger
 logger.info(__file__)
 
-import subprocess 
+from bluesky import plan_stubs as bps
 import datetime
+from instrument.devices import detu, dm_pars, rigaku
+from instrument.framework import bec
+from instrument.plans import AD_Acquire, movesample
+import subprocess 
 
 
 def rigaku_test(num_iter=2, 

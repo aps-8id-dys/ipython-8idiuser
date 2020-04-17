@@ -61,7 +61,7 @@ def miner(obj):
         return items
 
 
-def object_explorer(obj):
+def object_explorer(obj, sortby=None):
     """
     print the contents of obj
     """
@@ -70,20 +70,29 @@ def object_explorer(obj):
     t.addLabel("PV reference")
     t.addLabel("value")
     items = miner(obj)
-    print(len(items))
+    # print(len(items))
 
     def sorter(obj):
-        return obj.dotted_name
+        if sortby is None:
+            key = obj.dotted_name
+        elif str(sortby).lower() == "pv":
+            key = get_pv(obj) or "--"
+        else:
+            raise ValueError(
+                "sortby should be None or 'PV'"
+                f" found sortby='{sortby}'"
+                )
+        return key
 
     for item in sorted(items, key=sorter):
-        # t.addRow((full_dotted_name(item), pv_ref(item), item.get()))
-        t.addRow((item.dotted_name, pv_ref(item), item.get()))
+        # t.addRow((full_dotted_name(item), get_pv(item), item.get()))
+        t.addRow((item.dotted_name, get_pv(item), item.get()))
     print(t)
     return t
 
 
-def pv_ref(obj):
-    if isinstance(obj, EpicsSignalBase):
+def get_pv(obj):
+    if hasattr(obj, "pvname"):
         return obj.pvname
-    elif isinstance(obj, Device):
+    elif hasattr(obj, "prefix"):
         return obj.prefix

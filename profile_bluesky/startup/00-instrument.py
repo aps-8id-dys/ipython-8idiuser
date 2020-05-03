@@ -1,6 +1,6 @@
 
 """
-start bluesky in IPython session for XPCS
+start bluesky in IPython session for DYS 8-ID-I XPCS
 """
 
 from instrument.collection import *

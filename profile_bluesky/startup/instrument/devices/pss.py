@@ -13,6 +13,7 @@ logger.info(__file__)
 
 import apstools.suspenders 
 from ..framework import RE
+from ..devices import aps
 from ophyd import Component, Device, EpicsSignalRO
 
 
@@ -60,9 +61,11 @@ msg += " used.  Resume is not allowed from this condition."
 msg += " You are strongly advised to exit and restart"
 msg += " the bluesky session."
 
-suspend_I_station_status = apstools.suspenders.SuspendWhenChanged(
-    pss.d_shutter_open_chain_A, 
-    expected_value=1,
-    tripped_message=msg)
-
-RE.install_suspender(suspend_I_station_status)
+if aps.inUserOperations and operations_in_8idi():
+    suspend_I_station_status = apstools.suspenders.SuspendWhenChanged(
+        pss.d_shutter_open_chain_A, 
+        expected_value=1,
+        tripped_message=msg)
+    RE.install_suspender(suspend_I_station_status)
+else:
+    logger.warning("not is user operations, no suspender installed for D-station shutter")

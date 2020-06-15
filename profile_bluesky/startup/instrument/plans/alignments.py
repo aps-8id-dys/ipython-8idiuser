@@ -6,13 +6,20 @@ Command-line functions for alignment - NOT bluesky plans
 __all__ = [
     "pre_align",
     "post_align",
+    "align_x",
+    "align_z",
 ]
 
 from instrument.session_logs import logger
 logger.info(__file__)
 
-from ..devices import actuator_flux, att, default_counter, pind4
+from bluesky import plans as bp
+from bluesky import plan_stubs as bps
+
+from ..devices import actuator_flux, att, default_counter, pind4, lakeshore, samplestage
 from ..devices import shutter, shutter_mode
+from .shutters import sb, bb
+
 
 def pre_align():
     """
@@ -34,3 +41,22 @@ def post_align():
     #shutter_mode.put("1UFXC")
     actuator_flux.put("OUT")
     att.put(0) #att will be defined to att1 or att2
+
+    
+# QZ added on 2020/05/28
+
+
+def align_x(pos_start=-0.5,
+            pos_stop=0.5,
+            num_pts=41):  
+    yield from sb() 
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts) 
+    yield from bb()
+                                                                                                                        
+
+def align_z(pos_start=-0.5,
+            pos_stop=0.5,
+            num_pts=41):  
+    yield from sb() 
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts) 
+    yield from bb() 

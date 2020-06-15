@@ -62,7 +62,7 @@ class UnixCommandSignal(Signal):
             time.sleep(0.01)
 
     def get(self):
-        return self.unix_output, self.unix_error
+        return self.unix_output.decode(), self.unix_error.decode()
 
 
 class RigakuFakeCam(Device):
@@ -108,7 +108,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     2. yield from bps.mv(rigaku.batch_name, 'A001_Test')
     3. yield from bps.count([rigaku])
     """
-    qmap_file = "qzhang1026_rerun_minus_streak.h5"
+    qmap_file = "qzhang202002_Rq0_Log_S270_D27.h5"
 
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL") 
@@ -129,15 +129,22 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
 
     def stage(self):
         # prepare to write the document stream for Xi-CAM handling
-        root = os.path.join("/", "home", "8-id-i/")
+        root = os.path.join("/", "home", "8-id-i-stage/")
         folder = self._file_name
         fname = (
-            f"{folder}",
+            f"{folder}"
             f"_{dm_pars.data_begin.get():05.0f}"
             f"-{dm_pars.data_end.get():05.0f}"
             ".bin"
         )
         self._resource_uid = str(uuid.uuid4())
+        
+        # QZ added on 06/10/20
+        print(f'\n\n folder ============= {folder} \n\n')
+        print(f'\n\n fname ============= {fname} \n\n')
+        print(os.path.join(folder, fname))
+        # QZ added on 06/10/20
+        
         resource_doc = {'uid': self._resource_uid,
                         'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
                         'resource_path': os.path.join(folder, fname),

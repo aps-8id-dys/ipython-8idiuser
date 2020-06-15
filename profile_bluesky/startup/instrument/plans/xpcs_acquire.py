@@ -46,7 +46,7 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
-    path = path or f"/home/8-id-i/{aps.aps_cycle}/bluesky"
+    path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -249,11 +249,15 @@ def AD_Acquire(areadet,
         yield from update_metadata_prescan()
         logger.debug("after update_metadata_prescan()")
 
+        logger.debug("supplied metadata = %s", md)
+        logger.debug("file_name = %s", file_name)
+        logger.debug("file_path = %s", file_path)
         _md = {
             "file_name": file_name,
             "file_path": file_path
         }
         _md.update(md)
+        logger.debug("metadata = %s", _md)
         # start autocount on the scaler
         yield from bps.mv(scaler1.count, "Count")
         logger.info("scaler should be autocounting now")

@@ -7,7 +7,9 @@ Run this command from the UNIX command line to
 start the helper in the background:
 
     cd /home/beams/8IDIUSER/.ipython-bluesky/profile_bluesky/startup/spec_support
-    helper &
+    bash
+    source ~/bin/use_bluesky_conda_environment.sh
+    helper.py &
 
 It will emit log messages when a workflow is operating.
 These messages will be saved in a file:

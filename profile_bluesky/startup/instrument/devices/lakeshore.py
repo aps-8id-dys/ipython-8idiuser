@@ -17,6 +17,11 @@ from ophyd import FormattedComponent
 import time
 
 
+# TODO: fixes bug in apstools/synApps/asyn.py
+class MyAsynRecord(AsynRecord):
+    binary_output_maxlength = Component(EpicsSignal, ".OMAX")
+
+
 class LS336_LoopBase(ProcessController):
     """
     One control loop on the LS336 temperature controller
@@ -125,8 +130,9 @@ class LS336Device(Device):
     process_record = Component(EpicsSignal, "read.PROC")
     
     read_all = Component(EpicsSignal, "readAll.PROC")
-    serial = Component(AsynRecord, "serial")
-
+# TODO: serial = Component(AsynRecord, "serial")
+    serial = Component(MyAsynRecord, "serial")
+    
     @property
     def value(self):
         """designate one loop as the default signal to return"""

@@ -169,7 +169,12 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         self.unix_process.put(cmd)
 
     def trigger(self):
+        # Tell Rigaku to stop acquisition and wait until it's ready
         self.acquire_start.put(0)
+        while self.acquire_complete.get() in (1,'High'):
+            time.sleep(0.1)
+
+        # Getting ready to watch acquisition complete
         status = DeviceStatus(self)
 
         def watch_acquire(value,old_value,**kwargs):
@@ -178,10 +183,11 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
                 self.acquire_complete.clear_sub(watch_acquire)
                 status._finished()
 
+        # Start acquisition
         self.acquire_complete.subscribe(watch_acquire)
         self.acquire_start.put(1)
         time.sleep(0.1)     # could be shorter, this works now
-        self.acquire_start.put(0)
+        self.acquire_start.put(0)  # Stop acquisition
 
         # write the document stream for Xi-CAM handling
         index = next(self._datum_counter)

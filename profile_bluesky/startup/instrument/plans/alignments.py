@@ -8,6 +8,7 @@ __all__ = [
     "post_align",
     "align_x",
     "align_z",
+    "lup",
 ]
 
 from instrument.session_logs import logger
@@ -59,4 +60,16 @@ def align_z(pos_start=-0.5,
             num_pts=41):  
     yield from sb() 
     yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts) 
+    yield from bb() 
+
+
+# QZ added on 2020/06/22
+
+def lup(scaler_name=None,
+        motor_name=None,
+        pos_start=-0.5,
+        pos_stop=0.5,
+        num_pts=41):  
+    yield from sb() 
+    yield from bp.rel_scan([scaler_name,lakeshore],motor_name,pos_start,pos_stop,num_pts) 
     yield from bb() 

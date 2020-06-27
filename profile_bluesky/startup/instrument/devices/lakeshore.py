@@ -17,6 +17,8 @@ from ophyd import FormattedComponent
 import time
 
 
+from .epid import pid1, pid2
+
 # TODO: fixes bug in apstools/synApps/asyn.py
 class MyAsynRecord(AsynRecord):
     binary_output_maxlength = Component(EpicsSignal, ".OMAX")
@@ -141,10 +143,10 @@ class LS336Device(Device):
 
 lakeshore = LS336Device("8idi:LS336:TC4:", name="lakeshore", labels=["heater", "Lakeshore"])
 
-# shortcuts
+# shortcuts for generic temperature control
 # T_A = lakeshore.loop1.temperature
 # T_SET = lakeshore.loop1.target
 
-# QZ changed on 06/18
-T_A = lakeshore.loop3.temperature
-T_SET = lakeshore.loop3.target
+# QZ changed on 06/23
+T_SET = pid1.final_value 
+T_A = pid1.controlled_value  

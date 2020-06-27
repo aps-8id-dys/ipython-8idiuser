@@ -16,3 +16,6 @@ from .plans import *
 from .utils import *
 
 from apstools.utils import *
+
+# ensure we return the session logger to the console
+from .session_logs import logger

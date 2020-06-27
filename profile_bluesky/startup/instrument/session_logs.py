@@ -26,6 +26,7 @@ MB = 1024 * kB
 logger = stdlogpj.standard_logging_setup(
     "bluesky-session", 
     "ipython_logger",
+    level= logging.INFO,
     maxBytes=1*MB, 
     backupCount=9)
 logger.setLevel(logging.DEBUG)

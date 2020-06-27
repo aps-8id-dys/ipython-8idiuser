@@ -139,12 +139,6 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         )
         self._resource_uid = str(uuid.uuid4())
         
-        # QZ added on 06/10/20
-        print(f'\n\n folder ============= {folder} \n\n')
-        print(f'\n\n fname ============= {fname} \n\n')
-        print(os.path.join(folder, fname))
-        # QZ added on 06/10/20
-        
         resource_doc = {'uid': self._resource_uid,
                         'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
                         'resource_path': os.path.join(folder, fname),

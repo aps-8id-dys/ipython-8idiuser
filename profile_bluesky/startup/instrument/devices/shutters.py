@@ -31,7 +31,7 @@ if aps.inUserOperations and operations_in_8idi():
     # resume 100s after current > 10 mA
     logger.info("Installing suspender for low APS current.")
     suspend_APS_current = SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
-    RE.install_suspender(suspend_APS_current)
+    # RE.install_suspender(suspend_APS_current)
 
     shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
     shutter.close_value = 1

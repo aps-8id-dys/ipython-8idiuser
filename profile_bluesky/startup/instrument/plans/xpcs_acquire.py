@@ -23,8 +23,8 @@ import os
 
 
 def AD_Acquire(areadet, 
-               acquire_time=0.1, 
-               acquire_period=0.11, 
+               acquire_time=None, 
+               acquire_period=None, 
                num_images=100, 
                file_name="A001",
                submit_xpcs_job=True,
@@ -46,6 +46,11 @@ def AD_Acquire(areadet,
       above params
     """
     logger.info("AD_Acquire starting")
+
+    # apply defaults as needed
+    acquire_time = acquire_time or 0.1
+    acquire_period = acquire_period or 0.11
+
     path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)

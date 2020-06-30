@@ -18,6 +18,7 @@ import matplotlib
 import numpy
 import ophyd
 import os
+import pymongo
 import pyRestTable
 import socket
 import spec2nexus
@@ -35,13 +36,15 @@ USERNAME = getpass.getuser() or 'APS 8-ID-I user'
 RE.md['login_id'] = USERNAME + '@' + HOSTNAME
 
 # useful diagnostic to record with all data
-RE.md['versions'] = {}
-RE.md['versions']['bluesky'] = bluesky.__version__
-RE.md['versions']['ophyd'] = ophyd.__version__
-RE.md['versions']['databroker'] = databroker.__version__
-RE.md['versions']['apstools'] = apstools.__version__
-RE.md['versions']['epics'] = epics.__version__
-RE.md['versions']['numpy'] = numpy.__version__
-RE.md['versions']['matplotlib'] = matplotlib.__version__
-RE.md['versions']['spec2nexus'] = spec2nexus.__version__
-RE.md['versions']['pyRestTable'] = pyRestTable.__version__
+RE.md["versions"] = dict(
+    apstools = apstools.__version__,
+    bluesky = bluesky.__version__,
+    databroker = databroker.__version__,
+    epics = epics.__version__,
+    matplotlib = matplotlib.__version__,
+    numpy = numpy.__version__,
+    ophyd = ophyd.__version__,
+    pymongo = pymongo.__version__,
+    pyRestTable = pyRestTable.__version__,
+    spec2nexus = spec2nexus.__version__,
+)

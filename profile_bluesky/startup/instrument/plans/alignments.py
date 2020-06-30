@@ -69,7 +69,24 @@ def lup(scaler_name=None,
         motor_name=None,
         pos_start=-0.5,
         pos_stop=0.5,
-        num_pts=41):  
+        num_pts=41,
+        md_input={}):  
+        
+    md = {}
+    md["plan_name"] = "lup"
+    md["pos_start"] = pos_start
+    md["pos_stop"] = pos_stop
+    md["motor_name"] = motor_name
+    md["num_pts"] = num_pts
+    md["scaler_name"] = scaler_name
+    md.update(md_input)
+
     yield from sb() 
-    yield from bp.rel_scan([scaler_name,lakeshore],motor_name,pos_start,pos_stop,num_pts) 
+    yield from bp.rel_scan(
+        [scaler_name, lakeshore],
+        motor_name,
+        pos_start,
+        pos_stop,
+        num_pts,
+        md=md) 
     yield from bb() 

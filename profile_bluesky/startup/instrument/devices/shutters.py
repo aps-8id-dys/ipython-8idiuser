@@ -27,10 +27,10 @@ from ophyd import EpicsSignal
 if aps.inUserOperations and operations_in_8idi():
     sd.monitors.append(aps.current)
 
-    # suspend when current < 2 mA
-    # resume 100s after current > 10 mA
-    logger.info("Installing suspender for low APS current.")
-    suspend_APS_current = SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
+    # # suspend when current < 2 mA
+    # # resume 100s after current > 10 mA
+    # logger.info("Installing suspender for low APS current.")
+    # suspend_APS_current = SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
     # RE.install_suspender(suspend_APS_current)
 
     shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")

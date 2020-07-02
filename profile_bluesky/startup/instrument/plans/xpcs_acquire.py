@@ -196,15 +196,28 @@ def AD_Acquire(areadet,
         )
         # logger.debug("Reg 111-120 done")
 
-        yield from bps.mv(
-            # Reg 123-127 in order
-            dm_pars.I0mon, I0Mon.get(),
-            dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
-            dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
-        )
-        # logger.debug("Reg 123-127 done")
+        # yield from bps.mv(
+        #     # Reg 123-127 in order
+        #     dm_pars.I0mon, I0Mon.get(),
+        #     dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
+        #     dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
+        #     dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
+        #     dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
+        # )
+        # # logger.debug("Reg 123-127 done")
+
+        try:
+            yield from bps.mv(
+                # Reg 123-127 in order
+                dm_pars.I0mon, I0Mon.get(),
+                dm_pars.burst_mode_state, 0,   # 0 for Lambda, other detector might use this
+                dm_pars.number_of_bursts, 0,   # 0 for Lambda, other detector might use this
+                dm_pars.first_usable_burst, 0,   # 0 for Lambda, other detector might use this
+                dm_pars.last_usable_burst, 0,   # 0 for Lambda, other detector might use this
+            )
+        except ophyd.signal.ReadTimeoutError as exc:
+            logger.warn("EPICS ReadTimeoutError from scaler (ignoring): %s", str(exc))
+            
 
     def update_metadata_postscan():
         # since we inherited ALL the user's namespace, we have RE and db

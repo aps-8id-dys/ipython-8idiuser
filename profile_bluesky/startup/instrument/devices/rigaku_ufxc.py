@@ -48,10 +48,16 @@ class UnixCommandSignal(Signal):
             stderr = subprocess.PIPE,
             )
 
-        @apstools.utils.run_in_thread
-        def watch_process():
-            self.unix_output, self.unix_error = self.process.communicate()
-            status._finished()
+        # @apstools.utils.run_in_thread
+        # def watch_process():
+        #     self.unix_output, self.unix_error = self.process.communicate()
+        #     status._finished()
+
+        @apstools.utils.run_in_thread 
+        def watch_process(): 
+            self.unix_output, self.unix_error = self.process.communicate() 
+            self.process = None
+            status._finished() 
 
         watch_process()    
         return status
@@ -164,24 +170,27 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
 
     def trigger(self):
         # Tell Rigaku to stop acquisition and wait until it's ready
-        self.acquire_start.put(0)
+        # self.acquire_start.put(0)
         while self.acquire_complete.get() in (1,'High'):
             time.sleep(0.1)
-
+            
         # Getting ready to watch acquisition complete
         status = DeviceStatus(self)
 
         def watch_acquire(value,old_value,**kwargs):
             if value == 1 and old_value == 0:
-                self.acquire_start.put(0)
+                # self.acquire_start.put(0)
                 self.acquire_complete.clear_sub(watch_acquire)
                 status._finished()
 
         # Start acquisition
         self.acquire_complete.subscribe(watch_acquire)
-        self.acquire_start.put(1)
+        time.sleep(0.1)  # QZ 06/28/20: No reason. Put it there to improve stability
+        # self.acquire_start.put(1)
+        self.unix_process.put(
+            "echo EXPOSURE | nc rigaku1.xray.aps.anl.gov 10000")
         time.sleep(0.1)     # could be shorter, this works now
-        self.acquire_start.put(0)  # Stop acquisition
+        # self.acquire_start.put(0)  # Stop acquisition
 
         # write the document stream for Xi-CAM handling
         index = next(self._datum_counter)

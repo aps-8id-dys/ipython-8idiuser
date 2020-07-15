@@ -20,11 +20,28 @@ import itertools
 from ophyd import Component, Device, DeviceStatus
 from ophyd import Signal, EpicsSignal, EpicsSignalRO
 import os
+import psutil
 from .shutters import shutter_mode, shutter_control, shutter_override
 
 import subprocess
 import time
 import uuid
+
+
+process_info = psutil.Process()
+
+
+def get_process_info():
+    pd = process_info.as_dict()
+    return dict(
+        memory_info=pd["memory_info"],
+        num_connections=len(pd["connections"]),
+        num_context_switches=len(pd['num_ctx_switches']),
+        num_file_descriptors=pd['num_fds'],
+        num_open_files=len(pd['open_files']),
+        num_threads=len(pd['threads']),
+        pid=pd["pid"],
+    )
 
 
 class UnixCommandSignal(Signal):
@@ -40,6 +57,19 @@ class UnixCommandSignal(Signal):
     def set(self, unix_command):
         status = DeviceStatus(self)
         self.unix_command = unix_command
+
+        # see: https://github.com/aps-8id-dys/ipython-8idiuser/issues/195
+        pi = get_process_info()
+        logger.info(
+            "%s [#open files=%d, #open fd=%d, #threads=%d, #connections=%d, #context switches=%d]",
+            unix_command,
+            pi['num_open_files'],
+            pi['num_file_descriptors'],
+            pi['num_threads'],
+            pi['num_connections'],
+            pi['num_context_switches'],
+            )
+
         self.process = subprocess.Popen(
             unix_command, 
             shell=True,
@@ -47,11 +77,6 @@ class UnixCommandSignal(Signal):
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE,
             )
-
-        # @apstools.utils.run_in_thread
-        # def watch_process():
-        #     self.unix_output, self.unix_error = self.process.communicate()
-        #     status._finished()
 
         @apstools.utils.run_in_thread 
         def watch_process(): 

@@ -23,13 +23,13 @@ import os
 
 
 def AD_Acquire(areadet, 
-               acquire_time=None, 
-               acquire_period=None, 
-               num_images=100, 
-               file_name="A001",
+               file_name,
+               acquire_time, 
+               acquire_period, 
+               num_images,
+               path='/home/8-id-i/2020-2/qzhang202007/',  
                submit_xpcs_job=True,
-               atten=None, 
-               path=None, 
+               atten=0, 
                md={}):
     """
     acquisition sequence initiating data management workflow
@@ -47,11 +47,7 @@ def AD_Acquire(areadet,
     """
     logger.info("AD_Acquire starting")
 
-    # apply defaults as needed
-    acquire_time = acquire_time or 0.1
-    acquire_period = acquire_period or 0.11
-
-    path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
+    # path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -217,7 +213,7 @@ def AD_Acquire(areadet,
             )
         except ophyd.signal.ReadTimeoutError as exc:
             logger.warn("EPICS ReadTimeoutError from scaler (ignoring): %s", str(exc))
-            
+
 
     def update_metadata_postscan():
         # since we inherited ALL the user's namespace, we have RE and db

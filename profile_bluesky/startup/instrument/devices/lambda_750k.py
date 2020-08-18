@@ -27,6 +27,9 @@ from .soft_glue_fpga import pvDELAY_A, pvDELAY_B, sg_num_frames, soft_glue
 import struct
 import time
 import uuid
+import os
+
+
 
 
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"

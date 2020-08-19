@@ -82,6 +82,7 @@ def lup(channel,
     _md.update(md or {})
 
     yield from sb()
+    original_stage_sigs = dict(scaler1.stage_sigs)
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
     scaler1.stage_sigs["auto_count_delay"] = 1
@@ -95,8 +96,6 @@ def lup(channel,
         md=_md
         )
     scaler1.select_channels(None)    # selects all named channels again
-    del scaler1.stage_sigs["preset_time"]
-    del scaler1.stage_sigs["count_mode"]
-    del scaler1.stage_sigs["auto_count_delay"]
+    scaler1.stage_sigs = dict(original_stage_sigs)
     yield from bb()
 

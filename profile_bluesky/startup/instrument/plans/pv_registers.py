@@ -43,7 +43,7 @@ PV_REG_MAP = {
 
 PV_REG_MAP["registers"] = [     # each register is a signal
     EpicsSignal(
-        PV_REG_MAP["template"] % (i+1), 
+        PV_REG_MAP["template"] % (i+1),
         name="pv_reg%d" % (i+1)
         )
     for i in range(PV_REG_MAP["highest register"])
@@ -147,7 +147,7 @@ def select_LAMBDA(distance=None):
     yield from beam_params_restore()
     yield from bps.sleep(1)
     yield from blockbeam()
-    
+
     logger.info("Moving LAMBDA PAD to the direct beam position")
 
     distance = distance or "4 m"
@@ -186,7 +186,7 @@ def select_LAMBDA(distance=None):
     # def xpcs_pre_start \'xpcs_pre_start_LAMBDA\';
 	# def user_xpcs_loop \'user_xpcs_loop_LAMBDA\';
 
-    yield from bps.mv(shutter_mode, "1UFXC")    # "align" mode
+    yield from bps.mv(shutter_mode, shutter_mode.ALIGN_MODE)
 
     dm_workflow.transfer = "xpcs8-01-Lambda"
     dm_workflow.analysis = "xpcs8-02-Lambda"
@@ -211,7 +211,7 @@ def select_RIGAKU():
     yield from beam_params_restore()
     yield from bps.sleep(1)
     yield from blockbeam()
-    
+
     logger.info("Moving RIGAKU to the direct beam position")
 
     # logger.debug(f"ccdx0={dm_pars.ccdx0.get()}, ccdz0={dm_pars.ccdz0.get()}")

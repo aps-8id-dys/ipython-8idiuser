@@ -29,7 +29,7 @@ def pre_align():
     """
     global att, default_counter
     shutter.close()
-    shutter_mode.put("1UFXC")
+    shutter_mode.align_mode()
     actuator_flux.put("IN")
     att.put(0)
     default_counter = pind4
@@ -40,28 +40,28 @@ def post_align():
     """
     global att
     shutter.close()
-    #shutter_mode.put("1UFXC")
+    #shutter_mode.align_mode()
     actuator_flux.put("OUT")
     att.put(0) #att will be defined to att1 or att2
 
-    
+
 # QZ added on 2020/05/28
 
 
 def align_x(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts) 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts)
     yield from bb()
-                                                                                                                        
+
 
 def align_z(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts) 
-    yield from bb() 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts)
+    yield from bb()
 
 
 def lup(channel,
@@ -70,8 +70,8 @@ def lup(channel,
         pos_stop,
         num_pts,
         count_time):
-        
-    yield from sb() 
+
+    yield from sb()
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
     scaler1.stage_sigs["auto_count_delay"] = 1
@@ -82,7 +82,7 @@ def lup(channel,
         pos_start,
         pos_stop,
         num_pts,
-        ) 
+        )
     scaler1.select_channels(None)    # selects all named channels again
     del scaler1.stage_sigs["preset_time"]
     del scaler1.stage_sigs["count_mode"]

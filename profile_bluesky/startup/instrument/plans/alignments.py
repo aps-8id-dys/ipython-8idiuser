@@ -69,8 +69,12 @@ def lup(channel,
         pos_start,
         pos_stop,
         num_pts,
-        count_time):
+        count_time,
+        md=None):
         
+    _md = {}
+    _md.update(md or {})
+
     yield from sb() 
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
@@ -82,6 +86,7 @@ def lup(channel,
         pos_start,
         pos_stop,
         num_pts,
+        md=_md
         ) 
     scaler1.select_channels(None)    # selects all named channels again
     del scaler1.stage_sigs["preset_time"]

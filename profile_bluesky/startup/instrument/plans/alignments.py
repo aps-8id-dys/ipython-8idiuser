@@ -65,7 +65,7 @@ def align_z(pos_start=-0.5,
 
 
 def lup(channel,
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,
@@ -82,7 +82,7 @@ def lup(channel,
     scaler1.select_channels([channel.name])
     yield from bp.rel_scan(
         [scaler1, lakeshore],
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,

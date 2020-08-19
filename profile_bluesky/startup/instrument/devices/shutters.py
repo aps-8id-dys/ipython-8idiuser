@@ -50,16 +50,37 @@ else:
     shutter.delay_s = 0.05 # shutter needs short recovery time after moving
 
 
-class ShutterStage(Device):  
+class ShutterStage(Device):
     """
     Shutter Stage at 8-ID-I
-    """    
+    """
     x = Component(EpicsMotor, '8idi:m1', labels=["motor", "shutter"])
     z = Component(EpicsMotor, '8idi:m2', labels=["motor", "shutter"])
 
 
-# values: "UFXC" : acquire mode, "1UFXC" : align mode
-shutter_mode = EpicsSignal("8idi:softGlueC:AND-4_IN2_Signal", name="shutter_mode")
+class ShutterModeSignal(EpicsSignal):
+
+    ALIGN_MODE = "1UFXC"
+    DATA_MODE = "UFXC"
+
+    def align_mode(self):
+        self.put(self.ALIGN_MODE)
+        # TODO: shutteroff
+        logger.info(
+            "Shutter will remain OPEN for alignment"
+            " if **showbeam** is called.")
+
+    def data_mode(self):
+        self.put(self.DATA_MODE)
+        # TODO: shutteroff
+        logger.info(
+            "Shutter will be controlled by UFXC"
+            " if shutter is left in the **showbeam** state.")
+
+
+shutter_mode = ShutterModeSignal(
+    "8idi:softGlueC:AND-4_IN2_Signal",
+    name="shutter_mode")
 
 shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
 shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")

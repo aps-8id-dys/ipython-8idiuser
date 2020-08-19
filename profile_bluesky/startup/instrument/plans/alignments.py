@@ -44,24 +44,24 @@ def post_align():
     actuator_flux.put("OUT")
     att.put(0) #att will be defined to att1 or att2
 
-    
+
 # QZ added on 2020/05/28
 
 
 def align_x(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts) 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts)
     yield from bb()
-                                                                                                                        
+
 
 def align_z(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts) 
-    yield from bb() 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts)
+    yield from bb()
 
 
 def lup(channel,
@@ -71,11 +71,11 @@ def lup(channel,
         num_pts,
         count_time,
         md=None):
-        
+
     _md = {}
     _md.update(md or {})
 
-    yield from sb() 
+    yield from sb()
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
     scaler1.stage_sigs["auto_count_delay"] = 1
@@ -87,7 +87,7 @@ def lup(channel,
         pos_stop,
         num_pts,
         md=_md
-        ) 
+        )
     scaler1.select_channels(None)    # selects all named channels again
     del scaler1.stage_sigs["preset_time"]
     del scaler1.stage_sigs["count_mode"]

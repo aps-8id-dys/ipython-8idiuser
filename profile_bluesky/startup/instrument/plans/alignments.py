@@ -73,6 +73,12 @@ def lup(channel,
         md=None):
 
     _md = {}
+    _md["plan_name"] = "lup"
+    _md["channel_name"] = channel.name
+    _md["motor_name"] = motor.name
+    _md["num_pts"] = num_pts
+    _md["pos_start"] = pos_start
+    _md["pos_stop"] = pos_stop
     _md.update(md or {})
 
     yield from sb()

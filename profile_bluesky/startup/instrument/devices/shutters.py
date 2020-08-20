@@ -65,14 +65,12 @@ class ShutterModeSignal(EpicsSignal):
 
     def align_mode(self):
         self.put(self.ALIGN_MODE)
-        # TODO: shutteroff
         logger.info(
             "Shutter will remain OPEN for alignment"
             " if **showbeam** is called.")
 
     def data_mode(self):
         self.put(self.DATA_MODE)
-        # TODO: shutteroff
         logger.info(
             "Shutter will be controlled by UFXC"
             " if shutter is left in the **showbeam** state.")

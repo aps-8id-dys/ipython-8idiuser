@@ -210,7 +210,6 @@ class Lambda750kCamLocal(Device):
             yield from bps.null()
 
         yield from self.setTriggerMode(self.EXT_TRIGGER)
-        # TODO: shutteroff_default
         if self.EXT_TRIGGER == self.MODE_TRIGGER_EXTERNAL_PER_FRAME:
             action = "OPEN AND CLOSE DURING"
             yield from self.setup_trigger_logic_external(num_triggers)

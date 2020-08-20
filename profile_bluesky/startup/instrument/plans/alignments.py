@@ -65,27 +65,37 @@ def align_z(pos_start=-0.5,
 
 
 def lup(channel,
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,
-        count_time):
+        count_time,
+        md=None):
+
+    _md = {}
+    _md["plan_name"] = "lup"
+    _md["channel_name"] = channel.name
+    _md["motor_name"] = motor.name
+    _md["num_pts"] = num_pts
+    _md["pos_start"] = pos_start
+    _md["pos_stop"] = pos_stop
+    _md.update(md or {})
 
     yield from sb()
+    original_stage_sigs = dict(scaler1.stage_sigs)
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
     scaler1.stage_sigs["auto_count_delay"] = 1
     scaler1.select_channels([channel.name])
     yield from bp.rel_scan(
         [scaler1, lakeshore],
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,
+        md=_md
         )
     scaler1.select_channels(None)    # selects all named channels again
-    del scaler1.stage_sigs["preset_time"]
-    del scaler1.stage_sigs["count_mode"]
-    del scaler1.stage_sigs["auto_count_delay"]
+    scaler1.stage_sigs = dict(original_stage_sigs)
     yield from bb()
 

@@ -26,6 +26,8 @@ from .shutters import sb, bb
 def pre_align():
     """
     This is not a plan and so we should use it in command line, which means no use of RE
+
+    att will be defined to att1 or att2
     """
     global att, default_counter
     shutter.close()
@@ -37,12 +39,14 @@ def pre_align():
 def post_align():
     """
     This is not a plan and so we should use it in command line, which means no use of RE
+
+    att will be defined to att1 or att2
     """
     global att
     shutter.close()
-    #shutter_mode.align_mode()
+    shutter_mode.data_mode()
     actuator_flux.put("OUT")
-    att.put(0) #att will be defined to att1 or att2
+    att.put(0)
 
 
 # QZ added on 2020/05/28

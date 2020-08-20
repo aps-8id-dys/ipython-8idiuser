@@ -187,7 +187,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
             self.cam.array_size_x.get()]
         self._assets_docs_cache.append(('resource', resource_doc))
 
-        shutter_mode.data_mode()
+        # shutter_mode.data_mode()      # moved to alignments.post_align()
         shutter_control.put("Open")
         shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"

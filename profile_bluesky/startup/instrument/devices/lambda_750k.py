@@ -22,14 +22,12 @@ import itertools
 import numpy as np
 from ophyd import Component, Device, Signal
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV
+import os
 from .shutters import shutter, shutter_override
 from .soft_glue_fpga import pvDELAY_A, pvDELAY_B, sg_num_frames, soft_glue
 import struct
 import time
 import uuid
-import os
-
-
 
 
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
@@ -47,7 +45,7 @@ class Lambda750kCamLocal(Device):
     num_images = Component(EpicsSignalWithRBV, "NumImages")
     # blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks")
 
-    bad_frame_counter = Component(EpicsSignal, 'BadFrameCounter', kind='config') 
+    bad_frame_counter = Component(EpicsSignal, 'BadFrameCounter', kind='config')
     config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
     data_type = Component(EpicsSignalWithRBV, 'DataType', kind='config')
     firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
@@ -139,14 +137,14 @@ class Lambda750kCamLocal(Device):
         # set period based on the mode
         if self.getOperatingMode == 0:      # continuous read/write mode
             yield from bps.mv(self.acquire_period, exposure_time)
-        else:            
+        else:
             yield from bps.mv(
-                self.acquire_period, 
+                self.acquire_period,
                 max(exposure_period, exposure_time + extra)
                 )
         # yield from bps.sleep(0.05)
 
-        if self.EXT_TRIGGER > 0 and self.getOperatingMode == 0: 
+        if self.EXT_TRIGGER > 0 and self.getOperatingMode == 0:
             # this should work for single-trigger per sequence as well
             yield from bps.mv(pvDELAY_B, 1e-4)  # for softglue trigger generation (shorter than the fastest frame time)
             # yield from bps.sleep(0.05)
@@ -161,13 +159,13 @@ class Lambda750kCamLocal(Device):
 
         elif self.EXT_TRIGGER == 1 and self.getOperatingMode == 1:
             # important thing to be aware:
-            # lambda does not support acquire_period in any way, 
+            # lambda does not support acquire_period in any way,
             # except with trigger per frame mode
             yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
             # yield from bps.sleep(0.05)
             yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
-        
+
         if self.EXT_TRIGGER > 0:
             if (exposure_period - exposure_time) >= 0.45 and exposure_time >= 0.05:
                 yield from bps.mv(
@@ -205,7 +203,7 @@ class Lambda750kCamLocal(Device):
         yield from self.setOperatingMode(self.LAMBDA_OPERATING_MODE)
 
         if (self.EXT_TRIGGER == 0):
-            yield from self.setup_trigger_mode_internal()            
+            yield from self.setup_trigger_mode_internal()
         elif (self.EXT_TRIGGER == 2):
             yield from self.setup_trigger_mode_external()
         else:
@@ -371,14 +369,14 @@ imm_fieldnames = [
 
 def readHeader(fp):
     bindata = fp.read(1024)
-    
+
     imm_headerdat = struct.unpack(imm_headformat,bindata)
     imm_header ={}
     for k in range(len(imm_headerdat)):
         imm_header[imm_fieldnames[k]]=imm_headerdat[k]
-        
+
     return(imm_header)
-    
+
 class IMMHandler(HandlerBase):
     def __init__(self, filename, frames_per_point):
         self.file = open(filename, "rb")
@@ -403,7 +401,7 @@ class IMMHandler(HandlerBase):
                 self.file.seek(file_pos)
             except Exception as err:
                 raise IOError("IMM file doesn't seems to be of right type") from err
-            
+
     def close(self):
         self.file.close()
 
@@ -417,7 +415,7 @@ class IMMHandler(HandlerBase):
             indexes = np.fromfile(self.file, dtype=np.uint32, count=num_pixels)
             values = np.fromfile(self.file, dtype=np.uint16, count=num_pixels)
             # if self.is_compressed:
-            
+
             result[i, indexes] = values
             # else:
             #    result = dense_array
@@ -452,7 +450,7 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         """
         check if there is a pseudo counter "ccdc" configured in spec
 
-        Look through all the counters and report if 
+        Look through all the counters and report if
         any one of them is named `ccdc`.
         """
         # FIXME: We don't have a counter named "ccdc"
@@ -466,18 +464,18 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         # from SPEC macro: ccd_getcounts_ad_Lambda
         # FIXME: this routine needs attention
 
-        # BUT, this is only used when there is a 
+        # BUT, this is only used when there is a
         # pseudo-counter named "ccdc" (that's what chk_ccdc() does)
         if self.chk_ccdc:
             if dm_pars.compression.get() == 1:
                 return self.immout.num_pixels.get()
             else:
                 return self.stats1.mean_value.get()
-    
+
     @property
     def images_received(self):
         return self.immout.num_captured.get()
-    
+
     @property
     def plugin_file_name(self):
         """
@@ -599,7 +597,7 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
                 status._finished()
                 shutter.close()
                 logger.info(f"status={status}")
-        
+
         shutter.open()
         time.sleep(0.005)       # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
@@ -642,13 +640,13 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
 
 try:
     lambdadet = Lambda750kLocal(
-        LAMBDA_750K_IOC_PREFIX, 
+        LAMBDA_750K_IOC_PREFIX,
         name='lambdadet',
         labels=["lambda",]
         )
 
     lambdadet.read_attrs += ["immout", "image"]
-    
+
 except TimeoutError:
     logger.warning(
         "Could not connect Lambda 750K detector"

@@ -171,7 +171,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         self._resource_uid = str(uuid.uuid4())
 
         resource_doc = {'uid': self._resource_uid,
-                        'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
+                        'spec': 'RIGAKU',
                         'resource_path': os.path.join(folder, fname),
                         'root': root,
                         'resource_kwargs': {

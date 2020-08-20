@@ -71,20 +71,20 @@ class UnixCommandSignal(Signal):
             )
 
         self.process = subprocess.Popen(
-            unix_command, 
+            unix_command,
             shell=True,
             stdin = subprocess.PIPE,
             stdout = subprocess.PIPE,
             stderr = subprocess.PIPE,
             )
 
-        @apstools.utils.run_in_thread 
-        def watch_process(): 
-            self.unix_output, self.unix_error = self.process.communicate() 
+        @apstools.utils.run_in_thread
+        def watch_process():
+            self.unix_output, self.unix_error = self.process.communicate()
             self.process = None
-            status._finished() 
+            status._finished()
 
-        watch_process()    
+        watch_process()
         return status
 
     def put(self, unix_command):
@@ -134,7 +134,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     Supports non-epics communication with the new Rigaku detector
 
     How to use:
-    
+
     1. rigaku = Rigaku_8IDI(name = 'rigaku')
     2. yield from bps.mv(rigaku.batch_name, 'A001_Test')
     3. yield from bps.count([rigaku])
@@ -142,7 +142,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     qmap_file = "qzhang202002_Rq0_Log_S270_D27.h5"
 
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
-    acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL") 
+    acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL")
 
     unix_process = Component(UnixCommandSignal)
 
@@ -169,7 +169,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
             ".bin"
         )
         self._resource_uid = str(uuid.uuid4())
-        
+
         resource_doc = {'uid': self._resource_uid,
                         'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
                         'resource_path': os.path.join(folder, fname),
@@ -182,12 +182,12 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
                         }
         self._datum_counter = itertools.count()
         self.image.shape = [
-            self.get_frames_per_point(), 
-            self.cam.array_size_y.get(), 
+            self.get_frames_per_point(),
+            self.cam.array_size_y.get(),
             self.cam.array_size_x.get()]
         self._assets_docs_cache.append(('resource', resource_doc))
 
-        shutter_mode.put("UFXC")    # data mode
+        shutter_mode.data_mode()
         shutter_control.put("Open")
         shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"
@@ -198,7 +198,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
         # self.acquire_start.put(0)
         while self.acquire_complete.get() in (1,'High'):
             time.sleep(0.1)
-            
+
         # Getting ready to watch acquisition complete
         status = DeviceStatus(self)
 
@@ -235,16 +235,16 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
 
     def get_frames_per_point(self):
         return self.images_received
-    
+
     @property
     def plugin_file_name(self):
         """
         return the file name the plugin wrote
-        
+
         from DM_DeviceMixinAreaDetector
         """
         return f"{self.batch_name.get()}.bin"
-    
+
     @property
     def images_received(self):
         """Rigaku tells us not to change this.  100k images every time."""
@@ -253,7 +253,7 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
-        
+
         from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:

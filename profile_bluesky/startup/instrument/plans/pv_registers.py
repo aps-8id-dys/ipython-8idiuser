@@ -215,10 +215,10 @@ def select_RIGAKU():
     logger.info("Moving RIGAKU to the direct beam position")
 
     # logger.debug(f"ccdx0={dm_pars.ccdx0.get()}, ccdz0={dm_pars.ccdz0.get()}")
-    yield from bps.mv(
-        detu.x, dm_pars.ccdx0.get(),
-        detu.z, dm_pars.ccdz0.get(),
-    )
+    # yield from bps.mv(
+    #     detu.x, dm_pars.ccdx0.get(),
+    #     detu.z, dm_pars.ccdz0.get(),
+    # )
     # logger.debug(f"detu.x={detu.x.position}, detu.z={detu.z.position}")
 
     yield from bps.mv(shutter_override, 1)

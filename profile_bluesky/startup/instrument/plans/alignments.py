@@ -19,7 +19,7 @@ from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 
 from ..devices import actuator_flux, att, default_counter, pind4, lakeshore, samplestage
-from ..devices import shutter, shutter_mode, scaler1
+from ..devices import shutter, scaler1
 from .shutters import sb, bb
 
 
@@ -29,7 +29,6 @@ def pre_align():
     """
     global att, default_counter
     shutter.close()
-    shutter_mode.align_mode()
     actuator_flux.put("IN")
     att.put(0)
     default_counter = pind4
@@ -40,7 +39,6 @@ def post_align():
     """
     global att
     shutter.close()
-    #shutter_mode.align_mode()
     actuator_flux.put("OUT")
     att.put(0) #att will be defined to att1 or att2
 

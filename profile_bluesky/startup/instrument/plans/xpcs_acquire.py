@@ -27,7 +27,7 @@ def AD_Acquire(areadet,
                acquire_time, 
                acquire_period, 
                num_images,
-               path='/home/8-id-i/2020-2/qzhang202007/',  
+               path=None,  
                submit_xpcs_job=True,
                atten=0, 
                md={}):
@@ -48,6 +48,10 @@ def AD_Acquire(areadet,
     logger.info("AD_Acquire starting")
 
     # path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
+    if path is None:
+        raise ValueError("path is not specified."
+            "  Typical value: /home/8-id-i/2020-3/test202008")
+    
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):

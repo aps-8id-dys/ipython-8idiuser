@@ -21,7 +21,7 @@ from ophyd import Component, Device, DeviceStatus
 from ophyd import Signal, EpicsSignal, EpicsSignalRO
 import os
 import psutil
-from .shutters import shutter_mode, shutter_control, shutter_override
+from .shutters import shutter_control, shutter_override
 
 import subprocess
 import time
@@ -96,6 +96,26 @@ class UnixCommandSignal(Signal):
         return self.unix_output.decode(), self.unix_error.decode()
 
 
+class ShutterModeSignal(EpicsSignal):
+
+    ALIGN_MODE = "1UFXC"
+    DATA_MODE = "UFXC"
+
+    def align_mode(self):
+        self.put(self.ALIGN_MODE)
+        # TODO: shutteroff
+        logger.info(
+            "Shutter will remain OPEN for alignment"
+            " if **showbeam** is called.")
+
+    def data_mode(self):
+        self.put(self.DATA_MODE)
+        # TODO: shutteroff
+        logger.info(
+            "Shutter will be controlled by UFXC"
+            " if shutter is left in the **showbeam** state.")
+
+
 class RigakuFakeCam(Device):
     """
     mimic ophyd support for Cam Plugin
@@ -143,6 +163,10 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
 
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL")
+
+    shutter_mode = ShutterModeSignal(
+        "8idi:softGlueC:AND-4_IN2_Signal",
+        name="shutter_mode")
 
     unix_process = Component(UnixCommandSignal)
 

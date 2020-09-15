@@ -18,7 +18,7 @@ logger.info(__file__)
 
 from bluesky import plan_stubs as bps
 from ..devices import detu, detd, dm_pars, dm_workflow
-from ..devices import shutter_mode, shutter_override, soft_glue
+from ..devices import shutter_override, soft_glue
 from ophyd import EpicsSignal
 import pyRestTable
 from .shutters import blockbeam
@@ -185,8 +185,6 @@ def select_LAMBDA(distance=None):
 	# TODO: needs some planning here, see below
     # def xpcs_pre_start \'xpcs_pre_start_LAMBDA\';
 	# def user_xpcs_loop \'user_xpcs_loop_LAMBDA\';
-
-    yield from bps.mv(shutter_mode, shutter_mode.ALIGN_MODE)
 
     dm_workflow.transfer = "xpcs8-01-Lambda"
     dm_workflow.analysis = "xpcs8-02-Lambda"

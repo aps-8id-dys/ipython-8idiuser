@@ -19,7 +19,7 @@ from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 
 from ..devices import actuator_flux, att, default_counter, pind4, lakeshore, samplestage
-from ..devices import shutter, shutter_mode, scaler1
+from ..devices import shutter, scaler1
 from .shutters import sb, bb
 
 
@@ -29,7 +29,6 @@ def pre_align():
     """
     global att, default_counter
     shutter.close()
-    shutter_mode.put("1UFXC")
     actuator_flux.put("IN")
     att.put(0)
     default_counter = pind4
@@ -40,52 +39,61 @@ def post_align():
     """
     global att
     shutter.close()
-    #shutter_mode.put("1UFXC")
     actuator_flux.put("OUT")
     att.put(0) #att will be defined to att1 or att2
 
-    
+
 # QZ added on 2020/05/28
 
 
 def align_x(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts) 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.x,pos_start,pos_stop,num_pts)
     yield from bb()
-                                                                                                                        
+
 
 def align_z(pos_start=-0.5,
             pos_stop=0.5,
-            num_pts=41):  
-    yield from sb() 
-    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts) 
-    yield from bb() 
+            num_pts=41):
+    yield from sb()
+    yield from bp.rel_scan([pind4,lakeshore],samplestage.z,pos_start,pos_stop,num_pts)
+    yield from bb()
 
 
 def lup(channel,
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,
-        count_time):
-        
-    yield from sb() 
+        count_time,
+        md=None):
+
+    _md = {}
+    _md["plan_name"] = "lup"
+    _md["channel_name"] = channel.name
+    _md["motor_name"] = motor.name
+    _md["num_pts"] = num_pts
+    _md["pos_start"] = pos_start
+    _md["pos_stop"] = pos_stop
+    _md.update(md or {})
+
+    yield from sb()
+    original_stage_sigs = dict(scaler1.stage_sigs)
     scaler1.stage_sigs["preset_time"] = count_time
     scaler1.stage_sigs["count_mode"] = "OneShot"
     scaler1.stage_sigs["auto_count_delay"] = 1
     scaler1.select_channels([channel.name])
     yield from bp.rel_scan(
         [scaler1, lakeshore],
-        motor_name,
+        motor,
         pos_start,
         pos_stop,
         num_pts,
-        ) 
+        md=_md
+        )
     scaler1.select_channels(None)    # selects all named channels again
-    del scaler1.stage_sigs["preset_time"]
-    del scaler1.stage_sigs["count_mode"]
-    del scaler1.stage_sigs["auto_count_delay"]
+    scaler1.stage_sigs = dict(original_stage_sigs)
     yield from bb()
 

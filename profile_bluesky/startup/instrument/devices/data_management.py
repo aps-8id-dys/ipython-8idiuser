@@ -15,13 +15,10 @@ __all__ = [
 from instrument.session_logs import logger
 logger.info(__file__)
 
-import datetime
 from ophyd import Component, Device, EpicsMotor, EpicsSignal
 from spec_support.APS_DM_8IDI import DM_Workflow
+from ..devices import aps
 
-# What APS run cycle are we in?  Hackulate it.
-dt = datetime.datetime.now()
-aps_cycle = f"{dt.year}-{int((dt.month-0.1)/4) + 1}"
 
 xpcs_qmap_file = "Lambda_qmap.h5"		# dm_workflow.set_xpcs_qmap_file("new_name.h5")
 
@@ -119,7 +116,7 @@ class DataManagementMetadata(Device):
 
 dm_pars = DataManagementMetadata(name="dm_pars")
 dm_workflow = DM_Workflow(
-    dm_pars, aps_cycle, xpcs_qmap_file,
+    dm_pars, aps.aps_cycle.get(), xpcs_qmap_file,
     transfer=dm_pars.transfer.get(),
     analysis=dm_pars.analysis.get(),
     )

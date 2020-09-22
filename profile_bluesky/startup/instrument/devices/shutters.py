@@ -8,6 +8,8 @@ __all__ = [
     'shutter_control',
     'shutter_override',
     'shutterstage',
+    'shutteroff',
+    'shutteron',
 ]
 
 from instrument.session_logs import logger
@@ -60,3 +62,15 @@ class ShutterStage(Device):
 shutter_control = EpicsSignal("8idi:Unidig1Bo13", name="shutter_control")
 shutter_override = EpicsSignal("8idi:Unidig1Bo9.VAL", name="shutter_override")
 shutterstage = ShutterStage(name="shutterstage")
+
+
+# these are for the shutter_override, but are NOT plans
+# same as used in SPEC
+def shutteroff():
+    """Blocking function to allow shutter control with sb & bb"""
+    shutter_override.put("High")
+
+
+def shutteron():
+    """Blocking function to prevent shutter control with sb & bb"""
+    shutter_override.put("Low")

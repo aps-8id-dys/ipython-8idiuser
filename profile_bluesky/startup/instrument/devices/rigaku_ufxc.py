@@ -21,7 +21,7 @@ from ophyd import Component, Device, DeviceStatus
 from ophyd import Signal, EpicsSignal, EpicsSignalRO
 import os
 import psutil
-from .shutters import shutter_control, shutter_override
+from .shutters import shutter_control, shutter_override, shutteroff
 
 import subprocess
 import time
@@ -97,20 +97,23 @@ class UnixCommandSignal(Signal):
 
 
 class ShutterModeSignal(EpicsSignal):
+    """Enhanced EpicsSignal"""
 
     ALIGN_MODE = "1UFXC"
     DATA_MODE = "UFXC"
 
     def align_mode(self):
+        """Blocking method, not a bluesky plan, continuous imaging"""
         self.put(self.ALIGN_MODE)
-        # TODO: shutteroff
+        shutteroff()
         logger.info(
             "Shutter will remain OPEN for alignment"
             " if **showbeam** is called.")
 
     def data_mode(self):
+        """Blocking method, not a bluesky plan, triggered imaging"""
         self.put(self.DATA_MODE)
-        # TODO: shutteroff
+        shutteroff()
         logger.info(
             "Shutter will be controlled by UFXC"
             " if shutter is left in the **showbeam** state.")
@@ -211,9 +214,10 @@ class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
             self.cam.array_size_x.get()]
         self._assets_docs_cache.append(('resource', resource_doc))
 
-        shutter_mode.data_mode()
+        self.shutter_mode.data_mode()  # also calls shutteroff()
+        # shutter_control.put() is required for data mode
+        # For legacy reasons, it is here and not in data_mode().
         shutter_control.put("Open")
-        shutter_override.put("High")
         cmd = f"echo FILE:F:{self.batch_name.get()} | nc rigaku1.xray.aps.anl.gov 10000"
         self.unix_process.put(cmd)
 

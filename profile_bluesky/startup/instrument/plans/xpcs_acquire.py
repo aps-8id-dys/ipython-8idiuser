@@ -14,6 +14,7 @@ import apstools.utils
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import datetime
+import ophyd.signal
 from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import aps, detu, I0Mon, soft_glue

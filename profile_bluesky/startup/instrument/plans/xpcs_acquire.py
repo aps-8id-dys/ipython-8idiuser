@@ -47,10 +47,10 @@ def AD_Acquire(areadet,
     """
     logger.info("AD_Acquire starting")
 
-    # path = path or f"/home/8-id-i/{aps.aps_cycle.get()}/bluesky"
+    # path = path or f"/home/8ididata/{aps.aps_cycle.get()}/bluesky"
     if path is None:
         raise ValueError("path is not specified."
-            "  Typical value: /home/8-id-i/2020-3/test202008")
+            "  Typical value: /home/8ididata/2020-3/test202008")
     
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
@@ -121,7 +121,7 @@ def AD_Acquire(areadet,
     def make_hdf5_workflow_filename():
         path = file_path
         if path.startswith("/data"):
-            path = os.path.join("/", "home", "8-id-i", *path.split("/")[2:])
+            path = os.path.join("/", "home", "8ididata", *path.split("/")[2:])
             logger.debug(f"modified path: {path}")
             if not os.path.exists(path):
                 os.makedirs(path)

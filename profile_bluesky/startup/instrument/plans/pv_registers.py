@@ -227,7 +227,7 @@ def select_RIGAKU():
     # def user_xpcs_loop \'user_xpcs_loop_RIGAKU\';
 
     dm_workflow.transfer = "xpcs8-01-stage"
-    dm_workflow.analysis = "xpcs8-02-Rigaku-bin-stage"
+    dm_workflow.analysis = "xpcs8-02-Rigaku-bin"
     yield from bps.mv(
         dm_pars.burst_mode_state, 0,    # 2019-05, set default status
         dm_pars.transfer, dm_workflow.transfer,

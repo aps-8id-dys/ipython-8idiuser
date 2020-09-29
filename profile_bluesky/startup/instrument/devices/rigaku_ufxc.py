@@ -90,7 +90,7 @@ class UnixCommandSignal(Signal):
     def put(self, unix_command):
         status = self.set(unix_command)
         while not status.done:
-            time.sleep(0.01)
+            time.sleep(0.001)
 
     def get(self):
         return self.unix_output.decode(), self.unix_error.decode()

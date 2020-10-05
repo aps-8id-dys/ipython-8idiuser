@@ -18,15 +18,12 @@ from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import timebase, pind1, pind2, T_A, T_SET
 from ..framework import db, RE
-from ..utils.emails import email_notices
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import apstools.utils
 import datetime
 import ophyd.signal
 import os
-import pyRestTable
-import time
 
 
 class PlanStalled(Exception): ...
@@ -333,64 +330,5 @@ def AD_Acquire(areadet,
         if len(err) > 0:
             logger.error(err)
 
-
-    @apstools.utils.run_in_thread
-    def watch_acquire_to_stall():
-        """raise PlanStalled if acquisition stalls"""
-        t0 = time.time()
-        time_expired = t0 + AD_ACQUIRE_TIMEOUT_S
-
-        while _keep_watching.get() and time.time() < time_expired:
-            time.sleep(0.01)
-
-        if _keep_watching.get():
-            _keep_watching.put(False)
-            raise PlanStalled(
-                f"waited {time.time()-t0:.1f}s for plan to complete"
-            )
-
     logger.info("calling full_acquire_procedure()")
-    # implement retry and continue
-    # per https://github.com/aps-8id-dys/ipython-8idiuser/issues/230#issuecomment-700845885
-    exception_table = pyRestTable.Table()
-    exception_table.labels = "attempt datetime exception".split()
-    for retry in range(AD_ACQUIRE_RETRY_COUNT):
-        try:
-            _keep_watching.put(True)
-            watch_acquire_to_stall()
-            acquire_result = (yield from full_acquire_procedure(md=md))
-            _keep_watching.put(False)
-        except Exception as _exc:
-            # TODO: What about DM Workflow?
-            #   Is it hanging?
-            #   Will it get re-used or do we create a new one?
-            logger.error(
-                "Exception while collecting %s (attempt %d of %d): %s",
-                file_name,
-                retry+1,
-                AD_ACQUIRE_RETRY_COUNT,
-                _exc)
-            logger.info(
-                "waiting %d seconds before retry or continue ...",
-                AD_ACQUIRE_STALLED_DELAY_S)
-            exception_table.addRow((
-                retry+1, 
-                datetime.datetime.now().isoformat(sep=" "),
-                str(_exc)
-                ))
-            yield from bps.sleep(AD_ACQUIRE_STALLED_DELAY_S)
-    if retry >= AD_ACQUIRE_RETRY_COUNT:
-        subject = f"AD_Acquire jammed during {file_name}, moving on ..."
-        msg = (
-            f"During bluesky execution of AD_Acquire('{file_name}'),"
-            " the exceptions reported below were encountered, exhausting the"
-            f" {AD_ACQUIRE_RETRY_COUNT} attempts as configured."
-            "\n"
-            f"After each failed attempt, this handler waits {AD_ACQUIRE_TIMEOUT_S:.0f}"
-            " seconds before continuing."
-            "\n"
-            "\n"
-        )
-        msg += str(exception_table)
-        email_notices.send(subject, message)
-    return acquire_result
+    return (yield from full_acquire_procedure(md=md))

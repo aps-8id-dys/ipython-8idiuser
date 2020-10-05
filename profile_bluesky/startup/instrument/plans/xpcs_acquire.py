@@ -382,14 +382,16 @@ def AD_Acquire(areadet,
             yield from bps.sleep(AD_ACQUIRE_STALLED_DELAY_S)
     if retry >= AD_ACQUIRE_RETRY_COUNT:
         subject = f"AD_Acquire jammed during {file_name}, moving on ..."
-        msg = "During bluesky execution of AD_Acquire('%s'),".format(file_name)
-        msg += " the exceptions reported below were encountered, exhausting the"
-        msg += f" {AD_ACQUIRE_RETRY_COUNT} attempts as configured."
-        msg += "\n"
-        msg += f"After each failed attempt, this handler waits {:.0f}"
-        msg += " seconds before continuing."
-        msg += "\n"
-        msg += "\n"
+        msg = (
+            f"During bluesky execution of AD_Acquire('{file_name}'),"
+            " the exceptions reported below were encountered, exhausting the"
+            f" {AD_ACQUIRE_RETRY_COUNT} attempts as configured."
+            "\n"
+            f"After each failed attempt, this handler waits {AD_ACQUIRE_TIMEOUT_S:.0f}"
+            " seconds before continuing."
+            "\n"
+            "\n"
+        )
         msg += str(exception_table)
         email_notices.send(subject, message)
     return acquire_result

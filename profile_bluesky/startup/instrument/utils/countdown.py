@@ -1,11 +1,14 @@
 
 """
 countdown timer
+
+Good candidate to go into apstools.utils
 """
 
 
 __all__ = """
     countdown_timer
+    CountdownExpired
 """.split()
 
 

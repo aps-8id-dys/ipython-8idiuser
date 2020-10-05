@@ -13,18 +13,20 @@ __all__ = """
 from instrument.session_logs import logger
 logger.info(__file__)
 
-import apstools.utils
-from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
-import datetime
-import ophyd.signal
-import time
+whenfrom ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
-from ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import timebase, pind1, pind2, T_A, T_SET
 from ..framework import db, RE
+from ..utils.emails import email_notices
+from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
+import apstools.utils
+import datetime
+import ophyd.signal
 import os
+import pyRestTable
+import time
 
 
 class PlanStalled(Exception): ...
@@ -351,6 +353,8 @@ def AD_Acquire(areadet,
     logger.info("calling full_acquire_procedure()")
     # implement retry and continue
     # per https://github.com/aps-8id-dys/ipython-8idiuser/issues/230#issuecomment-700845885
+    exception_table = pyRestTable.Table()
+    exception_table.labels = "attempt datetime exception".split()
     for retry in range(AD_ACQUIRE_RETRY_COUNT):
         try:
             keep_watching = True
@@ -370,8 +374,24 @@ def AD_Acquire(areadet,
             logger.info(
                 "waiting %d seconds before retry or continue ...",
                 AD_ACQUIRE_STALLED_DELAY_S)
+            exception_table.addRow((
+                retry+1, 
+                datetime.datetime.now().isoformat(sep=" "),
+                str(_exc)
+                ))
             yield from bps.sleep(AD_ACQUIRE_STALLED_DELAY_S)
     if retry >= AD_ACQUIRE_RETRY_COUNT:
-        # TODO: send email
-        pass
+        subject = "AD_Acquire jammed during %s, moving on ..."
+        msg = (
+            f"During bluesky execution of AD_Acquire('{file_name}'),"
+            " the exceptions reported below were encountered, exhausting the"
+            f" {AD_ACQUIRE_RETRY_COUNT} attempts as configured."
+            "\n"
+            f"After each failed attempt, this handler waits {:.0f}"
+            " seconds before continuing."
+            "\n"
+            "\n"
+        )
+        msg += str(exception_table)
+        email_notices.send(subject, message)
     return acquire_result

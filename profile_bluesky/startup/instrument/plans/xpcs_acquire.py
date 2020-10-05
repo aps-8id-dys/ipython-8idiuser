@@ -10,40 +10,40 @@ __all__ = """
 from instrument.session_logs import logger
 logger.info(__file__)
 
-import apstools.utils
-from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
-import datetime
-import ophyd.signal
+from ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
-from ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import timebase, pind1, pind2, T_A, T_SET
 from ..framework import db, RE
+from bluesky import plan_stubs as bps
+from bluesky import preprocessors as bpp
+import apstools.utils
+import datetime
+import ophyd.signal
 import os
 
 
-def AD_Acquire(areadet, 
+def AD_Acquire(areadet,
                file_name,
-               acquire_time, 
-               acquire_period, 
+               acquire_time,
+               acquire_period,
                num_images,
-               path=None,  
+               path=None,
                submit_xpcs_job=True,
-               atten=0, 
+               atten=0,
                md={}):
     """
     acquisition sequence initiating data management workflow
 
     outline of acquisition sequence:
 
-    * define cam params such as acquire time, period, 
+    * define cam params such as acquire time, period,
       num images, camera mode
     * define file plugin immout params such as file path,
       file name, num_images, file_number, capture
-    * configure scaler channels for monitoring some 
+    * configure scaler channels for monitoring some
       scalers and devices such as temperature
-    * trigger area detector while monitoring the 
+    * trigger area detector while monitoring the
       above params
     """
     logger.info("AD_Acquire starting")
@@ -52,7 +52,7 @@ def AD_Acquire(areadet,
     if path is None:
         raise ValueError("path is not specified."
             "  Typical value: /home/8ididata/2020-3/test202008")
-    
+
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -73,7 +73,7 @@ def AD_Acquire(areadet,
         plan_args["path"] = path
     md["ARun_number"] = file_name
     md["plan_args"] = plan_args
-    
+
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
 
@@ -90,7 +90,7 @@ def AD_Acquire(areadet,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
-    scaler1.select_channels(None) 
+    scaler1.select_channels(None)
     monitored_things = [
         timebase,
         pind1,
@@ -295,7 +295,7 @@ def AD_Acquire(areadet,
             os.makedirs(os.path.dirname(hdf_with_fullpath))
 
         dm_workflow.create_hdf5_file(hdf_with_fullpath)
-        
+
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.get()
         dm_workflow.analysis = dm_pars.analysis.get()

@@ -383,7 +383,7 @@ def AD_Acquire(areadet,
     if retry >= AD_ACQUIRE_RETRY_COUNT:
         subject = f"AD_Acquire jammed during {file_name}, moving on ..."
         msg = (
-            f"During bluesky execution of AD_Acquire('{file_name}'),"
+            "During bluesky execution of AD_Acquire('%s'),".format(file_name)
             " the exceptions reported below were encountered, exhausting the"
             f" {AD_ACQUIRE_RETRY_COUNT} attempts as configured."
             "\n"

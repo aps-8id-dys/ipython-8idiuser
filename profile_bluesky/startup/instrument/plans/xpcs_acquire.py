@@ -23,10 +23,6 @@ import ophyd.signal
 import os
 
 
-# internal: watch for acquire to timeout
-_keep_watching = ophyd.signal.Signal(name="_keep_watching", value=False)
-
-
 def AD_Acquire(areadet,
                file_name,
                acquire_time,

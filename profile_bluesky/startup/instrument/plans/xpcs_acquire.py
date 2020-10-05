@@ -13,7 +13,7 @@ __all__ = """
 from instrument.session_logs import logger
 logger.info(__file__)
 
-whenfrom ..devices import aps, detu, I0Mon, soft_glue
+from ..devices import aps, detu, I0Mon, soft_glue
 from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import timebase, pind1, pind2, T_A, T_SET

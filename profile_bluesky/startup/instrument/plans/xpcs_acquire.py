@@ -37,7 +37,8 @@ AD_ACQUIRE_RETRY_COUNT = 5
 AD_ACQUIRE_STALLED_DELAY_S = 5*MINUTE
 AD_ACQUIRE_TIMEOUT_S = 1*MINUTE
 
-keep_watching = False   # watch for acquire to timeout
+# internal: watch for acquire to timeout
+_keep_watching = ophyd.signal.Signal(name="_keep_watching", value=False)
 
 
 def AD_Acquire(areadet,
@@ -63,7 +64,6 @@ def AD_Acquire(areadet,
     * trigger area detector while monitoring the
       above params
     """
-    global keep_watching
     logger.info("AD_Acquire starting")
 
     # path = path or f"/home/8ididata/{aps.aps_cycle.get()}/bluesky"
@@ -337,15 +337,14 @@ def AD_Acquire(areadet,
     @apstools.utils.run_in_thread
     def watch_acquire_to_stall():
         """raise PlanStalled if acquisition stalls"""
-        global keep_watching
         t0 = time.time()
         time_expired = t0 + AD_ACQUIRE_TIMEOUT_S
 
-        while keep_watching and time.time() < time_expired:
+        while _keep_watching.get() and time.time() < time_expired:
             time.sleep(0.01)
 
-        if keep_watching:
-            keep_watching = False
+        if _keep_watching.get():
+            _keep_watching.put(False)
             raise PlanStalled(
                 f"waited {time.time()-t0:.1f}s for plan to complete"
             )
@@ -357,10 +356,10 @@ def AD_Acquire(areadet,
     exception_table.labels = "attempt datetime exception".split()
     for retry in range(AD_ACQUIRE_RETRY_COUNT):
         try:
-            keep_watching = True
+            _keep_watching.put(True)
             watch_acquire_to_stall()
             acquire_result = (yield from full_acquire_procedure(md=md))
-            keep_watching = False
+            _keep_watching.put(False)
         except Exception as _exc:
             # TODO: What about DM Workflow?
             #   Is it hanging?

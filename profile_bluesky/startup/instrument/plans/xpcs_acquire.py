@@ -5,6 +5,9 @@ Acquire an XPCS measurement with a supported area detector
 
 __all__ = """
     AD_Acquire
+    AD_ACQUIRE_RETRY_COUNT
+    AD_ACQUIRE_STALLED_DELAY_S
+    AD_ACQUIRE_TIMEOUT_S
 """.split()
 
 from instrument.session_logs import logger
@@ -15,6 +18,7 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import datetime
 import ophyd.signal
+import time
 from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import aps, detu, I0Mon, soft_glue
@@ -23,36 +27,48 @@ from ..framework import db, RE
 import os
 
 
-def AD_Acquire(areadet, 
+class PlanStalled(Exception): ...
+
+SECOND = 1
+MINUTE = 60*SECOND
+AD_ACQUIRE_RETRY_COUNT = 5
+AD_ACQUIRE_STALLED_DELAY_S = 5*MINUTE
+AD_ACQUIRE_TIMEOUT_S = 1*MINUTE
+
+keep_watching = False   # watch for acquire to timeout
+
+
+def AD_Acquire(areadet,
                file_name,
-               acquire_time, 
-               acquire_period, 
+               acquire_time,
+               acquire_period,
                num_images,
-               path=None,  
+               path=None,
                submit_xpcs_job=True,
-               atten=0, 
+               atten=0,
                md={}):
     """
     acquisition sequence initiating data management workflow
 
     outline of acquisition sequence:
 
-    * define cam params such as acquire time, period, 
+    * define cam params such as acquire time, period,
       num images, camera mode
     * define file plugin immout params such as file path,
       file name, num_images, file_number, capture
-    * configure scaler channels for monitoring some 
+    * configure scaler channels for monitoring some
       scalers and devices such as temperature
-    * trigger area detector while monitoring the 
+    * trigger area detector while monitoring the
       above params
     """
+    global keep_watching
     logger.info("AD_Acquire starting")
 
     # path = path or f"/home/8ididata/{aps.aps_cycle.get()}/bluesky"
     if path is None:
         raise ValueError("path is not specified."
             "  Typical value: /home/8ididata/2020-3/test202008")
-    
+
     file_name = dm_workflow.cleanupFilename(file_name)
     file_path = os.path.join(path,file_name)
     if not file_path.endswith(os.path.sep):
@@ -73,7 +89,7 @@ def AD_Acquire(areadet,
         plan_args["path"] = path
     md["ARun_number"] = file_name
     md["plan_args"] = plan_args
-    
+
     atten = atten or Atten1
     assert atten in (Atten1, Atten2)
 
@@ -90,7 +106,7 @@ def AD_Acquire(areadet,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
-    scaler1.select_channels(None) 
+    scaler1.select_channels(None)
     monitored_things = [
         timebase,
         pind1,
@@ -295,7 +311,7 @@ def AD_Acquire(areadet,
             os.makedirs(os.path.dirname(hdf_with_fullpath))
 
         dm_workflow.create_hdf5_file(hdf_with_fullpath)
-        
+
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.get()
         dm_workflow.analysis = dm_pars.analysis.get()
@@ -315,5 +331,47 @@ def AD_Acquire(areadet,
         if len(err) > 0:
             logger.error(err)
 
+
+    @apstools.utils.run_in_thread
+    def watch_acquire_to_stall():
+        """raise PlanStalled if acquisition stalls"""
+        global keep_watching
+        t0 = time.time()
+        time_expired = t0 + AD_ACQUIRE_TIMEOUT_S
+
+        while keep_watching and time.time() < time_expired:
+            time.sleep(0.01)
+
+        if keep_watching:
+            keep_watching = False
+            raise PlanStalled(
+                f"waited {time.time()-t0:.1f}s for plan to complete"
+            )
+
     logger.info("calling full_acquire_procedure()")
-    return (yield from full_acquire_procedure(md=md))
+    # implement retry and continue
+    # per https://github.com/aps-8id-dys/ipython-8idiuser/issues/230#issuecomment-700845885
+    for retry in range(AD_ACQUIRE_RETRY_COUNT):
+        try:
+            keep_watching = True
+            watch_acquire_to_stall()
+            acquire_result = (yield from full_acquire_procedure(md=md))
+            keep_watching = False
+        except Exception as _exc:
+            # TODO: What about DM Workflow?
+            #   Is it hanging?
+            #   Will it get re-used or do we create a new one?
+            logger.error(
+                "Exception while collecting %s (attempt %d of %d): %s",
+                file_name,
+                retry+1,
+                AD_ACQUIRE_RETRY_COUNT,
+                _exc)
+            logger.info(
+                "waiting %d seconds before retry or continue ...",
+                AD_ACQUIRE_STALLED_DELAY_S)
+            yield from bps.sleep(AD_ACQUIRE_STALLED_DELAY_S)
+    if retry >= AD_ACQUIRE_RETRY_COUNT:
+        # TODO: send email
+        pass
+    return acquire_result

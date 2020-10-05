@@ -5,9 +5,6 @@ Acquire an XPCS measurement with a supported area detector
 
 __all__ = """
     AD_Acquire
-    AD_ACQUIRE_RETRY_COUNT
-    AD_ACQUIRE_STALLED_DELAY_S
-    AD_ACQUIRE_TIMEOUT_S
 """.split()
 
 from instrument.session_logs import logger
@@ -25,14 +22,6 @@ import datetime
 import ophyd.signal
 import os
 
-
-class PlanStalled(Exception): ...
-
-SECOND = 1
-MINUTE = 60*SECOND
-AD_ACQUIRE_RETRY_COUNT = 5
-AD_ACQUIRE_STALLED_DELAY_S = 5*MINUTE
-AD_ACQUIRE_TIMEOUT_S = 1*MINUTE
 
 # internal: watch for acquire to timeout
 _keep_watching = ophyd.signal.Signal(name="_keep_watching", value=False)

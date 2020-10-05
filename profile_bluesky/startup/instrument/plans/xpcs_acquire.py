@@ -381,7 +381,7 @@ def AD_Acquire(areadet,
                 ))
             yield from bps.sleep(AD_ACQUIRE_STALLED_DELAY_S)
     if retry >= AD_ACQUIRE_RETRY_COUNT:
-        subject = "AD_Acquire jammed during %s, moving on ..."
+        subject = f"AD_Acquire jammed during {file_name}, moving on ..."
         msg = (
             f"During bluesky execution of AD_Acquire('{file_name}'),"
             " the exceptions reported below were encountered, exhausting the"

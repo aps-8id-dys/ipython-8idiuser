@@ -31,23 +31,7 @@ import uuid
 def get_process_info(pid):
     process_info = psutil.Process(pid)
     logger.info("process_info status: %s", process_info.status())
-    return process_info    
-    #try:
-    #    pd = process_info.as_dict()
-    #except psutil.NoSuchProcess as exc:
-    #    logger.info(
-    #        "Process with pid=%s not found: %s",
-    #        pid, exc)
-    #    raise RuntimeError(f"ProcessNotFound: {exc}")
-    #return dict(
-    #   memory_info=pd["memory_info"],
-    #   num_connections=len(pd["connections"]),
-    #   num_context_switches=len(pd['num_ctx_switches']),
-    #   num_file_descriptors=pd['num_fds'],
-    #   num_open_files=len(pd['open_files']),
-    #   num_threads=len(pd['threads']),
-    #   pid=pd["pid"],
-    #)
+    return process_info
 
 
 class UnixCommandSignal(Signal):
@@ -80,15 +64,6 @@ class UnixCommandSignal(Signal):
             self.process.pid,
             pi,
             )
-        #logger.info(
-        #    "%s [#open files=%d, #open fd=%d, #threads=%d, #connections=%d, #context switches=%d]",
-        #    unix_command,
-        #    pi['num_open_files'],
-        #    pi['num_file_descriptors'],
-        #    pi['num_threads'],
-        #    pi['num_connections'],
-        #    pi['num_context_switches'],
-        #    )
 
         @apstools.utils.run_in_thread
         def watch_process():

@@ -30,7 +30,7 @@ def pre_align():
     global att, default_counter
     shutter.close()
     actuator_flux.put("IN")
-    att.put(0)
+    att.put(2)
     default_counter = pind4
 
 def post_align():

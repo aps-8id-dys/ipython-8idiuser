@@ -63,9 +63,9 @@ if old_md is not None:
 # keep track of callback subscriptions
 callback_db = {}
 
-# Set up a Broker.
-from databroker import Broker
-db = Broker.named('mongodb_config')
+# Connect with the mongodb database.
+import databroker
+db = databroker.catalog["mongodb_config"].v1
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.

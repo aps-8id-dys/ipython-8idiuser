@@ -21,6 +21,7 @@ from ..framework import db
 import itertools
 import numpy as np
 from ophyd import Component, Device, Signal
+from ophyd import DeviceStatus
 from ophyd import EpicsSignal, EpicsSignalRO, EpicsSignalWithRBV
 import os
 from .shutters import shutter, shutter_override

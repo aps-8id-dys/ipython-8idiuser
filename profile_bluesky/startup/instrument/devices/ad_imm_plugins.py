@@ -14,6 +14,7 @@ logger.info(__file__)
 
 from ..framework import db
 from area_detector_handlers.handlers import HandlerBase
+from bluesky import plan_stubs as bps
 from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignalRO
@@ -75,6 +76,34 @@ class IMM_DeviceMixinBase(Device):
     imm0 = Component(IMMnLocal, "IMM0:")
     imm1 = Component(IMMnLocal, "IMM1:")
     imm2 = Component(IMMnLocal, "IMM2:")
+
+    def setIMM_Cmprs(self):
+        """
+        Set all IMM plugins for compression.
+        """
+        # from SPEC macro: ccdset_compr_params_ad_Lambda
+        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+            if plugin.file_format.get() not in (1, "IMM_Cmprs"):
+                yield from bps.mv(
+                    plugin.capture,
+                    "Done",  # ('Done', 'Capture')
+                    plugin.file_format,
+                    "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
+                )
+
+    def setIMM_Raw(self):
+        """
+        Set all IMM plugins for raw (uncompressed).
+        """
+        # from SPEC macro: ccdset_RawMode_params_ad_Lambda
+        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+            if plugin.file_format.get() not in (0, "IMM_Raw"):
+                yield from bps.mv(
+                    plugin.capture,
+                    "Done",  # ('Done', 'Capture')
+                    plugin.file_format,
+                    "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
+                )
 
 
 # ----------------------------------------------------------------

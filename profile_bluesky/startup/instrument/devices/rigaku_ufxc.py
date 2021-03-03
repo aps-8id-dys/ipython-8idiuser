@@ -1,4 +1,3 @@
-
 """
 Rigaku Ultra-Fast X-ray Camera area detector (LabView, not EPICS)
 
@@ -8,9 +7,12 @@ Rigaku Ultra-Fast X-ray Camera area detector (LabView, not EPICS)
 Mimics an ophyd.areaDetector object without subclassing it.
 """
 
-__all__ = ['rigaku',]
+__all__ = [
+    "rigaku",
+]
 
 from instrument.session_logs import logger
+
 logger.info(__file__)
 
 from .ad_acquire_detector_base import AD_AcquireDetectorBase
@@ -37,7 +39,6 @@ def get_process_info(pid):
 
 
 class UnixCommandSignal(Signal):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -55,17 +56,17 @@ class UnixCommandSignal(Signal):
         self.process = subprocess.Popen(
             unix_command,
             shell=True,
-            stdin = subprocess.PIPE,
-            stdout = subprocess.PIPE,
-            stderr = subprocess.PIPE,
-            )
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         pi = get_process_info(self.process.pid)
         logger.info(
             "command: %s - process info: pid=%s, info=%s",
             unix_command,
             self.process.pid,
             pi,
-            )
+        )
 
         @apstools.utils.run_in_thread
         def watch_process():
@@ -96,8 +97,8 @@ class ShutterModeSignal(EpicsSignal):
         self.put(self.ALIGN_MODE)
         shutteroff()
         logger.info(
-            "Shutter will remain OPEN for alignment"
-            " if **showbeam** is called.")
+            "Shutter will remain OPEN for alignment" " if **showbeam** is called."
+        )
 
     def data_mode(self):
         """Blocking method, not a bluesky plan, triggered imaging"""
@@ -105,7 +106,8 @@ class ShutterModeSignal(EpicsSignal):
         shutteroff()
         logger.info(
             "Shutter will be controlled by UFXC"
-            " if shutter is left in the **showbeam** state.")
+            " if shutter is left in the **showbeam** state."
+        )
 
 
 class RigakuFakeCam(AD_AcquireDetectorCamBase, Device):
@@ -114,7 +116,7 @@ class RigakuFakeCam(AD_AcquireDetectorCamBase, Device):
     """
 
     EXT_TRIGGER = 0
-    array_size_x = Component(Signal, value=1024.0)   # FIXME:  1024x512 ?or? 512x1024
+    array_size_x = Component(Signal, value=1024.0)  # FIXME:  1024x512 ?or? 512x1024
     array_size_y = Component(Signal, value=512.0)
 
     def setup_modes(self, num_triggers):
@@ -138,7 +140,7 @@ class RigakuFakeImage(Device):
     shape = []
 
     def set(self, *args, **kwargs):
-        pass    # TODO: what to do
+        pass  # TODO: what to do
 
 
 class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
@@ -151,20 +153,21 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
     2. yield from bps.mv(rigaku.batch_name, 'A001_Test')
     3. yield from bps.count([rigaku])
     """
+
     qmap_file = "qzhang202002_Rq0_Log_S270_D27.h5"
 
     acquire_start = Component(EpicsSignal, "8idi:Unidig2Bo7.VAL")
     acquire_complete = Component(EpicsSignalRO, "8idi:Unidig2Bi2.VAL")
 
     shutter_mode = ShutterModeSignal(
-        "8idi:softGlueC:AND-4_IN2_Signal",
-        name="shutter_mode")
+        "8idi:softGlueC:AND-4_IN2_Signal", name="shutter_mode"
+    )
 
     unix_process = Component(UnixCommandSignal)
 
     batch_name = Component(Signal, value="A001")
 
-    detector_number = 46    # 8-ID-I numbering of this detector
+    detector_number = 46  # 8-ID-I numbering of this detector
 
     _assets_docs_cache = []
     _datum_counter = None
@@ -186,22 +189,22 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
         )
         self._resource_uid = str(uuid.uuid4())
 
-        resource_doc = {'uid': self._resource_uid,
-                        'spec': 'RIGAKU',      # FIXME: What format for Rigaku?
-                        'resource_path': os.path.join(folder, fname),
-                        'root': root,
-                        'resource_kwargs': {
-                            'frames_per_point': self.get_frames_per_point(),
-                            },
-                        'path_semantics': 'posix',
-                        # can't add new stuff, such as: 'full_name': full_name,
-                        }
+        resource_doc = {
+            "uid": self._resource_uid,
+            "spec": "RIGAKU",  # FIXME: What format for Rigaku?
+            "resource_path": os.path.join(folder, fname),
+            "root": root,
+            "resource_kwargs": {"frames_per_point": self.get_frames_per_point(),},
+            "path_semantics": "posix",
+            # can't add new stuff, such as: 'full_name': full_name,
+        }
         self._datum_counter = itertools.count()
         self.image.shape = [
             self.get_frames_per_point(),
             self.cam.array_size_y.get(),
-            self.cam.array_size_x.get()]
-        self._assets_docs_cache.append(('resource', resource_doc))
+            self.cam.array_size_x.get(),
+        ]
+        self._assets_docs_cache.append(("resource", resource_doc))
 
         self.shutter_mode.data_mode()  # also calls shutteroff()
         # shutter_control.put() is required for data mode
@@ -213,13 +216,13 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
     def trigger(self):
         # Tell Rigaku to stop acquisition and wait until it's ready
         # self.acquire_start.put(0)
-        while self.acquire_complete.get() in (1,'High'):
+        while self.acquire_complete.get() in (1, "High"):
             time.sleep(0.1)
 
         # Getting ready to watch acquisition complete
         status = DeviceStatus(self)
 
-        def watch_acquire(value,old_value,**kwargs):
+        def watch_acquire(value, old_value, **kwargs):
             if value == 1 and old_value == 0:
                 # self.acquire_start.put(0)
                 self.acquire_complete.clear_sub(watch_acquire)
@@ -229,19 +232,20 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
         self.acquire_complete.subscribe(watch_acquire)
         time.sleep(0.1)  # QZ 06/28/20: No reason. Put it there to improve stability
         # self.acquire_start.put(1)
-        self.unix_process.put(
-            "echo EXPOSURE | nc rigaku1.xray.aps.anl.gov 10000")
-        time.sleep(0.1)     # could be shorter, this works now
+        self.unix_process.put("echo EXPOSURE | nc rigaku1.xray.aps.anl.gov 10000")
+        time.sleep(0.1)  # could be shorter, this works now
         # self.acquire_start.put(0)  # Stop acquisition
 
         # write the document stream for Xi-CAM handling
         index = next(self._datum_counter)
-        datum_id = f'{self._resource_uid}/{index}'
-        datum_doc = {'resource': self._resource_uid,
-                     'datum_id': datum_id,
-                     'datum_kwargs': {'index': index}}
+        datum_id = f"{self._resource_uid}/{index}"
+        datum_doc = {
+            "resource": self._resource_uid,
+            "datum_id": datum_id,
+            "datum_kwargs": {"index": index},
+        }
         self.image.set(datum_id)
-        self._assets_docs_cache.append(('datum', datum_doc))
+        self._assets_docs_cache.append(("datum", datum_doc))
 
         return status
 
@@ -274,7 +278,9 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
         from DM_DeviceMixinAreaDetector
         """
         if len(args) != 5:
-            raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
+            raise IndexError(
+                f"expected 5 parameters, received {len(args)}: args={args}"
+            )
         # file_path = args[0]
         self._file_name = args[1]
         # num_images = args[2]
@@ -282,6 +288,7 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
         # acquire_period = args[4]
 
         self.batch_name.put(self._file_name)
+
 
 try:
     rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku",])

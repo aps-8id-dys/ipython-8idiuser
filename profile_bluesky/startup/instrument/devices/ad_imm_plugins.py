@@ -3,6 +3,7 @@ Area Detector IMM Plugin support for ophyd
 """
 
 __all__ = """
+    IMM_DeviceMixinBase
     IMMnLocal
     IMMoutLocal
 """.split()
@@ -60,6 +61,17 @@ class IMMoutLocal(Device):
     num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")
 
     unique_id = Component(EpicsSignalRO, "NDFileIMM_uniqueID_RBV")
+
+
+class IMM_DeviceMixinBase(Device):
+    """
+    attributes used by area detectors using the IMM Plugin
+    """
+
+    immout = Component(IMMoutLocal, "IMMout:")
+    imm0 = Component(IMMnLocal, "IMM0:")
+    imm1 = Component(IMMnLocal, "IMM1:")
+    imm2 = Component(IMMnLocal, "IMM2:")
 
 
 # ----------------------------------------------------------------

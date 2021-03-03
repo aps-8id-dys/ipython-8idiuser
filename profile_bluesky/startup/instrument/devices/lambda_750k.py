@@ -15,8 +15,7 @@ from instrument.session_logs import logger
 
 logger.info(__file__)
 
-from .ad_imm_plugins import IMMnLocal
-from .ad_imm_plugins import IMMoutLocal
+from .ad_imm_plugins import IMM_DeviceMixinBase
 from .data_management import DM_DeviceMixinAreaDetector
 from .data_management import dm_pars
 from .shutters import shutter
@@ -313,7 +312,7 @@ class ExternalFileReference(Signal):
         return res
 
 
-class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
+class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
     """
     local interface to the Lambda 750k detector
     """
@@ -324,10 +323,6 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     detector_number = 25  # 8-ID-I numbering of this detector
 
     cam = Component(Lambda750kCamLocal, "cam1:")
-    immout = Component(IMMoutLocal, "IMMout:")
-    imm0 = Component(IMMnLocal, "IMM0:")
-    imm1 = Component(IMMnLocal, "IMM1:")
-    imm2 = Component(IMMnLocal, "IMM2:")
     stats1 = Component(StatsLocal, "Stats1:")
     image = Component(ExternalFileReference, value="", shape=[])
 

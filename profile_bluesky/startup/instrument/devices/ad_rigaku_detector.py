@@ -11,7 +11,11 @@ __all__ = [
     "adrigaku",
 ]
 
+from .ad_acquire_detector_base import AD_AcquireDetectorBase
+from .ad_acquire_detector_base import AD_AcquireDetectorCamBase
 from .ad_imm_plugins import IMM_DeviceMixinBase
+from .data_management import DM_DeviceMixinAreaDetector
+from bluesky import plan_stubs as bps
 from instrument.session_logs import logger
 from ophyd import ADComponent as ADCpt
 from ophyd import EpicsSignal
@@ -27,7 +31,7 @@ logger.info(__file__)
 IOC_PREFIX = "8idRigaku:"
 
 
-class RigakuUfxcDetectorCam(CamBase):
+class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
     """
     Customization for the additional fields of the ADRigaku detector.
 
@@ -47,8 +51,29 @@ class RigakuUfxcDetectorCam(CamBase):
     # remove these attributes from CamBase
     pool_max_buffers = None
 
+    def setup_modes(self, num_triggers):
+        """
+        Set up modes accordingly, based on self.EXT_TRIGGER.
 
-class RigakuUfxcDetector(IMM_DeviceMixinBase, DetectorBase):
+        This will be executed by ``AD_Acquire()`` as a bluesky plan.
+
+        PARAMETERS
+
+        num_triggers (*int*):
+            number of trigger events to be received
+        """
+        yield from bps.null()  # at least must yield *some* bluesky message
+        raise NotImplementedError("Must implement in detector-specific subclass.")
+
+    def setTime(self, exposure_time, exposure_period):
+        """
+        Set exposure time and period.
+        """
+        yield from bps.mv(self.acquire_time, exposure_time)
+        yield from bps.mv(self.acquire_period, exposure_period)
+
+
+class RigakuUfxcDetector(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, IMM_DeviceMixinBase, DetectorBase):
     _html_docs = ["RigakuUfxcDoc.html"]
     cam = ADCpt(RigakuUfxcDetectorCam, "cam1:")
     # TODO: other plugins: Sparse0
@@ -99,6 +124,15 @@ class RigakuUfxcDetector(IMM_DeviceMixinBase, DetectorBase):
             # TODO: what else is needed?
 
         self.batch_name.put(self._file_name)
+
+    @property
+    def images_received(self):
+        """
+        Return the number (int) of images captured.
+
+        suggestion:  ``self.immout.num_captured.get()``
+        """
+        raise NotImplementedError("Must implement in detector-specific subclass.")
 
 
 adrigaku = RigakuUfxcDetector(IOC_PREFIX, name="adrigaku")

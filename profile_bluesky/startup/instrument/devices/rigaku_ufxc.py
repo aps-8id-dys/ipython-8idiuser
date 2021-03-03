@@ -13,6 +13,8 @@ __all__ = ['rigaku',]
 from instrument.session_logs import logger
 logger.info(__file__)
 
+from .ad_acquire_detector_base import AD_AcquireDetectorBase
+from .ad_acquire_detector_base import AD_AcquireDetectorCamBase
 import apstools.utils
 from bluesky import plan_stubs as bps
 from .data_management import DM_DeviceMixinAreaDetector, dm_pars
@@ -106,7 +108,7 @@ class ShutterModeSignal(EpicsSignal):
             " if shutter is left in the **showbeam** state.")
 
 
-class RigakuFakeCam(Device):
+class RigakuFakeCam(AD_AcquireDetectorCamBase, Device):
     """
     mimic ophyd support for Cam Plugin
     """
@@ -139,7 +141,7 @@ class RigakuFakeImage(Device):
         pass    # TODO: what to do
 
 
-class Rigaku_8IDI(DM_DeviceMixinAreaDetector, Device):
+class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
     """
     Supports non-epics communication with the new Rigaku detector
 

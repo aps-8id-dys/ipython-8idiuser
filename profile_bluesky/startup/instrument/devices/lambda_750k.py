@@ -15,6 +15,8 @@ from instrument.session_logs import logger
 
 logger.info(__file__)
 
+from .ad_acquire_detector_base import AD_AcquireDetectorBase
+from .ad_acquire_detector_base import AD_AcquireDetectorCamBase
 from .ad_imm_plugins import IMM_DeviceMixinBase
 from .data_management import DM_DeviceMixinAreaDetector
 from .data_management import dm_pars
@@ -41,7 +43,7 @@ import uuid
 LAMBDA_750K_IOC_PREFIX = "8LAMBDA1:"
 
 
-class Lambda750kCamLocal(Device):
+class Lambda750kCamLocal(AD_AcquireDetectorCamBase, Device):
     """
     local interface to the ADLambda 750k cam1 plugin
     """
@@ -312,7 +314,7 @@ class ExternalFileReference(Signal):
         return res
 
 
-class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
+class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
     """
     local interface to the Lambda 750k detector
     """
@@ -368,34 +370,6 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
         """
         # cut the path from file name
         return os.path.basename(self.immout.full_file_name.get())
-
-    def setIMM_Cmprs(self):
-        """
-        set all IMM plugins for compression
-        """
-        # from SPEC macro: ccdset_compr_params_ad_Lambda
-        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (1, "IMM_Cmprs"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
-
-    def setIMM_Raw(self):
-        """
-        set all IMM plugins for raw (uncompressed)
-        """
-        # from SPEC macro: ccdset_RawMode_params_ad_Lambda
-        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (0, "IMM_Raw"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
 
     def staging_setup_DM(self, *args, **kwargs):
         """

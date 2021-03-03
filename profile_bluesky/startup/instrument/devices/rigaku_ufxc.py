@@ -17,16 +17,15 @@ logger.info(__file__)
 
 from .ad_acquire_detector_base import AD_AcquireDetectorBase
 from .ad_acquire_detector_base import AD_AcquireDetectorCamBase
-import apstools.utils
-from bluesky import plan_stubs as bps
 from .data_management import DM_DeviceMixinAreaDetector, dm_pars
-import itertools
+from .shutters import shutter_control, shutter_override, shutteroff
+from bluesky import plan_stubs as bps
 from ophyd import Component, Device, DeviceStatus
 from ophyd import Signal, EpicsSignal, EpicsSignalRO
+import apstools.utils
+import itertools
 import os
 import psutil
-from .shutters import shutter_control, shutter_override, shutteroff
-
 import subprocess
 import time
 import uuid

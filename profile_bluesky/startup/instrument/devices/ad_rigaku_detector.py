@@ -39,14 +39,18 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
     """
 
     acquisition_delay = ADCpt(EpicsSignalWithRBV, "AcquisitionDelay", kind="config")
-    calibration_label = ADCpt(EpicsSignalWithRBV, "CalibrationLabel", string=True, kind="config")
+    calibration_label = ADCpt(
+        EpicsSignalWithRBV, "CalibrationLabel", string=True, kind="config"
+    )
     exposure_delay = ADCpt(EpicsSignalWithRBV, "ExposureDelay", kind="config")
     file_name = ADCpt(EpicsSignalWithRBV, "FileName", string=True, kind="config")
     file_path = ADCpt(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
     lower_threshold = ADCpt(EpicsSignalWithRBV, "LowerThreshold", kind="config")
     upper_threshold = ADCpt(EpicsSignalWithRBV, "UpperThreshold", kind="config")
 
-    corrections = ADCpt(EpicsSignal, "Corrections", kind="config", string=True)  # has no _RBV PV
+    corrections = ADCpt(
+        EpicsSignal, "Corrections", kind="config", string=True
+    )  # has no _RBV PV
 
     # remove these attributes from CamBase
     pool_max_buffers = None
@@ -73,7 +77,12 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
         yield from bps.mv(self.acquire_period, exposure_period)
 
 
-class RigakuUfxcDetector(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, IMM_DeviceMixinBase, DetectorBase):
+class RigakuUfxcDetector(
+    AD_AcquireDetectorBase,
+    DM_DeviceMixinAreaDetector,
+    IMM_DeviceMixinBase,
+    DetectorBase,
+):
     _html_docs = ["RigakuUfxcDoc.html"]
     cam = ADCpt(RigakuUfxcDetectorCam, "cam1:")
     # TODO: other plugins: Sparse0
@@ -97,17 +106,17 @@ class RigakuUfxcDetector(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, IMM
         #     In [14]: adrigaku.cam.image_mode.get(as_string=True)
         #     Out[14]: '16 Bit, 1S'
         # The fix is to set by number, not string.
-        if (self.staging_mode.get() == 'fast'):
+        if self.staging_mode.get() == "fast":
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire_time"] = 20e-6
             self.stage_sigs["cam.image_mode"] = 5
             self.stage_sigs["cam.trigger_mode"] = 4
-            self.stage_sigs["cam.num_images"] = 100_000   # "_" is a visual separator
+            self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
             self.stage_sigs["cam.corrections"] = "Enabled"
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif (self.staging_mode.get() == 'slow'):
+        elif self.staging_mode.get() == "slow":
             path = "/Rigaku/bin/destination/RigakuEpics/"
             self.stage_sigs = {}
             self.stage_sigs["cam.image_mode"] = 9  # "16 Bit, 1S"

@@ -40,6 +40,9 @@ class IMMoutLocal(Device):
     """
 
     # implement just the parts needed by our data acquisition
+    auto_increment = Component(
+        EpicsSignalWithRBV, "AutoIncrement", kind="config"
+    )
     blocking_callbacks = Component(
         EpicsSignalWithRBV, "BlockingCallbacks", kind="config"
     )

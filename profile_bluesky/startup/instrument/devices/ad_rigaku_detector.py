@@ -11,6 +11,7 @@ __all__ = [
     "adrigaku",
 ]
 
+from .ad_imm_plugins import IMM_DeviceMixinBase
 from instrument.session_logs import logger
 from ophyd import ADComponent as ADCpt
 from ophyd import EpicsSignal
@@ -47,10 +48,10 @@ class RigakuUfxcDetectorCam(CamBase):
     pool_max_buffers = None
 
 
-class RigakuUfxcDetector(DetectorBase):
+class RigakuUfxcDetector(IMM_DeviceMixinBase, DetectorBase):
     _html_docs = ["RigakuUfxcDoc.html"]
     cam = ADCpt(RigakuUfxcDetectorCam, "cam1:")
-    # TODO: other plugins: Sparse0, IMM
+    # TODO: other plugins: Sparse0
 
     staging_mode = ADCpt(Signal, value="fast", kind="config")
 
@@ -63,7 +64,7 @@ class RigakuUfxcDetector(DetectorBase):
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
-        # number.  This happens with EpicsSignalWithRBV when it was 
+        # number.  This happens with EpicsSignalWithRBV when it was
         # called without the string=True kwarg.
         #     In [13]: adrigaku.cam.image_mode.get()
         #     Out[13]: 9
@@ -81,22 +82,21 @@ class RigakuUfxcDetector(DetectorBase):
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif (mode == 'slow'):            self.stage_sigs = {}
+        elif (mode == 'slow'):
+            path = "/Rigaku/bin/destination/RigakuEpics/"
+            self.stage_sigs = {}
             self.stage_sigs["cam.image_mode"] = 9  # "16 Bit, 1S"
             self.stage_sigs["cam.trigger_mode"] = 0  # "Fixed Time"
             self.stage_sigs["cam.acquire_time"] = 0.1
             self.stage_sigs["cam.num_images"] = 10
             self.stage_sigs["cam.data_type"] = "UInt16"
             self.stage_sigs["cam.corrections"] = "Disabled"
+            self.stage_sigs["imm1.auto_increment"] = "Yes"
+            self.stage_sigs["imm1.num_capture"] = 10
+            self.stage_sigs["imm1.file_number"] = 1
+            self.stage_sigs["imm1.file_path"] = path
+            self.stage_sigs["imm1.file_name"] = "test"
             # TODO: what else is needed?
-
-            # TODO: Need the equivalent of the lines below:
-
-            # epics_put("8idRigaku:IMM1:AutoIncrement", "Yes")
-            # epics_put("8idRigaku:IMM1:NumCapture",10) 
-            # epics_put("8idRigaku:IMM1:FileNumber",1)
-            # epics_put("8idRigaku:IMM1:FilePath","/Rigaku/bin/destination/RigakuEpics/");
-            # epics_put("8idRigaku:IMM1:FileName","test");            
 
         self.batch_name.put(self._file_name)
 

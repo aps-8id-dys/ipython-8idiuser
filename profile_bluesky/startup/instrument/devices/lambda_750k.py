@@ -7,9 +7,12 @@ X-Spectrum Lambda 750K area detector (EPICS)
 Mimics an ophyd.areaDetector object without subclassing it.
 """
 
-__all__ = ['lambdadet',]
+__all__ = [
+    "lambdadet",
+]
 
 from instrument.session_logs import logger
+
 logger.info(__file__)
 
 from .ad_imm_plugins import IMMnLocal
@@ -43,29 +46,40 @@ class Lambda750kCamLocal(Device):
     """
     local interface to the ADLambda 750k cam1 plugin
     """
+
     # implement just the parts needed by our data acquisition
-    acquire = Component(EpicsSignalWithRBV, "Acquire", trigger_value=1, kind='config')
-    acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod", kind='config')
-    acquire_time = Component(EpicsSignalWithRBV, "AcquireTime", kind='config')
-    array_callbacks = Component(EpicsSignalWithRBV, "ArrayCallbacks", kind='config')
+    acquire = Component(EpicsSignalWithRBV, "Acquire", trigger_value=1, kind="config")
+    acquire_period = Component(EpicsSignalWithRBV, "AcquirePeriod", kind="config")
+    acquire_time = Component(EpicsSignalWithRBV, "AcquireTime", kind="config")
+    array_callbacks = Component(EpicsSignalWithRBV, "ArrayCallbacks", kind="config")
     num_images = Component(EpicsSignalWithRBV, "NumImages")
     # blocking_callbacks = Component(EpicsSignalWithRBV, "BlockingCallbacks")
 
-    bad_frame_counter = Component(EpicsSignal, 'BadFrameCounter', kind='config')
-    config_file_path = Component(EpicsSignal, 'ConfigFilePath', string=True, kind='config')
-    data_type = Component(EpicsSignalWithRBV, 'DataType', kind='config')
-    firmware_version = Component(EpicsSignalRO, 'FirmwareVersion_RBV', string=True, kind='config')
-    image_mode = Component(EpicsSignalWithRBV, 'ImageMode', kind='config')
-    operating_mode = Component(EpicsSignalWithRBV, 'OperatingMode', kind='config')
-    serial_number = Component(EpicsSignalRO, 'SerialNumber_RBV', string=True, kind='config')
-    detector_state = Component(EpicsSignalRO, 'DetectorState_RBV', kind='config', string=True)
-    state = Component(EpicsSignalRO, 'LambdaState', kind='config', string=True)
-    status_msg = Component(EpicsSignalRO, 'StatusMessage_RBV', kind='config', string=True)
-    temperature = Component(EpicsSignalWithRBV, 'Temperature', kind='config')
-    trigger_mode = Component(EpicsSignal, 'TriggerMode', kind='config')
+    bad_frame_counter = Component(EpicsSignal, "BadFrameCounter", kind="config")
+    config_file_path = Component(
+        EpicsSignal, "ConfigFilePath", string=True, kind="config"
+    )
+    data_type = Component(EpicsSignalWithRBV, "DataType", kind="config")
+    firmware_version = Component(
+        EpicsSignalRO, "FirmwareVersion_RBV", string=True, kind="config"
+    )
+    image_mode = Component(EpicsSignalWithRBV, "ImageMode", kind="config")
+    operating_mode = Component(EpicsSignalWithRBV, "OperatingMode", kind="config")
+    serial_number = Component(
+        EpicsSignalRO, "SerialNumber_RBV", string=True, kind="config"
+    )
+    detector_state = Component(
+        EpicsSignalRO, "DetectorState_RBV", kind="config", string=True
+    )
+    state = Component(EpicsSignalRO, "LambdaState", kind="config", string=True)
+    status_msg = Component(
+        EpicsSignalRO, "StatusMessage_RBV", kind="config", string=True
+    )
+    temperature = Component(EpicsSignalWithRBV, "Temperature", kind="config")
+    trigger_mode = Component(EpicsSignal, "TriggerMode", kind="config")
 
-    array_size_x = Component(EpicsSignalRO, 'ArraySizeX_RBV', kind='config')
-    array_size_y = Component(EpicsSignalRO, 'ArraySizeY_RBV', kind='config')
+    array_size_x = Component(EpicsSignalRO, "ArraySizeX_RBV", kind="config")
+    array_size_y = Component(EpicsSignalRO, "ArraySizeY_RBV", kind="config")
 
     EXT_TRIGGER = 0
     LAMBDA_OPERATING_MODE = 0  # (0, 'ContinuousReadWrite', 1, 'TwentyFourBit')
@@ -124,7 +138,7 @@ class Lambda750kCamLocal(Device):
             logger.info(f"Lambda Operating Mode switched to: {mode}")
 
         if self.operating_mode.get() == 1:
-            yield from self.setDataType(3)     # 3: UInt16
+            yield from self.setDataType(3)  # 3: UInt16
             data_type = self.getDataType
             logger.info("Lambda DataType switched to: {data_type}")
 
@@ -137,30 +151,35 @@ class Lambda750kCamLocal(Device):
         yield from bps.mv(self.acquire_time, exposure_time)
         # yield from bps.sleep(0.05)
 
-        extra = 1e-3     # 1 ms is typical for period
+        extra = 1e-3  # 1 ms is typical for period
         extra += 100e-6  # extra 100 us for 24-bit mode (empirical)
 
         # set period based on the mode
-        if self.getOperatingMode == 0:      # continuous read/write mode
+        if self.getOperatingMode == 0:  # continuous read/write mode
             yield from bps.mv(self.acquire_period, exposure_time)
         else:
             yield from bps.mv(
-                self.acquire_period,
-                max(exposure_period, exposure_time + extra)
-                )
+                self.acquire_period, max(exposure_period, exposure_time + extra)
+            )
         # yield from bps.sleep(0.05)
 
         if self.EXT_TRIGGER > 0 and self.getOperatingMode == 0:
             # this should work for single-trigger per sequence as well
-            yield from bps.mv(pvDELAY_B, 1e-4)  # for softglue trigger generation (shorter than the fastest frame time)
+            yield from bps.mv(
+                pvDELAY_B, 1e-4
+            )  # for softglue trigger generation (shorter than the fastest frame time)
             # yield from bps.sleep(0.05)
-            yield from bps.mv(pvDELAY_A, exposure_time)  # AcquirePeriod in area detector
+            yield from bps.mv(
+                pvDELAY_A, exposure_time
+            )  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
 
         elif self.EXT_TRIGGER == 2 and self.getOperatingMode == 1:
             yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
             # yield from bps.sleep(0.05)
-            yield from bps.mv(pvDELAY_A, max(exposure_period, exposure_time + extra))  # AcquirePeriod in area detector
+            yield from bps.mv(
+                pvDELAY_A, max(exposure_period, exposure_time + extra)
+            )  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
 
         elif self.EXT_TRIGGER == 1 and self.getOperatingMode == 1:
@@ -169,23 +188,31 @@ class Lambda750kCamLocal(Device):
             # except with trigger per frame mode
             yield from bps.mv(pvDELAY_B, exposure_time)  # AcquireTime in area detector
             # yield from bps.sleep(0.05)
-            yield from bps.mv(pvDELAY_A, exposure_time + 0.0011)  # AcquirePeriod in area detector
+            yield from bps.mv(
+                pvDELAY_A, exposure_time + 0.0011
+            )  # AcquirePeriod in area detector
             # yield from bps.sleep(0.05)
 
         if self.EXT_TRIGGER > 0:
             if (exposure_period - exposure_time) >= 0.45 and exposure_time >= 0.05:
                 yield from bps.mv(
-                    soft_glue.set_shtr_sig_pulse_tr_mode, '0',
-                    soft_glue.send_det_sig_pulse_tr_mode, '0',
-                    shutter_override, 0,
+                    soft_glue.set_shtr_sig_pulse_tr_mode,
+                    "0",
+                    soft_glue.send_det_sig_pulse_tr_mode,
+                    "0",
+                    shutter_override,
+                    0,
                 )
                 msg = "REGULAR...opens and closes during exposure"
             else:
-                #prevents user from operating shutter for fast duty cycle
+                # prevents user from operating shutter for fast duty cycle
                 yield from bps.mv(
-                    soft_glue.set_shtr_sig_pulse_tr_mode, '1',
-                    soft_glue.send_det_sig_pulse_tr_mode, '1',
-                    shutter_override, 1,
+                    soft_glue.set_shtr_sig_pulse_tr_mode,
+                    "1",
+                    soft_glue.send_det_sig_pulse_tr_mode,
+                    "1",
+                    shutter_override,
+                    1,
                 )
                 msg = "BURST...Stays open for the full sequence"
             logger.info("Setting Shutter Mode for Detector ===> " + msg)
@@ -208,9 +235,9 @@ class Lambda750kCamLocal(Device):
 
         yield from self.setOperatingMode(self.LAMBDA_OPERATING_MODE)
 
-        if (self.EXT_TRIGGER == 0):
+        if self.EXT_TRIGGER == 0:
             yield from self.setup_trigger_mode_internal()
-        elif (self.EXT_TRIGGER == 2):
+        elif self.EXT_TRIGGER == 2:
             yield from self.setup_trigger_mode_external()
         else:
             yield from bps.null()
@@ -220,7 +247,7 @@ class Lambda750kCamLocal(Device):
         if self.EXT_TRIGGER == self.MODE_TRIGGER_EXTERNAL_PER_FRAME:
             action = "OPEN AND CLOSE DURING"
             yield from self.setup_trigger_logic_external(num_triggers)
-        else:   # self.MODE_TRIGGER_INTERNAL and self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE
+        else:  # self.MODE_TRIGGER_INTERNAL and self.MODE_TRIGGER_EXTERNAL_PER_SEQUENCE
             action = "REMAIN OPEN THROUGH"
         logger.info(f"Shutter will *{action}* the Acquisition...")
 
@@ -236,7 +263,9 @@ class Lambda750kCamLocal(Device):
         logger.debug(f"num_triggers = {num_triggers}")
         yield from bps.mv(sg_num_frames, num_triggers)
 
-        yield from bps.mv(soft_glue.send_ext_pulse_tr_sig_to_trig, '1') # external trigger
+        yield from bps.mv(
+            soft_glue.send_ext_pulse_tr_sig_to_trig, "1"
+        )  # external trigger
         #####shutter burst/regular mode and the corresponding trigger pulses are selected separately###
 
     def setup_trigger_mode_external(self):
@@ -264,20 +293,23 @@ class StatsLocal(Device):
     """
 
     # implement just the parts needed by our data acquisition
-    mean_value = Component(EpicsSignalWithRBV, "MeanValue", kind='config')
+    mean_value = Component(EpicsSignalWithRBV, "MeanValue", kind="config")
 
 
 class ExternalFileReference(Signal):
     """
     A pure software signal where a Device can stash a datum_id
     """
+
     def __init__(self, *args, shape, **kwargs):
         super().__init__(*args, **kwargs)
         self.shape = shape
 
     def describe(self):
         res = super().describe()
-        res[self.name].update(dict(external="FILESTORE:", dtype="array", shape=self.shape))
+        res[self.name].update(
+            dict(external="FILESTORE:", dtype="array", shape=self.shape)
+        )
         return res
 
 
@@ -285,10 +317,11 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     """
     local interface to the Lambda 750k detector
     """
+
     qmap_file = "Lambda_qmap.h5"
 
     # implement just the parts needed by our data acquisition
-    detector_number = 25    # 8-ID-I numbering of this detector
+    detector_number = 25  # 8-ID-I numbering of this detector
 
     cam = Component(Lambda750kCamLocal, "cam1:")
     immout = Component(IMMoutLocal, "IMMout:")
@@ -347,10 +380,12 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         """
         # from SPEC macro: ccdset_compr_params_ad_Lambda
         for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (1, 'IMM_Cmprs'):
+            if plugin.file_format.get() not in (1, "IMM_Cmprs"):
                 yield from bps.mv(
-                    plugin.capture, 'Done',             # ('Done', 'Capture')
-                    plugin.file_format, 'IMM_Cmprs',    # ('IMM_Raw', 'IMM_Cmprs')
+                    plugin.capture,
+                    "Done",  # ('Done', 'Capture')
+                    plugin.file_format,
+                    "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
                 )
 
     def setIMM_Raw(self):
@@ -359,10 +394,12 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         """
         # from SPEC macro: ccdset_RawMode_params_ad_Lambda
         for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (0, 'IMM_Raw'):
+            if plugin.file_format.get() not in (0, "IMM_Raw"):
                 yield from bps.mv(
-                    plugin.capture, 'Done',             # ('Done', 'Capture')
-                    plugin.file_format, 'IMM_Raw',      # ('IMM_Raw', 'IMM_Cmprs')
+                    plugin.capture,
+                    "Done",  # ('Done', 'Capture')
+                    plugin.file_format,
+                    "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
                 )
 
     def staging_setup_DM(self, *args, **kwargs):
@@ -370,7 +407,9 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         setup the detector's stage_sigs for acquisition with the DM workflow
         """
         if len(args) != 5:
-            raise IndexError(f"expected 5 parameters, received {len(args)}: args={args}")
+            raise IndexError(
+                f"expected 5 parameters, received {len(args)}: args={args}"
+            )
         self._file_path = args[0]
         self._file_name = args[1]
         num_images = args[2]
@@ -397,9 +436,9 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         super().stage()
         root = os.path.join("/", "home", "8-id-i/")
         if self._file_path.startswith("/data/"):
-            self._file_path = self._file_path[len("/data/"):]
+            self._file_path = self._file_path[len("/data/") :]
         elif self._file_path.startswith("/home/8-id-i/"):
-            self._file_path = self._file_path[len("/home/8-id-i/"):]
+            self._file_path = self._file_path[len("/home/8-id-i/") :]
 
         fname = (
             f"{self._file_name}"
@@ -410,17 +449,22 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
         full_name = os.path.join(root, self._file_path, fname)
         logger.info(f"full_name: {full_name}")
         self._resource_uid = str(uuid.uuid4())
-        resource_doc = {'uid': self._resource_uid,
-                        'spec': 'IMM',
-                        'resource_path': os.path.join(self._file_path, fname),
-                        'root': root,
-                        'resource_kwargs': {'frames_per_point': self.get_frames_per_point()},
-                        'path_semantics': 'posix',
-                        # can't add new stuff, such as: 'full_name': full_name,
-                        }
+        resource_doc = {
+            "uid": self._resource_uid,
+            "spec": "IMM",
+            "resource_path": os.path.join(self._file_path, fname),
+            "root": root,
+            "resource_kwargs": {"frames_per_point": self.get_frames_per_point()},
+            "path_semantics": "posix",
+            # can't add new stuff, such as: 'full_name': full_name,
+        }
         self._datum_counter = itertools.count()
-        self.image.shape = [self.get_frames_per_point(), self.cam.array_size_y.get(), self.cam.array_size_x.get()]
-        self._assets_docs_cache.append(('resource', resource_doc))
+        self.image.shape = [
+            self.get_frames_per_point(),
+            self.cam.array_size_y.get(),
+            self.cam.array_size_x.get(),
+        ]
+        self._assets_docs_cache.append(("resource", resource_doc))
 
     def trigger(self):
         "trigger device acquisition and return a status object"
@@ -436,7 +480,10 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
             logger.debug(f"lambdadet.cam.state={value}")
             logger.debug(f"old value={old_value}")
             logger.debug(f"capture={self.immout.capture.get()}")
-            if (value in (5, "FINISHED", 6, "PROCESSING_IMAGES") and old_value in (4, "RECEIVING_IMAGES")):
+            if value in (5, "FINISHED", 6, "PROCESSING_IMAGES") and old_value in (
+                4,
+                "RECEIVING_IMAGES",
+            ):
                 shutter.close()
                 self.cam.state.clear_sub(watch_state)
                 logger.debug("closed shutter")
@@ -450,13 +497,15 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
                 logger.info("watch_acquire() method ends")
                 logger.info(f"cam.acquire.get()={self.cam.acquire.get()}")
                 logger.info(f"immout.capture.get()={self.immout.capture.get()}")
-                logger.info(f"immout.num_captured.get()={self.immout.num_captured.get()}")
+                logger.info(
+                    f"immout.num_captured.get()={self.immout.num_captured.get()}"
+                )
                 status._finished()
                 shutter.close()
                 logger.info(f"status={status}")
 
         shutter.open()
-        time.sleep(0.005)       # wait for the shutter to move out of the way
+        time.sleep(0.005)  # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
         self.immout.capture.subscribe(watch_acquire)
         for plugin in (self.imm0, self.imm1, self.imm2):
@@ -476,14 +525,16 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
             # t = time.time() - t0
             # if t > .2e-10:
             #     logger.debug(f"waited {t:.3f}s for detector to become ready for frame triggers")
-            time.sleep(0.5) # manufacturer's minimum recommendation
+            time.sleep(0.5)  # manufacturer's minimum recommendation
         index = next(self._datum_counter)
-        datum_id = f'{self._resource_uid}/{index}'
-        datum_doc = {'resource': self._resource_uid,
-                     'datum_id': datum_id,
-                     'datum_kwargs': {'index': index}}
+        datum_id = f"{self._resource_uid}/{index}"
+        datum_doc = {
+            "resource": self._resource_uid,
+            "datum_id": datum_id,
+            "datum_kwargs": {"index": index},
+        }
         self.image.set(datum_id)
-        self._assets_docs_cache.append(('datum', datum_doc))
+        self._assets_docs_cache.append(("datum", datum_doc))
 
         return status
 
@@ -495,12 +546,11 @@ class Lambda750kLocal(DM_DeviceMixinAreaDetector, Device):
     def get_frames_per_point(self):
         return self.cam.num_images.get()
 
+
 try:
     lambdadet = Lambda750kLocal(
-        LAMBDA_750K_IOC_PREFIX,
-        name='lambdadet',
-        labels=["lambda",]
-        )
+        LAMBDA_750K_IOC_PREFIX, name="lambdadet", labels=["lambda",]
+    )
 
     lambdadet.read_attrs += ["immout", "image"]
 

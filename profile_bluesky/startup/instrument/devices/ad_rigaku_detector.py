@@ -72,7 +72,7 @@ class RigakuUfxcDetector(IMM_DeviceMixinBase, DetectorBase):
         #     In [14]: adrigaku.cam.image_mode.get(as_string=True)
         #     Out[14]: '16 Bit, 1S'
         # The fix is to set by number, not string.
-        if (mode == 'fast'):
+        if (self.staging_mode.get() == 'fast'):
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire_time"] = 20e-6
             self.stage_sigs["cam.image_mode"] = 5
@@ -82,7 +82,7 @@ class RigakuUfxcDetector(IMM_DeviceMixinBase, DetectorBase):
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif (mode == 'slow'):
+        elif (self.staging_mode.get() == 'slow'):
             path = "/Rigaku/bin/destination/RigakuEpics/"
             self.stage_sigs = {}
             self.stage_sigs["cam.image_mode"] = 9  # "16 Bit, 1S"

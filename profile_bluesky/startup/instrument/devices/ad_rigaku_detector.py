@@ -132,8 +132,6 @@ class RigakuUfxcDetector(
             self.stage_sigs["imm1.file_name"] = "test"
             # TODO: what else is needed?
 
-        self.batch_name.put(self._file_name)
-
     @property
     def images_received(self):
         """

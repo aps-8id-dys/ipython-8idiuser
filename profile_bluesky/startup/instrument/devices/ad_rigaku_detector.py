@@ -87,7 +87,7 @@ class RigakuUfxcDetector(
     cam = ADCpt(RigakuUfxcDetectorCam, "cam1:")
     # TODO: other plugins: Sparse0
 
-    staging_mode = ADCpt(Signal, value="fast", kind="config")
+    staging_mode = ADCpt(Signal, value=None, kind="config")
 
     def staging_setup_DM(self, *args, mode=None):
 

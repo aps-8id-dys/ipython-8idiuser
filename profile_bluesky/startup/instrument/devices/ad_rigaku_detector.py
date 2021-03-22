@@ -24,6 +24,7 @@ from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import DetectorBase
+import os
 
 logger.info(__file__)
 
@@ -52,8 +53,11 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
         EpicsSignal, "Corrections", kind="config", string=True
     )  # has no _RBV PV
 
+    staging_mode = ADCpt(Signal, value="fast", kind="config")
+
     # remove these attributes from CamBase
     pool_max_buffers = None
+    EXT_TRIGGER = 0
 
     def setup_modes(self, num_triggers):
         """
@@ -66,8 +70,10 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
         num_triggers (*int*):
             number of trigger events to be received
         """
-        yield from bps.null()  # at least must yield *some* bluesky message
-        raise NotImplementedError("Must implement in detector-specific subclass.")
+
+        # Implement ZDT only for now, but will come back and add slow mode later
+
+        yield from bps.mv(self.staging_mode, "fast")  # at least must yield *some* bluesky message
 
     def setTime(self, exposure_time, exposure_period):
         """
@@ -86,8 +92,8 @@ class RigakuUfxcDetector(
     _html_docs = ["RigakuUfxcDoc.html"]
     cam = ADCpt(RigakuUfxcDetectorCam, "cam1:")
     # TODO: other plugins: Sparse0
-
-    staging_mode = ADCpt(Signal, value="fast", kind="config")
+    qmap_file = "Rigaku_Sample_Rq0.h5"
+    detector_number = 46  # 8-ID-I numbering of this detector
 
     def staging_setup_DM(self, *args, mode=None):
 
@@ -106,7 +112,7 @@ class RigakuUfxcDetector(
         #     In [14]: adrigaku.cam.image_mode.get(as_string=True)
         #     Out[14]: '16 Bit, 1S'
         # The fix is to set by number, not string.
-        if self.staging_mode.get() == "fast":
+        if self.cam.staging_mode.get() == "fast":
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire_time"] = 20e-6
             self.stage_sigs["cam.image_mode"] = 5
@@ -116,7 +122,7 @@ class RigakuUfxcDetector(
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif self.staging_mode.get() == "slow":
+        elif self.cam.staging_mode.get() == "slow":
             path = "/Rigaku/bin/destination/RigakuEpics/"
             self.stage_sigs = {}
             self.stage_sigs["cam.image_mode"] = 9  # "16 Bit, 1S"
@@ -140,6 +146,27 @@ class RigakuUfxcDetector(
         suggestion:  ``self.immout.num_captured.get()``
         """
         raise NotImplementedError("Must implement in detector-specific subclass.")
+
+    @property
+    def plugin_file_name(self):
+        """
+        return the (base, no path) file name the plugin wrote
+        
+        Implement for the DM workflow.
+
+        Not a bluesky "plan" (no "yield from")
+        """
+        return os.path.basename(self.immout.full_file_name.get())
+        # return f"{self.batch_name.get()}.bin"
+    
+    def xpcs_loop(self, *args, **kwargs):
+        """
+        Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
+
+        see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
+        """
+        # logger.debug(f"xpcs_loop({args})")
+        raise NotImplementedError("must override in subclass")
 
 
 adrigaku = RigakuUfxcDetector(IOC_PREFIX, name="adrigaku")

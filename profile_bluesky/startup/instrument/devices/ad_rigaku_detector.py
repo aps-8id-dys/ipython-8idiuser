@@ -101,6 +101,7 @@ class RigakuUfxcDetector(
         setup the detector's stage_sigs for acquisition with the DM workflow
         from DM_DeviceMixinAreaDetector
         """
+        self._file_name = args[1]
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
@@ -156,7 +157,22 @@ class RigakuUfxcDetector(
 
         Not a bluesky "plan" (no "yield from")
         """
-        return os.path.basename(self.immout.full_file_name.get())
+        # fname = (
+        #     f"{self._file_name}"
+        #     f"_{dm_pars.data_begin.get():05.0f}"
+        #     f"-{dm_pars.data_end.get():05.0f}"
+        #     ".bin"
+        # )
+
+        fname = (
+            f"{self._file_name}"
+            f"_{1:05.0f}"
+            f"-{100000:05.0f}"
+            ".bin"
+        )
+
+        return fname
+        # return os.path.basename(self.immout.full_file_name.get())
         # return f"{self.batch_name.get()}.bin"
     
     def xpcs_loop(self, *args, **kwargs):

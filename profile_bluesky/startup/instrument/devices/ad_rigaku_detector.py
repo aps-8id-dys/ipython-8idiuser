@@ -156,7 +156,7 @@ class RigakuUfxcDetector(
             self.stage_sigs["imm1.file_name"] = "test"
             # TODO: what else is needed?
 
-        self.stage_sigs["cam.file_name"] = f"{fname}.bin"
+        self.stage_sigs["cam.file_name"] = os.path.basename(f"{fname}.bin")
 
     @property
     def images_received(self):

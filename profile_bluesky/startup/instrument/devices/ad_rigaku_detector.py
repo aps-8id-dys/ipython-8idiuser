@@ -119,12 +119,8 @@ class RigakuUfxcDetector(
         # )
         file_path = args[0]
         # detector sees "/Rigaku" when we see "/home/8ididata"
-        logger.debug("file_path: %s", file_path)
-        _fp = os.path.split(file_path)[2:]
-        fname = (
-            f"/Rigaku/{os.path.join(*_fp)}"
-            f"{self._file_name}"
-        )
+        fpath = file_path.replace("/home/8ididata", "/Rigaku")
+        fname = f"{fpath}{self._file_name}"
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration

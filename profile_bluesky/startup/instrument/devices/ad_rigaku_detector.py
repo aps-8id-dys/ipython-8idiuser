@@ -117,7 +117,7 @@ class RigakuUfxcDetector(
         file_path = args[0]
         fname = (
             f"{file_path}"
-            f"_{self._file_name}"
+            f"{self._file_name}"
         )
 
         # If staging stalls, it is because one or more of the signals

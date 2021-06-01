@@ -119,7 +119,6 @@ class RigakuUfxcDetector(
             f"{file_path}"
             f"_{self._file_name}"
         )
-        self.stage_sigs["cam.file_name"] = f"{fname}.bin"
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
@@ -156,6 +155,8 @@ class RigakuUfxcDetector(
             self.stage_sigs["imm1.file_path"] = path
             self.stage_sigs["imm1.file_name"] = "test"
             # TODO: what else is needed?
+
+        self.stage_sigs["cam.file_name"] = f"{fname}.bin"
 
     @property
     def images_received(self):

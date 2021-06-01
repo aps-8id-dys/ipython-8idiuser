@@ -22,6 +22,7 @@ from ophyd import EpicsSignal
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
+from ophyd import SingleTrigger
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import DetectorBase
 import os
@@ -87,6 +88,7 @@ class RigakuUfxcDetector(
     AD_AcquireDetectorBase,
     DM_DeviceMixinAreaDetector,
     IMM_DeviceMixinBase,
+#    SingleTrigger,
     DetectorBase,
 ):
     _html_docs = ["RigakuUfxcDoc.html"]
@@ -102,6 +104,7 @@ class RigakuUfxcDetector(
         from DM_DeviceMixinAreaDetector
         """
         self._file_name = args[1]
+        logger.info("Rigaku file name, %s", self._file_name)
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration

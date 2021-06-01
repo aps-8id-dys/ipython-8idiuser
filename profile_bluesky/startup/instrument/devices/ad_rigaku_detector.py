@@ -106,6 +106,23 @@ class RigakuUfxcDetector(
         self._file_name = args[1]
         logger.info("Rigaku file name, %s", self._file_name)
 
+        # template from previous support
+        # areadet.staging_setup_DM(file_path, file_name,
+        #         num_images, acquire_time, acquire_period)
+        # root = os.path.join("/", "home", "8-id-i-stage/")
+        # folder = self._file_name
+        # fname = (
+        #     f"{folder}"
+        #     f"_{dm_pars.data_begin.get():05.0f}"
+        #     f"-{dm_pars.data_end.get():05.0f}"
+        #     ".bin"
+        # )
+        file_path = args[0]
+        fname = (
+            f"{file_path}"
+            f"_{self._file_name}"
+        )
+
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
         # number.  This happens with EpicsSignalWithRBV when it was
@@ -141,6 +158,8 @@ class RigakuUfxcDetector(
             self.stage_sigs["imm1.file_path"] = path
             self.stage_sigs["imm1.file_name"] = "test"
             # TODO: what else is needed?
+
+        self.stage_sigs["cam.file_name"] = f"{fname}.bin"
 
     @property
     def images_received(self):

@@ -119,8 +119,10 @@ class RigakuUfxcDetector(
         # )
         file_path = args[0]
         # detector sees "/Rigaku" when we see "/home/8ididata"
+        logger.debug("file_path: %s", file_path)
+        _fp = os.path.split(file_path)[2:]
         fname = (
-            f"/Rigaku/{os.path.join(*os.path.split(file_path)[2:])}"
+            f"/Rigaku/{os.path.join(*_fp)}"
             f"{self._file_name}"
         )
 

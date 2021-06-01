@@ -115,8 +115,8 @@ class RigakuUfxcDetector(
         #     ".bin"
         # )
         file_path = args[0]
-        # detector sees "/Rigaku" when we see "/home/8ididata"
-        fpath = file_path.replace("/home/8ididata", "/Rigaku")
+        #                         bluesky sees      Rigaku sees
+        fpath = file_path.replace("/home/8ididata", "/Rigaku/bin/destination")
         fname = f"{fpath}{self._file_name}"
 
         # If staging stalls, it is because one or more of the signals

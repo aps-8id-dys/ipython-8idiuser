@@ -18,6 +18,7 @@ from .data_management import DM_DeviceMixinAreaDetector
 from bluesky import plan_stubs as bps
 from instrument.session_logs import logger
 from ophyd import ADComponent as ADCpt
+from ophyd import ADTriggerStatus
 from ophyd import EpicsSignal
 # from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
@@ -98,6 +99,7 @@ class RigakuUfxcDetector(
     # TODO: other plugins: Sparse0
     qmap_file = "Rigaku_Sample_Rq0.h5"
     detector_number = 46  # 8-ID-I numbering of this detector
+    _status_type = ADTriggerStatus
 
     def __init__(self, *args, image_name=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -168,7 +170,8 @@ class RigakuUfxcDetector(
 
         # makedir(UFXC_fullpath_datafolder);
         # unix(sprintf("chmod 777 %s", UFXC_fullpath_datafolder))
-        print("DEBUG: file_path: ", file_path)
+        print("DEBUG: file_path (bluesky): ", file_path)
+        print("DEBUG: file_path (detector): ", fpath)
         os.makedirs(file_path, mode=0o777)
         os.chmod(file_path, 0o777)
 

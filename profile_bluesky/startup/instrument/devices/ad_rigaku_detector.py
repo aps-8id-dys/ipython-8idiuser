@@ -107,6 +107,9 @@ class RigakuUfxcDetector(
         # The SingleTrigger mixin raises KeyError on self.cam.acquire!
         # Do their work here _after_ self.cam.acquire has been created.
         ##### TriggerBase
+        if not hasattr(self.cam, "acquire"):
+            print("component_names :", self.component_names)
+            raise KeyError("No acquire attribute!")
         self._acquisition_signal = self.cam.acquire
         self._status = None
         ##### SingleTrigger

@@ -97,6 +97,19 @@ class RigakuUfxcDetector(
     qmap_file = "Rigaku_Sample_Rq0.h5"
     detector_number = 46  # 8-ID-I numbering of this detector
 
+    def __init__(self, *args, image_name=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # The SingleTrigger mixin raises KeyError on self.cam.acquire!
+        # Do their work here _after_ self.cam.acquire has been created.
+        ##### TriggerBase
+        self._acquisition_signal = self.cam.acquire
+        self._status = None
+        ##### SingleTrigger
+        if image_name is None:
+            image_name = '_'.join([self.name, 'image'])
+        self._image_name = image_name
+
     def staging_setup_DM(self, *args, mode=None):
 
         """
@@ -141,6 +154,7 @@ class RigakuUfxcDetector(
         # The fix is to set by number, not string.
         if self.cam.staging_mode.get() == "fast":
             self.stage_sigs = {}
+            self.stage_sigs["cam.acquire"] = 0
             self.stage_sigs["cam.acquire_time"] = 20e-6
             self.stage_sigs["cam.image_mode"] = 5
             self.stage_sigs["cam.trigger_mode"] = 4
@@ -181,7 +195,7 @@ class RigakuUfxcDetector(
     def plugin_file_name(self):
         """
         return the (base, no path) file name the plugin wrote
-        
+
         Implement for the DM workflow.
 
         Not a bluesky "plan" (no "yield from")
@@ -203,7 +217,7 @@ class RigakuUfxcDetector(
         return fname
         # return os.path.basename(self.immout.full_file_name.get())
         # return f"{self.batch_name.get()}.bin"
-    
+
     def xpcs_loop(self, *args, **kwargs):
         """
         Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`

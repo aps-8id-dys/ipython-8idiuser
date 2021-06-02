@@ -125,7 +125,9 @@ class RigakuUfxcDetector(
 
         # makedir(UFXC_fullpath_datafolder);
         # unix(sprintf("chmod 777 %s", UFXC_fullpath_datafolder))
+        print("DEBUG: file_path: ", file_path)
         os.makedirs(file_path, mode=0o777)
+        os.chmod(file_path, 0o777)
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration

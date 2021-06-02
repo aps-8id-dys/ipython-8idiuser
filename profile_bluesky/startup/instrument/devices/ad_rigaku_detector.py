@@ -118,9 +118,14 @@ class RigakuUfxcDetector(
         #     ".bin"
         # )
         file_path = args[0]
-        #                         bluesky sees      Rigaku sees
-        fpath = file_path.replace("/home/8ididata", "/Rigaku/bin/destination")
+        # Rigaku has our "/home/8ididata" mounted as "/Rigaku/bin/destination"
+        # Our bin file starts relative to that mount.
+        fpath = file_path.replace("/home/8ididata/", "")
         fname = f"{fpath}{self._file_name}"
+
+        # makedir(UFXC_fullpath_datafolder);
+        # unix(sprintf("chmod 777 %s", UFXC_fullpath_datafolder))
+        os.makedirs(file_path, mode=0o777)
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration

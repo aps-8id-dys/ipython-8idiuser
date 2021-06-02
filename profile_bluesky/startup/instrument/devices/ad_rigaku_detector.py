@@ -19,13 +19,15 @@ from bluesky import plan_stubs as bps
 from instrument.session_logs import logger
 from ophyd import ADComponent as ADCpt
 from ophyd import EpicsSignal
-from ophyd import EpicsSignalRO
+# from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
-from ophyd import SingleTrigger
+# from ophyd import SingleTrigger
+from ophyd import Staged
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import DetectorBase
 import os
+import time as ttime
 
 logger.info(__file__)
 
@@ -109,6 +111,34 @@ class RigakuUfxcDetector(
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
+
+    def stage(self):
+        self._acquisition_signal.subscribe(self._acquire_changed)
+        super().stage()
+
+    def unstage(self):
+        super().unstage()
+        self._acquisition_signal.clear_sub(self._acquire_changed)
+
+    def trigger(self):
+        "Trigger one acquisition."
+        if self._staged != Staged.yes:
+            raise RuntimeError("This detector is not ready to trigger."
+                               "Call the stage() method before triggering.")
+
+        self._status = self._status_type(self)
+        self._acquisition_signal.put(1, wait=False)
+        self.dispatch(self._image_name, ttime.time())
+        return self._status
+
+    def _acquire_changed(self, value=None, old_value=None, **kwargs):
+        "This is called when the 'acquire' signal changes."
+        if self._status is None:
+            return
+        if (old_value == 1) and (value == 0):
+            # Negative-going edge means an acquisition just finished.
+            self._status.set_finished()
+            self._status = None
 
     def staging_setup_DM(self, *args, mode=None):
 

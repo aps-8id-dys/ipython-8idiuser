@@ -23,7 +23,7 @@ from ophyd import EpicsSignal
 # from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
 from ophyd import Signal
-# from ophyd import SingleTrigger
+from ophyd import SingleTrigger
 from ophyd import Staged
 from ophyd.areadetector import CamBase
 from ophyd.areadetector import DetectorBase
@@ -90,8 +90,8 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
 class RigakuUfxcDetector(
     AD_AcquireDetectorBase,
     DM_DeviceMixinAreaDetector,
-    IMM_DeviceMixinBase,
-#    SingleTrigger,
+    # IMM_DeviceMixinBase,
+    SingleTrigger,
     DetectorBase,
 ):
     _html_docs = ["RigakuUfxcDoc.html"]
@@ -100,50 +100,6 @@ class RigakuUfxcDetector(
     qmap_file = "Rigaku_Sample_Rq0.h5"
     detector_number = 46  # 8-ID-I numbering of this detector
     _status_type = ADTriggerStatus
-
-    def __init__(self, *args, image_name=None, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # The SingleTrigger mixin raises KeyError on self.cam.acquire!
-        # Do their work here _after_ self.cam.acquire has been created.
-        ##### TriggerBase
-        if not hasattr(self.cam, "acquire"):
-            print("component_names :", self.component_names)
-            raise KeyError("No acquire attribute!")
-        self._acquisition_signal = self.cam.acquire
-        self._status = None
-        ##### SingleTrigger
-        if image_name is None:
-            image_name = '_'.join([self.name, 'image'])
-        self._image_name = image_name
-
-    def stage(self):
-        self._acquisition_signal.subscribe(self._acquire_changed)
-        super().stage()
-
-    def unstage(self):
-        super().unstage()
-        self._acquisition_signal.clear_sub(self._acquire_changed)
-
-    def trigger(self):
-        "Trigger one acquisition."
-        if self._staged != Staged.yes:
-            raise RuntimeError("This detector is not ready to trigger."
-                               "Call the stage() method before triggering.")
-
-        self._status = self._status_type(self)
-        self._acquisition_signal.put(1, wait=False)
-        self.dispatch(self._image_name, ttime.time())
-        return self._status
-
-    def _acquire_changed(self, value=None, old_value=None, **kwargs):
-        "This is called when the 'acquire' signal changes."
-        if self._status is None:
-            return
-        if (old_value == 1) and (value == 0):
-            # Negative-going edge means an acquisition just finished.
-            self._status.set_finished()
-            self._status = None
 
     def staging_setup_DM(self, *args, mode=None):
 
@@ -263,5 +219,10 @@ class RigakuUfxcDetector(
         # logger.debug(f"xpcs_loop({args})")
         raise NotImplementedError("must override in subclass")
 
+
+# wait a bit for all previous PV connections to complete
+_delay = 2.5  # empirical determination (1.0 is too short, 2 tests OK)
+logger.info("Sleeping for %s seconds before creating adrigaku object.", _delay)
+ttime.sleep(_delay)
 
 adrigaku = RigakuUfxcDetector(IOC_PREFIX, name="adrigaku")

@@ -57,9 +57,9 @@ class IMMoutLocal(Device):
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind="config")
     file_number = Component(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
-    full_file_name = Component(
-        EpicsSignalRO, "FullFileName_RBV", string=True, kind="config"
-    )
+    # full_file_name = Component(
+    #     EpicsSignalRO, "FullFileName_RBV", string=True, kind="config"
+    # )
     num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind="config")
     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
     num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")

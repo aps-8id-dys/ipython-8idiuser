@@ -355,13 +355,13 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         # pseudo-counter named "ccdc" (that's what chk_ccdc() does)
         if self.chk_ccdc:
             if dm_pars.compression.get() == 1:
-                return self.immout.num_pixels.get()
+                return self.imm1.num_pixels.get()
             else:
                 return self.stats1.mean_value.get()
 
     @property
     def images_received(self):
-        return self.immout.num_captured.get()
+        return self.imm1.num_captured.get()
 
     @property
     def plugin_file_name(self):
@@ -369,7 +369,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         return the file name the plugin wrote
         """
         # cut the path from file name
-        return os.path.basename(self.immout.full_file_name.get())
+        return os.path.basename(self.imm1.full_file_name.get())
 
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -391,15 +391,15 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
 
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
-        self.immout.stage_sigs["enable"] = 1
-        self.immout.stage_sigs["blocking_callbacks"] = "Yes"
-        self.immout.stage_sigs["parent.cam.array_callbacks"] = 1
-        self.immout.stage_sigs["file_path"] = self._file_path
-        self.immout.stage_sigs["file_name"] = self._file_name
-        self.immout.stage_sigs["num_capture"] = num_images
-        self.immout.stage_sigs["file_number"] = 1
-        self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
-        self.immout.stage_sigs["capture"] = 1
+        self.imm1.stage_sigs["enable"] = 1
+        self.imm1.stage_sigs["blocking_callbacks"] = "Yes"
+        self.imm1.stage_sigs["parent.cam.array_callbacks"] = 1
+        self.imm1.stage_sigs["file_path"] = self._file_path
+        self.imm1.stage_sigs["file_name"] = self._file_name
+        self.imm1.stage_sigs["num_capture"] = num_images
+        self.imm1.stage_sigs["file_number"] = 1
+        self.imm1.stage_sigs["file_format"] = "IMM_Cmprs"
+        self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):
         super().stage()
@@ -448,7 +448,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             """
             logger.debug(f"lambdadet.cam.state={value}")
             logger.debug(f"old value={old_value}")
-            logger.debug(f"capture={self.immout.capture.get()}")
+            logger.debug(f"capture={self.imm1.capture.get()}")
             if value in (5, "FINISHED", 6, "PROCESSING_IMAGES") and old_value in (
                 4,
                 "RECEIVING_IMAGES",
@@ -462,12 +462,12 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             watch the acquire button, waiting for it to Stop (0)
             """
             if value == done_value and old_value != value:
-                self.immout.capture.clear_sub(watch_acquire)
+                self.imm1.capture.clear_sub(watch_acquire)
                 logger.info("watch_acquire() method ends")
                 logger.info(f"cam.acquire.get()={self.cam.acquire.get()}")
-                logger.info(f"immout.capture.get()={self.immout.capture.get()}")
+                logger.info(f"imm1.capture.get()={self.imm1.capture.get()}")
                 logger.info(
-                    f"immout.num_captured.get()={self.immout.num_captured.get()}"
+                    f"imm1.num_captured.get()={self.imm1.num_captured.get()}"
                 )
                 status._finished()
                 shutter.close()
@@ -476,10 +476,10 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         shutter.open()
         time.sleep(0.005)  # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
-        self.immout.capture.subscribe(watch_acquire)
+        self.imm1.capture.subscribe(watch_acquire)
         for plugin in (self.imm0, self.imm1, self.imm2):
             plugin.capture.put(1, wait=False)
-        self.immout.capture.put(1, wait=False)
+        self.imm1.capture.put(1, wait=False)
         self.cam.acquire.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:
             # t0 = time.time()
@@ -521,7 +521,7 @@ try:
         LAMBDA_750K_IOC_PREFIX, name="lambdadet", labels=["lambda",]
     )
 
-    lambdadet.read_attrs += ["immout", "image"]
+    lambdadet.read_attrs += ["imm1", "image"]
 
 except TimeoutError:
     logger.warning(

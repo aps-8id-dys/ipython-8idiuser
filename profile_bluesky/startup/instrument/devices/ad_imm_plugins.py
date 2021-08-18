@@ -25,7 +25,7 @@ import struct
 
 class IMMnLocal(Device):
     """
-    local interface to the IMM0, IMM1, & IMM2 plugins
+    local interface to the IMM1, & IMM2 plugins
     """
 
     capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
@@ -73,7 +73,6 @@ class IMM_DeviceMixinBase(Device):
     """
 
     immout = Component(IMMoutLocal, "IMMout:")
-    imm0 = Component(IMMnLocal, "IMM0:")
     imm1 = Component(IMMnLocal, "IMM1:")
     imm2 = Component(IMMnLocal, "IMM2:")
 
@@ -82,7 +81,7 @@ class IMM_DeviceMixinBase(Device):
         Set all IMM plugins for compression.
         """
         # from SPEC macro: ccdset_compr_params_ad_Lambda
-        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+        for plugin in (self.imm1, self.imm2, self.immout):
             if plugin.file_format.get() not in (1, "IMM_Cmprs"):
                 yield from bps.mv(
                     plugin.capture,
@@ -96,7 +95,7 @@ class IMM_DeviceMixinBase(Device):
         Set all IMM plugins for raw (uncompressed).
         """
         # from SPEC macro: ccdset_RawMode_params_ad_Lambda
-        for plugin in (self.imm0, self.imm1, self.imm2, self.immout):
+        for plugin in (self.imm1, self.imm2, self.immout):
             if plugin.file_format.get() not in (0, "IMM_Raw"):
                 yield from bps.mv(
                     plugin.capture,

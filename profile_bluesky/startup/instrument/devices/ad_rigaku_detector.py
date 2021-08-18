@@ -87,35 +87,8 @@ class RigakuUfxcDetector(
 
         yield from bps.mv(self.cam.staging_mode, mode)  # at least must yield *some* bluesky message
 
-        if mode == "fast":
-            self.stage_sigs = {}
-            self.stage_sigs["cam.acquire"] = 0
-            self.stage_sigs["cam.acquire_time"] = 20e-6
-            self.stage_sigs["cam.image_mode"] = "2 Bit, Zero-Deadtime"
-            self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
-            self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
-            self.stage_sigs["cam.corrections"] = "Enabled"
-            self.stage_sigs["cam.data_type"] = "UInt32"
-            # TODO: what else is needed?
 
-        elif mode == "slow":
-            path = "/Rigaku/bin/destination/RigakuEpics/"
-            self.stage_sigs = {}
-            self.stage_sigs["cam.image_mode"] = "16 Bit, 1S"
-            self.stage_sigs["cam.trigger_mode"] = "Fixed Time"
-            self.stage_sigs["cam.acquire_time"] = 0.1
-            self.stage_sigs["cam.num_images"] = 10
-            self.stage_sigs["cam.data_type"] = "UInt16"
-            self.stage_sigs["cam.corrections"] = "Disabled"
-            # self.stage_sigs["imm1.auto_increment"] = "Yes"
-            # self.stage_sigs["imm1.num_capture"] = 10
-            # self.stage_sigs["imm1.file_number"] = 1
-            # self.stage_sigs["imm1.file_path"] = path
-            # self.stage_sigs["imm1.file_name"] = "test"
-            # TODO: what else is needed?
-
-
-    def staging_setup_DM(self, *args, mode=None):
+    def staging_setup_DM(self, *args, **kwargs):
 
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
@@ -145,8 +118,7 @@ class RigakuUfxcDetector(
         # unix(sprintf("chmod 777 %s", UFXC_fullpath_datafolder))
         print("DEBUG: file_path (bluesky): ", file_path)
         print("DEBUG: file_path (detector): ", fpath)
-        os.makedirs(file_path, mode=0o777)
-        os.chmod(file_path, 0o777)
+        os.makedirs(file_path, mode=0o777,exist_ok=True)
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
@@ -161,6 +133,34 @@ class RigakuUfxcDetector(
 
         self.stage_sigs["cam.file_path"] = os.path.dirname(f"{fname}.bin")
         self.stage_sigs["cam.file_name"] = os.path.basename(f"{fname}.bin")
+
+        mode = self.cam.staging_mode.get()
+        if mode == "fast":
+            self.stage_sigs = {}
+            self.stage_sigs["cam.acquire"] = 0
+            self.stage_sigs["cam.acquire_time"] = 20e-6
+            self.stage_sigs["cam.image_mode"] = "2 Bit, Zero-Deadtime"
+            self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
+            self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
+            self.stage_sigs["cam.corrections"] = "Enabled"
+            self.stage_sigs["cam.data_type"] = "UInt32"
+            # TODO: what else is needed?
+
+        elif mode == "slow":
+            path = "/Rigaku/bin/destination/RigakuEpics/"
+            self.stage_sigs = {}
+            self.stage_sigs["cam.image_mode"] = "16 Bit, 1S"
+            self.stage_sigs["cam.trigger_mode"] = "Fixed Time"
+            self.stage_sigs["cam.acquire_time"] = 0.1
+            self.stage_sigs["cam.num_images"] = 10
+            self.stage_sigs["cam.data_type"] = "UInt16"
+            self.stage_sigs["cam.corrections"] = "Disabled"
+            self.stage_sigs["imm1.auto_increment"] = "Yes"
+            self.stage_sigs["imm1.num_capture"] = 10
+            self.stage_sigs["imm1.file_number"] = 1
+            self.stage_sigs["imm1.file_path"] = path
+            self.stage_sigs["imm1.file_name"] = "test"
+            # TODO: what else is needed?
 
     @property
     def images_received(self):

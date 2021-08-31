@@ -10,6 +10,6 @@ from .lineup_tweak import *
 from .move_diodes import *
 from .move_sample import *
 from .pv_registers import *
+from .qnw_sample_select import *
 from .shutters import *
 from .xpcs_acquire import *
-# from .qnw_sample_select import *

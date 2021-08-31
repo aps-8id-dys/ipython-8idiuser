@@ -153,3 +153,8 @@ class PVPositionerSoftDone(PVPositioner):
             self.log.debug('%s.actuate = %s', self.name, self.actuate_value)
             self.actuate.put(self.actuate_value, wait=False)
         self.cb_readback()  # This is needed to force the first check.
+
+    def stop(self, *, success=False):
+        if success is False:
+            self.setpoint.put(self._position)
+            super().stop(success=success)

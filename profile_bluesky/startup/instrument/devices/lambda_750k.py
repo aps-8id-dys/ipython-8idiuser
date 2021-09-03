@@ -386,8 +386,8 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         acquire_period = args[4]
         # logger.debug(f"staging_setup_DM({args})")
 
-        if self._file_path.startswith("/home/8-id-i/"):
-            self._file_path = "/data/" + self._file_path.lstrip("/home/8-id-i/")
+        if self._file_path.startswith("/home/8ididata/"):
+            self._file_path = "/data/" + self._file_path.lstrip("/home/8ididata/")
 
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
@@ -403,11 +403,13 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
 
     def stage(self):
         super().stage()
-        root = os.path.join("/", "home", "8-id-i/")
+        root = os.path.join("/", "home", "8ididata/")
+        print(root)
         if self._file_path.startswith("/data/"):
             self._file_path = self._file_path[len("/data/") :]
-        elif self._file_path.startswith("/home/8-id-i/"):
-            self._file_path = self._file_path[len("/home/8-id-i/") :]
+            print(self._file_path)
+        elif self._file_path.startswith("/home/8ididata/"):
+            self._file_path = self._file_path[len("/home/8ididata/") :]
 
         fname = (
             f"{self._file_name}"
@@ -416,6 +418,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             ".imm"
         )
         full_name = os.path.join(root, self._file_path, fname)
+        print(full_name)
         logger.info(f"full_name: {full_name}")
         self._resource_uid = str(uuid.uuid4())
         resource_doc = {

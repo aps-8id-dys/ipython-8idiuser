@@ -71,17 +71,14 @@ class IMM_DeviceMixinBase(Device):
     """
     attributes used by area detectors using the IMM Plugin
     """
-
-    immout = Component(IMMoutLocal, "IMMout:")
     imm1 = Component(IMMnLocal, "IMM1:")
-    imm2 = Component(IMMnLocal, "IMM2:")
 
     def setIMM_Cmprs(self):
         """
         Set all IMM plugins for compression.
         """
         # from SPEC macro: ccdset_compr_params_ad_Lambda
-        for plugin in (self.imm1, self.imm2, self.immout):
+        for plugin in (self.imm1):
             if plugin.file_format.get() not in (1, "IMM_Cmprs"):
                 yield from bps.mv(
                     plugin.capture,
@@ -95,7 +92,7 @@ class IMM_DeviceMixinBase(Device):
         Set all IMM plugins for raw (uncompressed).
         """
         # from SPEC macro: ccdset_RawMode_params_ad_Lambda
-        for plugin in (self.imm1, self.imm2, self.immout):
+        for plugin in (self.imm1):
             if plugin.file_format.get() not in (0, "IMM_Raw"):
                 yield from bps.mv(
                     plugin.capture,

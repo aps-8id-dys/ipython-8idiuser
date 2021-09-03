@@ -9,8 +9,8 @@ import json
 from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 from instrument.devices import samplestage, qnw_device
-from ..devices.qnw_device import qnw_env1, qnw_env2, qnw_env3
-from ..devices import aps
+#from ..devices.qnw_device import qnw_env1, qnw_env2, qnw_env3
+from ..devices import aps, qnw_env1, qnw_env2, qnw_env3
 from instrument.session_logs import logger
 logger.info(__file__)
 import os

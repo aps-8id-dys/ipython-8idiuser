@@ -314,7 +314,7 @@ class ExternalFileReference(Signal):
         return res
 
 
-class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
+class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_AcquireDetectorBase):
     """
     local interface to the Lambda 750k detector
     """
@@ -398,7 +398,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         self.imm1.stage_sigs["file_name"] = self._file_name
         self.imm1.stage_sigs["num_capture"] = num_images
         self.imm1.stage_sigs["file_number"] = 1
-        self.imm1.stage_sigs["file_format"] = "IMM_Cmprs"
+        # self.imm1.stage_sigs["file_format"] = "IMM_Cmprs"
         self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):

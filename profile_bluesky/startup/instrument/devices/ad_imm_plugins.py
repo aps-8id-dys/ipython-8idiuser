@@ -51,9 +51,13 @@ class IMMoutLocal(Device):
     enable = Component(
         EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
     )
-    file_format = Component(
-        EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
-    )
+    # FIXME: replaced 8LAMBDA1:IMM1:NDFileIMM_format with _________ something lua something (ask Keenan about this) 8LAMBDA1:set1:userScript1.A
+    # 8LAMBDA1:set1:userScript1 is a luascript record
+    # lua_script = Component(EpicsSignal, "set1:userScript.A", kind="config")  # but does not belong in the IMM1 plugin
+    # below is the old file_format to delete
+    # file_format = Component(
+    #     EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
+    # )
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind="config")
     file_number = Component(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
@@ -71,7 +75,8 @@ class IMM_DeviceMixinBase(Device):
     """
     attributes used by area detectors using the IMM Plugin
     """
-    imm1 = Component(IMMnLocal, "IMM1:")
+    # imm1 = Component(IMMnLocal, "IMM1:")
+    imm1 = Component(IMMoutLocal, "IMM1:")
 
     def setIMM_Cmprs(self):
         """

@@ -23,16 +23,16 @@ import numpy as np
 import struct
 
 
-class IMMnLocal(Device):
-    """
-    local interface to the IMM1, & IMM2 plugins
-    """
+# class IMMnLocal(Device):
+#     """
+#     local interface to the IMM1, & IMM2 plugins
+#     """
 
-    capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
-    file_format = Component(
-        EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
-    )
-    num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
+#     capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
+#     file_format = Component(
+#         EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
+#     )
+#     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
 
 
 class IMMoutLocal(Device):
@@ -61,14 +61,14 @@ class IMMoutLocal(Device):
     file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind="config")
     file_number = Component(EpicsSignalWithRBV, "FileNumber", kind="config")
     file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
-    # full_file_name = Component(
-    #     EpicsSignalRO, "FullFileName_RBV", string=True, kind="config"
-    # )
+    full_file_name = Component(
+        EpicsSignalRO, "FullFileName_RBV", string=True, kind="config"
+    )
     num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind="config")
     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
-    num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")
+    # num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")
 
-    unique_id = Component(EpicsSignalRO, "NDFileIMM_uniqueID_RBV")
+    # unique_id = Component(EpicsSignalRO, "NDFileIMM_uniqueID_RBV")
 
 
 class IMM_DeviceMixinBase(Device):

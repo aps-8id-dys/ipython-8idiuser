@@ -328,6 +328,9 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
     stats1 = Component(StatsLocal, "Stats1:")
     image = Component(ExternalFileReference, value="", shape=[])
 
+    # 8LAMBDA1:set1:userScript1 is a luascript record
+    # lua_A = Component(EpicsSignal, "set1:userScript.A", kind="config") # TODO: where is this PV?
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._assets_docs_cache = []
@@ -370,6 +373,7 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         """
         # cut the path from file name
         return os.path.basename(self.imm1.full_file_name.get())
+        # return os.path.join(self.imm1.file_path.get(), self.imm1.file_name.get())
 
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -399,6 +403,7 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         self.imm1.stage_sigs["num_capture"] = num_images
         self.imm1.stage_sigs["file_number"] = 1
         # self.imm1.stage_sigs["file_format"] = "IMM_Cmprs"
+        # self.stage_sigs["lua_A"] = ?????  # TODO: Replace 'file_format'
         self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):
@@ -480,8 +485,9 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         time.sleep(0.005)  # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
         self.imm1.capture.subscribe(watch_acquire)
-        for plugin in (self.imm0, self.imm1, self.imm2):
-            plugin.capture.put(1, wait=False)
+        # for plugin in (self.imm0, self.imm1, self.imm2):
+        #     plugin.capture.put(1, wait=False)
+        self.imm1.capture.put(1, wait=False)
         self.imm1.capture.put(1, wait=False)
         self.cam.acquire.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:

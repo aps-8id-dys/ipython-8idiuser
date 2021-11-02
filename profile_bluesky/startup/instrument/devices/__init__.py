@@ -20,6 +20,7 @@ from .fly import *
 from .lakeshore import *
 from .motors import *
 from .preamps import *
+from .qnw_device import *
 from .sample_stage import *
 from .scaler import *
 from .shutters import *

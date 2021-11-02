@@ -51,6 +51,8 @@ class SampleStage(Device):
     chi = Component(EpicsMotor, '8idi:m53', labels=["motor", "sample"])     # roll
     table = Component(SampleStageTable, labels=["table",])
 
+    qnw_x = Component(EpicsMotor, '8idi:m64', labels=["motor", "sample"])
+
     # used by the movesample plans
     nextpos = 0
     xdata = np.linspace(0, 2, 21)    # example: user will change this

@@ -314,7 +314,7 @@ class ExternalFileReference(Signal):
         return res
 
 
-class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, Device):
+class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_AcquireDetectorBase):
     """
     local interface to the Lambda 750k detector
     """
@@ -327,6 +327,9 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
     cam = Component(Lambda750kCamLocal, "cam1:")
     stats1 = Component(StatsLocal, "Stats1:")
     image = Component(ExternalFileReference, value="", shape=[])
+
+    # 8LAMBDA1:set1:userScript1 is a luascript record
+    # lua_A = Component(EpicsSignal, "set1:userScript.A", kind="config") # TODO: where is this PV?
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -355,21 +358,23 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         # pseudo-counter named "ccdc" (that's what chk_ccdc() does)
         if self.chk_ccdc:
             if dm_pars.compression.get() == 1:
-                return self.immout.num_pixels.get()
+                return self.imm1.num_pixels.get()
             else:
                 return self.stats1.mean_value.get()
 
     @property
     def images_received(self):
-        return self.immout.num_captured.get()
+        return self.imm1.num_captured.get()
 
     @property
     def plugin_file_name(self):
         """
         return the file name the plugin wrote
         """
+        raise NotImplementedError("Need to return a filename")
         # cut the path from file name
-        return os.path.basename(self.immout.full_file_name.get())
+        # return os.path.basename(self.imm1.full_file_name.get())
+        # return os.path.join(self.imm1.file_path.get(), self.imm1.file_name.get())
 
     def staging_setup_DM(self, *args, **kwargs):
         """
@@ -386,28 +391,20 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         acquire_period = args[4]
         # logger.debug(f"staging_setup_DM({args})")
 
-        if self._file_path.startswith("/home/8-id-i/"):
-            self._file_path = "/data/" + self._file_path.lstrip("/home/8-id-i/")
-
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
-        self.immout.stage_sigs["enable"] = 1
-        self.immout.stage_sigs["blocking_callbacks"] = "Yes"
-        self.immout.stage_sigs["parent.cam.array_callbacks"] = 1
-        self.immout.stage_sigs["file_path"] = self._file_path
-        self.immout.stage_sigs["file_name"] = self._file_name
-        self.immout.stage_sigs["num_capture"] = num_images
-        self.immout.stage_sigs["file_number"] = 1
-        self.immout.stage_sigs["file_format"] = "IMM_Cmprs"
-        self.immout.stage_sigs["capture"] = 1
+        # self.imm1.stage_sigs["enable"] = 1
+        # self.imm1.stage_sigs["blocking_callbacks"] = "Yes"
+        # self.imm1.stage_sigs["parent.cam.array_callbacks"] = 1
+        # self.imm1.stage_sigs["file_path"] = self._file_path
+        # self.imm1.stage_sigs["file_name"] = self._file_name
+        # self.imm1.stage_sigs["num_capture"] = num_images
+        # self.imm1.stage_sigs["file_number"] = 1
+        # self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):
         super().stage()
-        root = os.path.join("/", "home", "8-id-i/")
-        if self._file_path.startswith("/data/"):
-            self._file_path = self._file_path[len("/data/") :]
-        elif self._file_path.startswith("/home/8-id-i/"):
-            self._file_path = self._file_path[len("/home/8-id-i/") :]
+        root = os.path.join("/", "home", "8ididata/")
 
         fname = (
             f"{self._file_name}"
@@ -416,6 +413,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             ".imm"
         )
         full_name = os.path.join(root, self._file_path, fname)
+        print(full_name)
         logger.info(f"full_name: {full_name}")
         self._resource_uid = str(uuid.uuid4())
         resource_doc = {
@@ -448,7 +446,7 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             """
             logger.debug(f"lambdadet.cam.state={value}")
             logger.debug(f"old value={old_value}")
-            logger.debug(f"capture={self.immout.capture.get()}")
+            logger.debug(f"capture={self.imm1.capture.get()}")
             if value in (5, "FINISHED", 6, "PROCESSING_IMAGES") and old_value in (
                 4,
                 "RECEIVING_IMAGES",
@@ -462,12 +460,12 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
             watch the acquire button, waiting for it to Stop (0)
             """
             if value == done_value and old_value != value:
-                self.immout.capture.clear_sub(watch_acquire)
+                self.imm1.capture.clear_sub(watch_acquire)
                 logger.info("watch_acquire() method ends")
                 logger.info(f"cam.acquire.get()={self.cam.acquire.get()}")
-                logger.info(f"immout.capture.get()={self.immout.capture.get()}")
+                logger.info(f"imm1.capture.get()={self.imm1.capture.get()}")
                 logger.info(
-                    f"immout.num_captured.get()={self.immout.num_captured.get()}"
+                    f"imm1.num_captured.get()={self.imm1.num_captured.get()}"
                 )
                 status._finished()
                 shutter.close()
@@ -476,10 +474,8 @@ class Lambda750kLocal(AD_AcquireDetectorBase, IMM_DeviceMixinBase, DM_DeviceMixi
         shutter.open()
         time.sleep(0.005)  # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
-        self.immout.capture.subscribe(watch_acquire)
-        for plugin in (self.imm0, self.imm1, self.imm2):
-            plugin.capture.put(1, wait=False)
-        self.immout.capture.put(1, wait=False)
+        self.imm1.capture.subscribe(watch_acquire)
+        self.imm1.capture.put(1, wait=False)
         self.cam.acquire.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:
             # t0 = time.time()
@@ -521,7 +517,7 @@ try:
         LAMBDA_750K_IOC_PREFIX, name="lambdadet", labels=["lambda",]
     )
 
-    lambdadet.read_attrs += ["immout", "image"]
+    lambdadet.read_attrs += ["imm1", "image"]
 
 except TimeoutError:
     logger.warning(

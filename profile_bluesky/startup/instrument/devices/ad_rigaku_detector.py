@@ -1,9 +1,7 @@
 """
 ADRigaku UFXC area detector (EPICS)
-
 * detector name: -tba-
 * detector number: -tba-
-
 see: https://github.com/aps-8id-dys/ipython-8idiuser/issues/251
 """
 
@@ -39,7 +37,6 @@ IOC_PREFIX = "8idRigaku:"
 class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
     """
     Customization for the additional fields of the ADRigaku detector.
-
     see: https://github.com/BCDA-APS/ADRigaku
     """
 
@@ -63,22 +60,6 @@ class RigakuUfxcDetectorCam(AD_AcquireDetectorCamBase, CamBase):
     pool_max_buffers = None
     EXT_TRIGGER = 0
 
-    def setup_modes(self, num_triggers):
-        """
-        Set up modes accordingly, based on self.EXT_TRIGGER.
-
-        This will be executed by ``AD_Acquire()`` as a bluesky plan.
-
-        PARAMETERS
-
-        num_triggers (*int*):
-            number of trigger events to be received
-        """
-
-        # Implement ZDT only for now, but will come back and add slow mode later
-
-        yield from bps.mv(self.staging_mode, "fast")  # at least must yield *some* bluesky message
-
     def setTime(self, exposure_time, exposure_period):
         """
         Set exposure time and period.
@@ -101,7 +82,14 @@ class RigakuUfxcDetector(
     detector_number = 46  # 8-ID-I numbering of this detector
     _status_type = ADTriggerStatus
 
-    def staging_setup_DM(self, *args, mode=None):
+
+    def setup_modes(self, num_triggers):
+
+        # yield from bps.mv(self.cam.staging_mode, mode)  # at least must yield *some* bluesky message
+        yield from bps.null()
+
+
+    def staging_setup_DM(self, *args, **kwargs):
 
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
@@ -131,8 +119,7 @@ class RigakuUfxcDetector(
         # unix(sprintf("chmod 777 %s", UFXC_fullpath_datafolder))
         print("DEBUG: file_path (bluesky): ", file_path)
         print("DEBUG: file_path (detector): ", fpath)
-        os.makedirs(file_path, mode=0o777)
-        os.chmod(file_path, 0o777)
+        os.makedirs(file_path, mode=0o777,exist_ok=True)
 
         # If staging stalls, it is because one or more of the signals
         # is being set by its string value instead of the enumeration
@@ -144,41 +131,42 @@ class RigakuUfxcDetector(
         #     In [14]: adrigaku.cam.image_mode.get(as_string=True)
         #     Out[14]: '16 Bit, 1S'
         # The fix is to set by number, not string.
-        if self.cam.staging_mode.get() == "fast":
+
+        self.stage_sigs["cam.file_path"] = os.path.dirname(f"{fname}.bin")
+        self.stage_sigs["cam.file_name"] = os.path.basename(f"{fname}.bin")
+
+        mode = self.cam.staging_mode.get()
+        if mode == "fast":
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire"] = 0
             self.stage_sigs["cam.acquire_time"] = 20e-6
-            self.stage_sigs["cam.image_mode"] = 5
-            self.stage_sigs["cam.trigger_mode"] = 4
+            self.stage_sigs["cam.image_mode"] = "2 Bit, Zero-Deadtime"
+            self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
             self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
             self.stage_sigs["cam.corrections"] = "Enabled"
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif self.cam.staging_mode.get() == "slow":
-            path = "/Rigaku/bin/destination/RigakuEpics/"
-            self.stage_sigs = {}
-            self.stage_sigs["cam.image_mode"] = 9  # "16 Bit, 1S"
-            self.stage_sigs["cam.trigger_mode"] = 0  # "Fixed Time"
-            self.stage_sigs["cam.acquire_time"] = 0.1
-            self.stage_sigs["cam.num_images"] = 10
-            self.stage_sigs["cam.data_type"] = "UInt16"
-            self.stage_sigs["cam.corrections"] = "Disabled"
-            self.stage_sigs["imm1.auto_increment"] = "Yes"
-            self.stage_sigs["imm1.num_capture"] = 10
-            self.stage_sigs["imm1.file_number"] = 1
-            self.stage_sigs["imm1.file_path"] = path
-            self.stage_sigs["imm1.file_name"] = "test"
-            # TODO: what else is needed?
-
-        self.stage_sigs["cam.file_path"] = os.path.dirname(f"{fname}.bin")
-        self.stage_sigs["cam.file_name"] = os.path.basename(f"{fname}.bin")
+        # elif mode == "slow":
+        #     path = "/Rigaku/bin/destination/RigakuEpics/"
+        #     self.stage_sigs = {}
+        #     self.stage_sigs["cam.image_mode"] = "16 Bit, 1S"
+        #     self.stage_sigs["cam.trigger_mode"] = "Fixed Time"
+        #     self.stage_sigs["cam.acquire_time"] = 0.1
+        #     self.stage_sigs["cam.num_images"] = 10
+        #     self.stage_sigs["cam.data_type"] = "UInt16"
+        #     self.stage_sigs["cam.corrections"] = "Disabled"
+        #     self.stage_sigs["imm1.auto_increment"] = "Yes"
+        #     self.stage_sigs["imm1.num_capture"] = 10
+        #     self.stage_sigs["imm1.file_number"] = 1
+        #     self.stage_sigs["imm1.file_path"] = path
+        #     self.stage_sigs["imm1.file_name"] = "test"
+        #     # TODO: what else is needed?
 
     @property
     def images_received(self):
         """
         Return the number (int) of images captured.
-
         suggestion:  ``self.immout.num_captured.get()``
         """
         raise NotImplementedError("Must implement in detector-specific subclass.")
@@ -187,9 +175,7 @@ class RigakuUfxcDetector(
     def plugin_file_name(self):
         """
         return the (base, no path) file name the plugin wrote
-
         Implement for the DM workflow.
-
         Not a bluesky "plan" (no "yield from")
         """
         # fname = (
@@ -213,7 +199,6 @@ class RigakuUfxcDetector(
     def xpcs_loop(self, *args, **kwargs):
         """
         Combination of `xpcs_pre_start_LAMBDA` and `user_xpcs_loop_LAMBDA`
-
         see: https://github.com/aps-8id-trr/ipython-8idiuser/issues/107
         """
         # logger.debug(f"xpcs_loop({args})")

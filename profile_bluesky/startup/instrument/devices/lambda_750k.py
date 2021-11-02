@@ -390,9 +390,6 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         acquire_period = args[4]
         # logger.debug(f"staging_setup_DM({args})")
 
-        # if self._file_path.startswith("/home/8ididata/"):
-        #     self._file_path = "/data/" + self._file_path.lstrip("/home/8ididata/")
-
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
         self.imm1.stage_sigs["enable"] = 1

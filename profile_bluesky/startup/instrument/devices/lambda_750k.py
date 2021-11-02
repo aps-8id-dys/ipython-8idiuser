@@ -404,12 +404,6 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
     def stage(self):
         super().stage()
         root = os.path.join("/", "home", "8ididata/")
-        # print(root)
-        # if self._file_path.startswith("/data/"):
-        #     self._file_path = self._file_path[len("/data/") :]
-        #     print(self._file_path)
-        # elif self._file_path.startswith("/home/8ididata/"):
-        #     self._file_path = self._file_path[len("/home/8ididata/") :]
 
         fname = (
             f"{self._file_name}"
@@ -480,9 +474,6 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         time.sleep(0.005)  # wait for the shutter to move out of the way
         self.cam.state.subscribe(watch_state)
         self.imm1.capture.subscribe(watch_acquire)
-        # for plugin in (self.imm0, self.imm1, self.imm2):
-        #     plugin.capture.put(1, wait=False)
-        self.imm1.capture.put(1, wait=False)
         self.imm1.capture.put(1, wait=False)
         self.cam.acquire.put(start_value, wait=False)
         if self.cam.EXT_TRIGGER > 0:

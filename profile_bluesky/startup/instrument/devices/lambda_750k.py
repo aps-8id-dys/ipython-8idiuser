@@ -371,8 +371,9 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         """
         return the file name the plugin wrote
         """
+        raise NotImplementedError("Need to return a filename")
         # cut the path from file name
-        return os.path.basename(self.imm1.full_file_name.get())
+        # return os.path.basename(self.imm1.full_file_name.get())
         # return os.path.join(self.imm1.file_path.get(), self.imm1.file_name.get())
 
     def staging_setup_DM(self, *args, **kwargs):

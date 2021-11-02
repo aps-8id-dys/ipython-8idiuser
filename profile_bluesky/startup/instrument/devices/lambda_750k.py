@@ -393,14 +393,14 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
 
         self.cam.stage_sigs["num_images"] = num_images
         # replaced by: self.cam.setTime(acquire_time, acquire_period)
-        self.imm1.stage_sigs["enable"] = 1
-        self.imm1.stage_sigs["blocking_callbacks"] = "Yes"
-        self.imm1.stage_sigs["parent.cam.array_callbacks"] = 1
-        self.imm1.stage_sigs["file_path"] = self._file_path
-        self.imm1.stage_sigs["file_name"] = self._file_name
-        self.imm1.stage_sigs["num_capture"] = num_images
-        self.imm1.stage_sigs["file_number"] = 1
-        self.imm1.stage_sigs["capture"] = 1
+        # self.imm1.stage_sigs["enable"] = 1
+        # self.imm1.stage_sigs["blocking_callbacks"] = "Yes"
+        # self.imm1.stage_sigs["parent.cam.array_callbacks"] = 1
+        # self.imm1.stage_sigs["file_path"] = self._file_path
+        # self.imm1.stage_sigs["file_name"] = self._file_name
+        # self.imm1.stage_sigs["num_capture"] = num_images
+        # self.imm1.stage_sigs["file_number"] = 1
+        # self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):
         super().stage()

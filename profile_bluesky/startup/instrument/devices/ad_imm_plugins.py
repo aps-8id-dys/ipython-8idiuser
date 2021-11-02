@@ -74,33 +74,35 @@ class IMM_DeviceMixinBase(Device):
     # imm1 = Component(IMMnLocal, "IMM1:")
     imm1 = Component(IMMoutLocal, "IMM1:")
 
-    def setIMM_Cmprs(self):
-        """
-        Set all IMM plugins for compression.
-        """
-        # from SPEC macro: ccdset_compr_params_ad_Lambda
-        for plugin in (self.imm1):
-            if plugin.file_format.get() not in (1, "IMM_Cmprs"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
+    # per #279, commented out -- delete this if not needed
+    # def setIMM_Cmprs(self):
+    #     """
+    #     Set all IMM plugins for compression.
+    #     """
+    #     # from SPEC macro: ccdset_compr_params_ad_Lambda
+    #     for plugin in (self.imm1):
+    #         if plugin.file_format.get() not in (1, "IMM_Cmprs"):
+    #             yield from bps.mv(
+    #                 plugin.capture,
+    #                 "Done",  # ('Done', 'Capture')
+    #                 plugin.file_format,
+    #                 "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
+    #             )
 
-    def setIMM_Raw(self):
-        """
-        Set all IMM plugins for raw (uncompressed).
-        """
-        # from SPEC macro: ccdset_RawMode_params_ad_Lambda
-        for plugin in (self.imm1):
-            if plugin.file_format.get() not in (0, "IMM_Raw"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
+    # per #279, commented out -- delete this if not needed
+    # def setIMM_Raw(self):
+    #     """
+    #     Set all IMM plugins for raw (uncompressed).
+    #     """
+    #     # from SPEC macro: ccdset_RawMode_params_ad_Lambda
+    #     for plugin in (self.imm1):
+    #         if plugin.file_format.get() not in (0, "IMM_Raw"):
+    #             yield from bps.mv(
+    #                 plugin.capture,
+    #                 "Done",  # ('Done', 'Capture')
+    #                 plugin.file_format,
+    #                 "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
+    #             )
 
 
 # ----------------------------------------------------------------

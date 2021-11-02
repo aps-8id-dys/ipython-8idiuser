@@ -4,7 +4,6 @@ Area Detector IMM Plugin support for ophyd
 
 __all__ = """
     IMM_DeviceMixinBase
-    IMMnLocal
     IMMoutLocal
 """.split()
 
@@ -19,90 +18,91 @@ from ophyd import Component
 from ophyd import Device
 from ophyd import EpicsSignalRO
 from ophyd import EpicsSignalWithRBV
+from ophyd.areadetector.plugins import FilePlugin_V34
 import numpy as np
 import struct
 
 
-class IMMnLocal(Device):
-    """
-    local interface to the IMM1, & IMM2 plugins
-    """
-
-    capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
-    file_format = Component(
-        EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
-    )
-    num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
+# class IMMnLocal(Device):
+#
+#     capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
+#     file_format = Component(
+#         EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
+#     )
+#     num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
 
 
-class IMMoutLocal(Device):
+class IMMoutLocal(FilePlugin_V34):
     """
     local interface to the IMMout plugin
     """
 
-    # implement just the parts needed by our data acquisition
-    auto_increment = Component(
-        EpicsSignalWithRBV, "AutoIncrement", kind="config"
-    )
-    blocking_callbacks = Component(
-        EpicsSignalWithRBV, "BlockingCallbacks", kind="config"
-    )
-    capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
-    enable = Component(
-        EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
-    )
-    file_format = Component(
-        EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
-    )
-    file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind="config")
-    file_number = Component(EpicsSignalWithRBV, "FileNumber", kind="config")
-    file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
+    # # implement just the parts needed by our data acquisition
+    # auto_increment = Component(
+    #     EpicsSignalWithRBV, "AutoIncrement", kind="config"
+    # )
+    # blocking_callbacks = Component(
+    #     EpicsSignalWithRBV, "BlockingCallbacks", kind="config"
+    # )
+    # capture = Component(EpicsSignalWithRBV, "Capture", kind="config")
+    # enable = Component(
+    #     EpicsSignalWithRBV, "EnableCallbacks", string=True, kind="config"
+    # )
+    # # FIXME: replaced 8LAMBDA1:IMM1:NDFileIMM_format with _________ something lua something (ask Keenan about this) 8LAMBDA1:set1:userScript1.A
+    # # 8LAMBDA1:set1:userScript1 is a luascript record
+    # # lua_script = Component(EpicsSignal, "set1:userScript.A", kind="config")  # but does not belong in the IMM1 plugin
+    # # below is the old file_format to delete
+    # # file_format = Component(
+    # #     EpicsSignalWithRBV, "NDFileIMM_format", string=True, kind="config"
+    # # )
+    # file_name = Component(EpicsSignalWithRBV, "FileName", string=True, kind="config")
+    # file_number = Component(EpicsSignalWithRBV, "FileNumber", kind="config")
+    # file_path = Component(EpicsSignalWithRBV, "FilePath", string=True, kind="config")
     # full_file_name = Component(
     #     EpicsSignalRO, "FullFileName_RBV", string=True, kind="config"
     # )
-    num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind="config")
-    num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
-    num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")
-
-    unique_id = Component(EpicsSignalRO, "NDFileIMM_uniqueID_RBV")
+    # num_capture = Component(EpicsSignalWithRBV, "NumCapture", kind="config")
+    # num_captured = Component(EpicsSignalRO, "NumCaptured_RBV")
+    # # num_pixels = Component(EpicsSignalRO, "NDFileIMM_num_imm_pixels_RBV", kind="config")
+    # # unique_id = Component(EpicsSignalRO, "NDFileIMM_uniqueID_RBV")
 
 
 class IMM_DeviceMixinBase(Device):
     """
     attributes used by area detectors using the IMM Plugin
     """
+    # imm1 = Component(IMMnLocal, "IMM1:")
+    imm1 = Component(IMMoutLocal, "IMM1:")
 
-    immout = Component(IMMoutLocal, "IMMout:")
-    imm1 = Component(IMMnLocal, "IMM1:")
-    imm2 = Component(IMMnLocal, "IMM2:")
+    # per #279, commented out -- delete this if not needed
+    # def setIMM_Cmprs(self):
+    #     """
+    #     Set all IMM plugins for compression.
+    #     """
+    #     # from SPEC macro: ccdset_compr_params_ad_Lambda
+    #     for plugin in (self.imm1):
+    #         if plugin.file_format.get() not in (1, "IMM_Cmprs"):
+    #             yield from bps.mv(
+    #                 plugin.capture,
+    #                 "Done",  # ('Done', 'Capture')
+    #                 plugin.file_format,
+    #                 "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
+    #             )
 
-    def setIMM_Cmprs(self):
-        """
-        Set all IMM plugins for compression.
-        """
-        # from SPEC macro: ccdset_compr_params_ad_Lambda
-        for plugin in (self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (1, "IMM_Cmprs"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Cmprs",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
-
-    def setIMM_Raw(self):
-        """
-        Set all IMM plugins for raw (uncompressed).
-        """
-        # from SPEC macro: ccdset_RawMode_params_ad_Lambda
-        for plugin in (self.imm1, self.imm2, self.immout):
-            if plugin.file_format.get() not in (0, "IMM_Raw"):
-                yield from bps.mv(
-                    plugin.capture,
-                    "Done",  # ('Done', 'Capture')
-                    plugin.file_format,
-                    "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
-                )
+    # per #279, commented out -- delete this if not needed
+    # def setIMM_Raw(self):
+    #     """
+    #     Set all IMM plugins for raw (uncompressed).
+    #     """
+    #     # from SPEC macro: ccdset_RawMode_params_ad_Lambda
+    #     for plugin in (self.imm1):
+    #         if plugin.file_format.get() not in (0, "IMM_Raw"):
+    #             yield from bps.mv(
+    #                 plugin.capture,
+    #                 "Done",  # ('Done', 'Capture')
+    #                 plugin.file_format,
+    #                 "IMM_Raw",  # ('IMM_Raw', 'IMM_Cmprs')
+    #             )
 
 
 # ----------------------------------------------------------------

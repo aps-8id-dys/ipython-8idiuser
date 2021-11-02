@@ -23,6 +23,14 @@ from instrument.devices import operations_in_8idi
 from instrument.framework import RE, sd
 from ophyd import Component, Device, EpicsMotor
 from ophyd import EpicsSignal
+import time
+
+class MySimulatedFastShutter(SimulatedApsPssShutterWithStatus):
+    
+    def wait_for_state(self, target, timeout=10, poll_s=0.01):
+        simulated_response_time_s = 0.05
+        time.sleep(simulated_response_time_s)
+        self.pss_state.put(target[0])
 
 
 if aps.inUserOperations and operations_in_8idi():
@@ -34,7 +42,8 @@ if aps.inUserOperations and operations_in_8idi():
     # suspend_APS_current = SuspendFloor(aps.current, 2, resume_thresh=10, sleep=100)
     # RE.install_suspender(suspend_APS_current)
 
-    shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
+    # shutter = EpicsOnOffShutter("8idi:Unidig1Bo13", name="shutter")
+    shutter = MySimulatedFastShutter(name="shutter")
     shutter.close_value = 1
     shutter.open_value = 0
 

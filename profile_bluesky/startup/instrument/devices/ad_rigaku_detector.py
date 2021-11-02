@@ -83,9 +83,10 @@ class RigakuUfxcDetector(
     _status_type = ADTriggerStatus
 
 
-    def setup_modes(self, mode=None):
+    def setup_modes(self, num_triggers):
 
-        yield from bps.mv(self.cam.staging_mode, mode)  # at least must yield *some* bluesky message
+        # yield from bps.mv(self.cam.staging_mode, mode)  # at least must yield *some* bluesky message
+        yield from bps.null()
 
 
     def staging_setup_DM(self, *args, **kwargs):
@@ -146,21 +147,21 @@ class RigakuUfxcDetector(
             self.stage_sigs["cam.data_type"] = "UInt32"
             # TODO: what else is needed?
 
-        elif mode == "slow":
-            path = "/Rigaku/bin/destination/RigakuEpics/"
-            self.stage_sigs = {}
-            self.stage_sigs["cam.image_mode"] = "16 Bit, 1S"
-            self.stage_sigs["cam.trigger_mode"] = "Fixed Time"
-            self.stage_sigs["cam.acquire_time"] = 0.1
-            self.stage_sigs["cam.num_images"] = 10
-            self.stage_sigs["cam.data_type"] = "UInt16"
-            self.stage_sigs["cam.corrections"] = "Disabled"
-            self.stage_sigs["imm1.auto_increment"] = "Yes"
-            self.stage_sigs["imm1.num_capture"] = 10
-            self.stage_sigs["imm1.file_number"] = 1
-            self.stage_sigs["imm1.file_path"] = path
-            self.stage_sigs["imm1.file_name"] = "test"
-            # TODO: what else is needed?
+        # elif mode == "slow":
+        #     path = "/Rigaku/bin/destination/RigakuEpics/"
+        #     self.stage_sigs = {}
+        #     self.stage_sigs["cam.image_mode"] = "16 Bit, 1S"
+        #     self.stage_sigs["cam.trigger_mode"] = "Fixed Time"
+        #     self.stage_sigs["cam.acquire_time"] = 0.1
+        #     self.stage_sigs["cam.num_images"] = 10
+        #     self.stage_sigs["cam.data_type"] = "UInt16"
+        #     self.stage_sigs["cam.corrections"] = "Disabled"
+        #     self.stage_sigs["imm1.auto_increment"] = "Yes"
+        #     self.stage_sigs["imm1.num_capture"] = 10
+        #     self.stage_sigs["imm1.file_number"] = 1
+        #     self.stage_sigs["imm1.file_path"] = path
+        #     self.stage_sigs["imm1.file_name"] = "test"
+        #     # TODO: what else is needed?
 
     @property
     def images_received(self):

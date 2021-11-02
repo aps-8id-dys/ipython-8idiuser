@@ -65,4 +65,28 @@ def Detector_Acq(areadet,
         """
         Setup staging, trigger mode
         """
+
+
+"""
+Goal is to stage once for both detector and DM workflow
+
+This routine takes in:
+detector type, trigger mode, whether to use trigger pulse, ..., sample index.
+
+Requires running QNW setup first.
+
+1. stage()  [calls areadet.preconfigure()]
+2. stage DM Workflow
+
+3. for loop start
+4. move stage  [do this first to be compatible with the fly scan]
+5. take acquisition
+6. update DM object with minimal change;
+7. kick off DM workflow.
+8. go back to 3
+
+8. unstage()
+"""
+
+
     

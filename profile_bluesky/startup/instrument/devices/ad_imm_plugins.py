@@ -4,7 +4,6 @@ Area Detector IMM Plugin support for ophyd
 
 __all__ = """
     IMM_DeviceMixinBase
-    IMMnLocal
     IMMoutLocal
 """.split()
 

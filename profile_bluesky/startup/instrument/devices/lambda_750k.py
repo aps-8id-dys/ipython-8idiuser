@@ -399,8 +399,6 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
         self.imm1.stage_sigs["file_name"] = self._file_name
         self.imm1.stage_sigs["num_capture"] = num_images
         self.imm1.stage_sigs["file_number"] = 1
-        # self.imm1.stage_sigs["file_format"] = "IMM_Cmprs"
-        # self.stage_sigs["lua_A"] = ?????  # TODO: Replace 'file_format'
         self.imm1.stage_sigs["capture"] = 1
 
     def stage(self):

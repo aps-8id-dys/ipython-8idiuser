@@ -3,13 +3,18 @@
 Acquire an XPCS measurement with a supported area detector
 """
 
+# __all__ = [
+#     'select_sample',
+#     'te_qnw',
+# ]
+
 from instrument.session_logs import logger
 logger.info(__file__)
 
 from ..devices import aps, detu, I0Mon, soft_glue
-from ..devices import aps, dm_pars, dm_workflow
 from ..devices import Atten1, Atten2, scaler1
 from ..devices import timebase, pind1, pind2, T_A, T_SET
+from ..devices import rigaku500k
 from ..framework import db, RE
 from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
@@ -47,6 +52,7 @@ class Info_Detector:
         self.acquisition_mode = acquisition_mode
         
         if detector_name == 'rigaku500k' and trigger_mode == 0 and acquisition_mode == 'fast':
+
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire"] = 0
             self.stage_sigs["cam.acquire_time"] = 20e-6
@@ -55,6 +61,8 @@ class Info_Detector:
             self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
             self.stage_sigs["cam.corrections"] = "Enabled"
             self.stage_sigs["cam.data_type"] = "UInt32"
+
+            rigaku500k.cam.acquire_time.put(30e-6)
 
 
 # class Info_Sample: 

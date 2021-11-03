@@ -33,6 +33,7 @@ from .lambda_750k import *
 # from .lambda_2m import *
 # from .rigaku_ufxc import *
 from .ad_rigaku_detector import *
+from .ad_rigaku500k import *
 
 # non-hardware support
 from .data_management import *

@@ -23,7 +23,7 @@ class Info_User:
         self.det_directory = None
         self.scan_directory = None
 
-    def select(self, user_index):
+    def select_path(self, user_index):
         self.det_directory = f'/home/8idiuser/{aps.aps_cycle.get()}/{user_index}'
         self.scan_directory = f'/home/beams10/8IDIUSER/bluesky_data/{aps.aps_cycle.get()}'
 

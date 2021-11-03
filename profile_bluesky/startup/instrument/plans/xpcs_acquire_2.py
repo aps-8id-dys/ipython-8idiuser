@@ -1,13 +1,7 @@
 
-
-
 """
 Acquire an XPCS measurement with a supported area detector
 """
-
-__all__ = """
-    AD_Acquire
-""".split()
 
 from instrument.session_logs import logger
 logger.info(__file__)
@@ -24,69 +18,64 @@ import datetime
 import ophyd.signal
 import os
 
+class Info_User: 
+    def __init__(self):
+        self.det_directory = None
+        self.scan_directory = None
 
-def Detector_Acq(areadet,             
-                trigger_mode,
-               file_name,
-               acquire_time,
-               acquire_period,
-               num_images,
-               path=None,
-               md={}):
-    
-    """
-    Acquires xpcs data with area detector.
-
-    Can specify different trigger mode based on the class of detector and the trigger mode it supports.
-
-    1. Configure the detectors for staging (need to modify the detector classes);
-        The file plugin will be determined based on the extension of the file name
-    2. Stage the detector (populate the EPICS IOC with acquisition parameters);
-    3. Trigger the detector (e.g. use Start button for internal mode and send trigger pulse for external mode)
-    4. Wait for acquisition to finish.
-
-    """
-
-    areadet.preconfigure(trigger_mode, file_name, acquire_time, acquire_period, num_images, path)
-
-    yield from bps.stage(areadet)  # Step 2
-
-    yield from bps.trigger(areadet, group="areadet")  # Step 3
-
-    yield from bps.wait("areadet", )  # Step 4
-
-    def preconfigure(self,
-                trigger_mode,
-               file_name,
-               acquire_time,
-               acquire_period,
-               num_images,
-               path=None):   # Each detector needs this method. Copy into the detector classes.
-        """
-        Setup staging, trigger mode
-        """
+    def select(self, user_index):
+        self.det_directory = f'/home/8idiuser/{aps.aps_cycle.get()}/{user_index}'
+        self.scan_directory = f'/home/beams10/8IDIUSER/bluesky_data/{aps.aps_cycle.get()}'
 
 
-"""
-Goal is to stage once for both detector and DM workflow
+class Info_Detector: 
+    def __init__(self):
+        self.detector_name = None
+        self.qmapname = None
+        self.filename = None
+        self.trigger_mode = None
+        self.acquisition_mode = None
+        self.acquisition_time = None
+        self.acquisition_period = None
 
-This routine takes in:
-detector type, trigger mode, whether to use trigger pulse, ..., sample index.
+    def select_qmap(self, qmap_name):
+        self.qmapname = f'/home/8-id-i/{aps.aps_cycle.get()}/{qmap_name}'
 
-Requires running QNW setup first.
+    def select_det_mode(self, detector_name, trigger_mode, acquisition_mode):
+        self.detector_name = detector_name
+        self.trigger_mode = trigger_mode
+        self.acquisition_mode = acquisition_mode
+        
+        if detector_name == 'rigaku500k' and trigger_mode == 0 and acquisition_mode == 'fast':
+            self.stage_sigs = {}
+            self.stage_sigs["cam.acquire"] = 0
+            self.stage_sigs["cam.acquire_time"] = 20e-6
+            self.stage_sigs["cam.image_mode"] = "2 Bit, Zero-Deadtime"
+            self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
+            self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
+            self.stage_sigs["cam.corrections"] = "Enabled"
+            self.stage_sigs["cam.data_type"] = "UInt32"
 
-1. stage()  [calls areadet.preconfigure()]
-2. stage DM Workflow
 
-3. for loop start
-4. move stage  [do this first to be compatible with the fly scan]
-5. take acquisition
-6. update DM object with minimal change;
-7. kick off DM workflow.
-8. go back to 3
-
-8. unstage()
-"""
-
+# class Info_Sample: 
+#     def __init__(self):
+#         self.sample_name = None
+#         self.id_char = None
+#         self.samx_center = None
+#         self.samx_scan_halfwidth = None
+#         self.samx_num_points = None
+#         self.samz_center = None
+#         self.samz_scan_halfwidth = None
+#         self.samz_num_points = None
+#         self.qnw_position = None
+#         self.qnw_name = None
+        
+#     def select(self, sample_index):
+        # """Load sample information from json file"""
+        # # read the json file
+        # # find the sample_index
+        # config = json_dict[sample_index]
+        # self.sample_name = ["sample_name"]
+        # self.id_char = ["samp_id_char"]
 
     

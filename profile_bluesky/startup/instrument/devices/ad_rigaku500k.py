@@ -45,11 +45,11 @@ class Rigaku500kCam(CamBase):
         EpicsSignal, "Corrections", kind="config", string=True
     )
 
-    staging_mode = ADCpt(Signal, value="fast", kind="config")
+    # staging_mode = ADCpt(Signal, value="fast", kind="config")
 
-    # remove these attributes from CamBase
-    pool_max_buffers = None
-    EXT_TRIGGER = 0
+    # # remove these attributes from CamBase
+    # pool_max_buffers = None
+    # EXT_TRIGGER = 0
 
 class Rigaku500k(
     SingleTrigger,
@@ -62,7 +62,7 @@ class Rigaku500k(
 
 # wait a bit for all previous PV connections to complete
 _delay = 2.5  # empirical determination (1.0 is too short, 2 tests OK)
-logger.info("Sleeping for %s seconds before creating adrigaku object.", _delay)
+logger.info("Sleeping for %s seconds before creating rigaku500k object.", _delay)
 ttime.sleep(_delay)
 
 rigaku500k = Rigaku500k(IOC_PREFIX, name="rigaku500k")

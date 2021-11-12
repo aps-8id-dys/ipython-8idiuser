@@ -21,38 +21,52 @@ from bluesky import preprocessors as bpp
 import apstools.utils
 import datetime
 import ophyd.signal
+from ophyd import Device, Signal, Component
 import os
 
-class Info_User: 
-    def __init__(self):
-        self.det_directory = None
-        self.scan_directory = None
+
+
+class Info_User(Device): 
+    det_directory = Component(Signal, value=None)
+    scan_directory = Component(Signal, value=None)
 
     def select_path(self, user_index):
-        self.det_directory = f'/home/8idiuser/{aps.aps_cycle.get()}/{user_index}'
-        self.scan_directory = f'/home/beams10/8IDIUSER/bluesky_data/{aps.aps_cycle.get()}'
+        yield from bps.mv(self.det_directory, f'/home/8idiuser/{aps.aps_cycle.get()}/{user_index}')
+        yield from bps.mv(self.scan_directory, f'/home/beams10/8IDIUSER/bluesky_data/{aps.aps_cycle.get()}')
 
+class Info_Detector(Device): 
 
-class Info_Detector: 
-    def __init__(self):
-        self.detector_name = None
-        self.qmapname = None
-        self.filename = None
-        self.trigger_mode = None
-        self.acquisition_mode = None
-        self.acquisition_time = None
-        self.acquisition_period = None
+    # def __init__(self):
+    #     self.detector_name = None
+    #     self.qmapname = None
+    #     self.filename = None
+    #     self.trigger_mode = None
+    #     self.acquisition_mode = None
+    #     self.acquisition_time = None
+    #     self.acquisition_period = None
 
-    def select_qmap(self, qmap_name):
-        self.qmapname = f'/home/8-id-i/{aps.aps_cycle.get()}/{qmap_name}'
+    detector_name = Component(Signal, value=None)
+    filename = Component(Signal, value=None)
+    trigger_mode = Component(Signal, value=None)
+    acquisition_mode = Component(Signal, value=None)
+
+    qmapname = Component(Signal, value=None)
+    acquisition_time = Component(Signal, value=None)
+    acquisition_period = Component(Signal, value=None)
+
+    def select_qmap(self, qmap_name: str):
+        """
+        set qmap
+        """
+        yield from bps.mv(self.qmapname, f'/home/8-id-i/{aps.aps_cycle.get()}/{qmap_name}')
+        # self.qmapname.put(f'/home/8-id-i/{aps.aps_cycle.get()}/{qmap_name}')
 
     def select_det_mode(self, detector_name, trigger_mode, acquisition_mode):
-        self.detector_name = detector_name
-        self.trigger_mode = trigger_mode
-        self.acquisition_mode = acquisition_mode
+        yield from bps.mv(self.detector_name, detector_name)
+        yield from bps.mv(self.trigger_mode, trigger_mode)
+        yield from bps.mv(self.acquisition_mode, acquisition_mode)
         
         if detector_name == 'rigaku500k' and trigger_mode == 0 and acquisition_mode == 'fast':
-
             self.stage_sigs = {}
             self.stage_sigs["cam.acquire"] = 0
             self.stage_sigs["cam.acquire_time"] = 20e-6
@@ -63,6 +77,12 @@ class Info_Detector:
             self.stage_sigs["cam.data_type"] = "UInt32"
 
             rigaku500k.cam.acquire_time.put(30e-6)
+
+
+class Run_Object(Device):
+    info_user = Component(Info_User)
+    info_detector = Component(Info_Detector)
+
 
 
 # class Info_Sample: 

@@ -76,7 +76,17 @@ class Info_Detector(Device):
             self.stage_sigs["cam.corrections"] = "Enabled"
             self.stage_sigs["cam.data_type"] = "UInt32"
 
+            # ophyd.areadetector.cam.CamBase
+            # Attributes: acquire, acquire_time, image_mode, trigger_mode, num_images, corrections, data_type
+
+            rigaku500k.cam.acquire.put(0)
             rigaku500k.cam.acquire_time.put(30e-6)
+            rigaku500k.cam.image_mode.put("2 Bit, Zero-Deadtime")
+            rigaku500k.cam.trigger_mode.put("ZDT Fixed Time")
+            rigaku500k.cam.num_images.put(100_000)
+            rigaku500k.cam.corrections.put("Enabled")
+            rigaku500k.cam.data_type.put("UInt32")
+
 
 
 class Run_Object(Device):

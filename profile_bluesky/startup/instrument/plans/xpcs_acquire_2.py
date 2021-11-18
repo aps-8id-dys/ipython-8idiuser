@@ -21,8 +21,11 @@ from bluesky import preprocessors as bpp
 import apstools.utils
 import datetime
 import ophyd.signal
+from functools import partial
 from ophyd import Device, Signal, Component
+from ophyd.status import Status
 import os
+import time
 
 
 
@@ -67,14 +70,14 @@ class Info_Detector(Device):
         yield from bps.mv(self.acquisition_mode, acquisition_mode)
         
         if detector_name == 'rigaku500k' and trigger_mode == 0 and acquisition_mode == 'fast':
-            self.stage_sigs = {}
-            self.stage_sigs["cam.acquire"] = 0
-            self.stage_sigs["cam.acquire_time"] = 20e-6
+            # self.stage_sigs = {}
+            # self.stage_sigs["cam.acquire"] = 0
+            # self.stage_sigs["cam.acquire_time"] = 20e-6
             self.stage_sigs["cam.image_mode"] = "2 Bit, Zero-Deadtime"
-            self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
-            self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
-            self.stage_sigs["cam.corrections"] = "Enabled"
-            self.stage_sigs["cam.data_type"] = "UInt32"
+            # self.stage_sigs["cam.trigger_mode"] = "ZDT Fixed Time"
+            # self.stage_sigs["cam.num_images"] = 100_000  # "_" is a visual separator
+            # self.stage_sigs["cam.corrections"] = "Enabled"
+            # self.stage_sigs["cam.data_type"] = "UInt32"
 
             # ophyd.areadetector.cam.CamBase
             # Attributes: acquire, acquire_time, image_mode, trigger_mode, num_images, corrections, data_type
@@ -86,13 +89,6 @@ class Info_Detector(Device):
             rigaku500k.cam.num_images.put(100_000)
             rigaku500k.cam.corrections.put("Enabled")
             rigaku500k.cam.data_type.put("UInt32")
-
-
-
-class Run_Object(Device):
-    info_user = Component(Info_User)
-    info_detector = Component(Info_Detector)
-
 
 
 # class Info_Sample: 
@@ -109,11 +105,34 @@ class Run_Object(Device):
 #         self.qnw_name = None
         
 #     def select(self, sample_index):
-        # """Load sample information from json file"""
-        # # read the json file
-        # # find the sample_index
-        # config = json_dict[sample_index]
-        # self.sample_name = ["sample_name"]
-        # self.id_char = ["samp_id_char"]
+#         """Load sample information from json file"""
+#         # read the json file
+#         # find the sample_index
+#         config = json_dict[sample_index]
+#         self.sample_name = ["sample_name"]
+#         self.id_char = ["samp_id_char"]
+
+
+
+class Run_Object(Device):
+    info_user = Component(Info_User)
+    info_detector = Component(Info_Detector)
+
+run_object = Run_Object(name="run_object")
+
+def detector_acq(run_object, num_repeat=1):
+    
+    def acq_1():
+        return (yield from bps.repeat(partial(bps.trigger, rigaku500k, wait=True), num_repeat))
+
+    return (yield from acq_1())
+
+
+
+
+
+
+
+
 
     

@@ -51,6 +51,10 @@ sys.path.append(
 )
 
 
+DATABROKER_CATALOG = "8idi_xpcs_retired_2022_01_14"  # was mongodb_config in different format
+DATABROKER_CATALOG = "8idi_xpcs"
+
+
 def get_md_path():
     md_dir_name = "Bluesky_RunEngine_md"
     if os.environ == "win32":
@@ -85,7 +89,7 @@ if old_md is not None:
 callback_db = {}
 
 # Connect with the mongodb database.
-db = databroker.catalog["mongodb_config"].v1
+db = databroker.catalog[DATABROKER_CATALOG].v1
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.

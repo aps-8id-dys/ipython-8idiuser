@@ -1,0 +1,20 @@
+# linked to ~/.local/share/intake/databroker_catalogs.yml
+#
+# run this snippet to find the list of paths where it looks on your system.
+
+#   python3 -c "import databroker; print(databroker.catalog_search_path())"
+
+# this next line appears *only* once in a .yml file
+sources:
+
+  # XPCS
+  8idi_xpcs:
+    args:
+      asset_registry_db: mongodb://dbbluesky3.xray.aps.anl.gov:27017/8idi_xpcs-bluesky
+      metadatastore_db: mongodb://dbbluesky3.xray.aps.anl.gov:27017/8idi_xpcs-bluesky
+    driver: bluesky-mongo-normalized-catalog
+  8idi_xpcs_retired_2022_01_14:
+    args:
+      asset_registry_db: mongodb://s8idapps.xray.aps.anl.gov:27017/filestore-production-v1
+      metadatastore_db: mongodb://s8idapps.xray.aps.anl.gov:27017/metadatastore-production-v1
+    driver: bluesky-mongo-normalized-catalog

@@ -1,32 +1,13 @@
 
-"""
-Acquire an XPCS measurement with a supported area detector
-"""
 
-# __all__ = [
-#     'select_sample',
-#     'te_qnw',
-# ]
+### Modularized code that handles **only** Rigaku ZDT acquisition 
+### Does not communicate to DM
+### Completely independent from other detectors or even other modes on the same detector
 
-from instrument.session_logs import logger
-logger.info(__file__)
-
-from ..devices import aps, detu, I0Mon, soft_glue
-from ..devices import Atten1, Atten2, scaler1
-from ..devices import timebase, pind1, pind2, T_A, T_SET
-from ..devices import rigaku500k
-from ..framework import db, RE
+from ophyd import Device
+from ophyd import EpicsSignal
+from ophyd import Component as Cpt
 from bluesky import plan_stubs as bps
-from bluesky import preprocessors as bpp
-import apstools.utils
-import datetime
-import ophyd.signal
-from functools import partial
-from ophyd import Device, Signal, Component
-from ophyd.status import Status
-import os
-import time
-
 
 
 class Info_User(Device): 

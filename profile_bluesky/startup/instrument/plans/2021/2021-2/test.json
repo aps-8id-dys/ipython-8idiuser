@@ -1,0 +1,12 @@
+{
+    "sample_name": "Test2",
+    "samp_id_char": "B",
+    "samx_center": 0,
+    "samx_scan_halfwidth": 0.1,
+    "samx_num_points": 11,
+    "samz_center": 0,
+    "samz_scan_halfwidth": 0.1,
+    "samz_num_points": 11,
+    "qnw_position": 114.5,
+    "qnw_env": "qnw_env1"
+}

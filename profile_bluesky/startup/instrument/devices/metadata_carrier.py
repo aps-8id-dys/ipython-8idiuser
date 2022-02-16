@@ -3,8 +3,8 @@ Define common structures for configuration information.
 """
 
 __all__ = [
-    'BasicUserInformation',
-    'QnwParameters',
+    'basic_user_information',
+    'qnw_parameters',
 ]
 
 
@@ -12,6 +12,12 @@ from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Component as Cpt
 from bluesky import plan_stubs as bps
+
+import json
+import pathlib
+
+
+QNW_JSON_FILE = "qnw_sample_info.json"
 
 
 class BasicUserInformation(Device):
@@ -40,27 +46,72 @@ class BasicUserInformation(Device):
         yield from bps.mv(self.qmapname, f'/home/8-id-i/{aps.aps_cycle.get()}/{qmap_name}')
 
 
+basic_user_information = BasicUserInformation(name="basic_user_information")
+
+
 class QnwParameters(Device):
 
     # TODO: Place holder. Need to merge this with QNW definition
-    # Make sure 'select' function reloads the json file containing sample info every time it's called
 
-    def __init__(self):
-        self.sample_name = None
-        self.id_char = None
-        self.samx_center = None
-        self.samx_scan_halfwidth = None
-        self.samx_num_points = None
-        self.samz_center = None
-        self.samz_scan_halfwidth = None
-        self.samz_num_points = None
-        self.qnw_position = None
-        self.qnw_name = None
+    sample_name = Cpt(Signal, value=None)
+    id_char = Cpt(Signal, value=None)
+    samx_center = Cpt(Signal, value=None)
+    samx_scan_halfwidth = Cpt(Signal, value=None)
+    samx_num_points = Cpt(Signal, value=None)
+    samz_center = Cpt(Signal, value=None)
+    samz_scan_halfwidth = Cpt(Signal, value=None)
+    samz_num_points = Cpt(Signal, value=None)
+    qnw_position = Cpt(Signal, value=None)
+    qnw_name = Cpt(Signal, value=None)
 
     def select(self, sample_index):
-        """Load sample information from json file"""
-        # read the json file
-        # find the sample_index
-        config = json_dict[sample_index]
-        self.sample_name = ["sample_name"]
-        self.id_char = ["samp_id_char"]
+        """
+        bluesky plan: Load sample information from json file.
+
+        Reloads the json file containing sample info **every time** it's called.
+
+        example json::
+
+            {
+                "sample1": {
+                    "sample_name": "Test1",
+                    "samp_id_char": "A",
+                    "samx_center": 0,
+                    "samx_scan_halfwidth": 0.1,
+                    "samx_num_points": 11,
+                    "samz_center": 0,
+                    "samz_scan_halfwidth": 0.1,
+                    "samz_num_points": 11,
+                    "qnw_position": 147.5, 
+                    "qnw_env": "qnw_env1"          
+                }
+            }
+        """
+        if basic_user_information.scan_directory.get() is None:
+            raise ValueError(
+                "'basic_user_information.scan_directory' is 'None'."
+                "  Call 'basic_user_information.select_path(user_index)' first."
+            )
+
+        # look in user's directory for the JSON file
+        path = pathlib.Path(basic_user_information.scan_directory.get())
+        json_file = path / QNW_JSON_FILE
+        with open(json_file, "r") as fp:  # open & read the JSON
+            json_dict = json.load(fp)
+
+        config = json_dict[sample_index]  # pick the sample
+        yield from bps.mv(
+            self.sample_name, config["sample_name"],
+            self.id_char, config["samp_id_char"],
+            self.samx_center, config["samx_center"],
+            self.samx_scan_halfwidth, config["samx_scan_halfwidth"],
+            self.samx_num_points, config["samx_num_points"],
+            self.samz_center, config["samz_center"],
+            self.samz_scan_halfwidth, config["samz_scan_halfwidth"],
+            self.samz_num_points, config["samz_num_points"],
+            self.qnw_position, config["qnw_position"],
+            self.qnw_name, config["qnw_env"],
+        )
+
+
+qnw_parameters = QnwParameters(name="QnwParameters")

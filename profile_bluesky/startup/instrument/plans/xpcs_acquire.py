@@ -80,8 +80,8 @@ def AD_Acquire(areadet,
     # select the detector's number
     yield from bps.mv(dm_pars.detNum, areadet.detector_number)
 
-    yield from areadet.cam.setup_modes(num_images)
-    yield from areadet.cam.setTime(acquire_time, acquire_period)
+    # yield from areadet.cam.setup_modes(num_images)
+    # yield from areadet.cam.setTime(acquire_time, acquire_period)
 
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls

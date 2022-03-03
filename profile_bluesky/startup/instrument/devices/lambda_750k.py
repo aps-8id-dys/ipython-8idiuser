@@ -514,7 +514,9 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
 
 try:
     lambdadet = Lambda750kLocal(
-        LAMBDA_750K_IOC_PREFIX, name="lambdadet", labels=["lambda",]
+        LAMBDA_750K_IOC_PREFIX,
+        name="lambdadet",
+        labels=["lambda", "areadetectors", "detectors"],
     )
 
     lambdadet.read_attrs += ["imm1", "image"]

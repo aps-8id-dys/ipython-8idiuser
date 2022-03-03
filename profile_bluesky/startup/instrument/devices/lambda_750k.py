@@ -314,7 +314,9 @@ class ExternalFileReference(Signal):
         return res
 
 
-class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_AcquireDetectorBase):
+class Lambda750kLocal(
+    IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_AcquireDetectorBase
+):
     """
     local interface to the Lambda 750k detector
     """
@@ -464,9 +466,7 @@ class Lambda750kLocal(IMM_DeviceMixinBase, DM_DeviceMixinAreaDetector, AD_Acquir
                 logger.info("watch_acquire() method ends")
                 logger.info(f"cam.acquire.get()={self.cam.acquire.get()}")
                 logger.info(f"imm1.capture.get()={self.imm1.capture.get()}")
-                logger.info(
-                    f"imm1.num_captured.get()={self.imm1.num_captured.get()}"
-                )
+                logger.info(f"imm1.num_captured.get()={self.imm1.num_captured.get()}")
                 status._finished()
                 shutter.close()
                 logger.info(f"status={status}")

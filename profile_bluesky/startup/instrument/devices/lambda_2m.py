@@ -14,6 +14,7 @@ __all__ = [
 ]
 
 from instrument.session_logs import logger
+
 logger.info(__file__)
 
 from ophyd.areadetector import ADComponent
@@ -104,18 +105,14 @@ class XpcsLambda2mDetector(DetectorBase):
     stats1 = ADComponent(MyStatsPlugin, "Stats1:")
     stats2 = ADComponent(MyStatsPlugin, "Stats2:")
 
+
 try:
     lambda2m = XpcsLambda2mDetector(
-        PV_PREFIX,
-        name="lambda2m",
-        labels=["lambda", "areadetectors", "detectors"]
+        PV_PREFIX, name="lambda2m", labels=["lambda", "areadetectors", "detectors"]
     )
 
 except TimeoutError:
-    logger.warning(
-        "Could not connect Lambda 2M detector"
-        f" with prefix  {PV_PREFIX}"
-    )
+    logger.warning("Could not connect Lambda 2M detector" f" with prefix  {PV_PREFIX}")
     lambda2m = None
 
 # see Pilatus example for staging ideas

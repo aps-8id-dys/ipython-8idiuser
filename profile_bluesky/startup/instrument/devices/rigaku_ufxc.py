@@ -290,9 +290,7 @@ class Rigaku_8IDI(AD_AcquireDetectorBase, DM_DeviceMixinAreaDetector, Device):
 
 
 try:
-    rigaku = Rigaku_8IDI(
-        name="rigaku", labels=["rigaku", "areadetectors", "detectors"]
-    )
+    rigaku = Rigaku_8IDI(name="rigaku", labels=["rigaku", "areadetectors", "detectors"])
 except TimeoutError:
     logger.warning("Could not connect Rigaku detector")
     rigaku = None

@@ -29,7 +29,7 @@ from .soft_glue_fpga import *
 from .tables import *
 
 # area detectors
-from .rigaku500k import *
+from .rigaku_500k import *
 
 # from .lambda_750k import *
 from .lambda_2m import *

@@ -92,6 +92,13 @@ class XpcsLambda2mDetector(DetectorBase):
 
     _html_docs = ["Lambda2MDoc.html"]
 
+    _default_configuration_attrs = (
+        "codec1", "image"
+    )
+    _default_read_attrs = (
+        "cam", "hdf1", "stats1", "stats2"
+    )
+
     cam = ADComponent(Lambda2mCam, "cam1:")
     codec1 = ADComponent(CodecPlugin_V34, "Codec1:")
 

@@ -29,13 +29,18 @@ from .soft_glue_fpga import *
 from .tables import *
 
 # area detectors
-from .rigaku_500k import *
 
-# from .lambda_750k import *
-from .lambda_2m import *
+# Only do one of these at a time since they create an object with the same name
+from .rigaku_500k import *
 # from .rigaku_ufxc import *
 # from .ad_rigaku_detector import *
 # from .ad_rigaku500k import *
+
+# from .lambda_750k import *
+
+# Only do one of these at a time since they create an object with the same name
+# from .lambda_2m import *
+from .lambda_2m_QZ import *
 
 # non-hardware support
 from .data_management import *

@@ -18,7 +18,7 @@ class Lambda750k_HDF1(Device):
     capture_rbv = Cpt(EpicsSignal, "Capture_RBV")
 
 
-class Lambda2M(Device):
+class Lambda750k(Device):
     """Detector object"""
 
     cam1 = Cpt(Lambda750k_Cam1, "cam1:", name="cam1")
@@ -27,5 +27,5 @@ class Lambda2M(Device):
 
 # Create the detector object
 Lambda750k = Lambda750k(
-    "8idLambda750k:", name="lambda750k", labels=["lambda2m", "areadetectors", "detectors"]
+    "8idLambda750k:", name="lambda750k", labels=["lambda750k", "areadetectors", "detectors"]
 )

@@ -61,13 +61,13 @@ msg += " used.  Resume is not allowed from this condition."
 msg += " You are strongly advised to exit and restart"
 msg += " the bluesky session."
 
-if aps.inUserOperations and operations_in_8idi():
-    suspend_I_station_status = apstools.suspenders.SuspendWhenChanged(
-        pss.d_shutter_open_chain_A, 
-        # expected_value=1,
-        # QZ changed to "ON" on 09/14/2021
-        expected_value="ON", 
-        tripped_message=msg)
-    RE.install_suspender(suspend_I_station_status)
-else:
-    logger.warning("not is user operations, no suspender installed for D-station shutter")
+# if aps.inUserOperations and operations_in_8idi():
+#     suspend_I_station_status = apstools.suspenders.SuspendWhenChanged(
+#         pss.d_shutter_open_chain_A, 
+#         # expected_value=1,
+#         # QZ changed to "ON" on 09/14/2021
+#         expected_value="ON", 
+#         tripped_message=msg)
+#     RE.install_suspender(suspend_I_station_status)
+# else:
+#     logger.warning("not is user operations, no suspender installed for D-station shutter")

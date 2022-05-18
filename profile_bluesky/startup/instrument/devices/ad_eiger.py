@@ -10,9 +10,9 @@ from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase,
 from ophyd.areadetector.base import EpicsSignalWithRBV
 from ophyd.signal import EpicsSignalRO
 from ophyd.status import wait as status_wait, SubscriptionStatus
-from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34
+from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from ophyd.areadetector.filestore_mixins import FileStoreBase
+from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreHDF5SingleIterativeWrite
 from ophyd.utils.epics_pvs import set_and_wait
 from apstools.utils import run_in_thread
 from time import sleep
@@ -22,7 +22,8 @@ logger.info(__file__)
 
 EIGER_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
 BLUESKY_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
-TEST_IMAGE_DIR = "%Y/%m/%d/"
+# IMAGE_DIR = "%Y/%m/%d/"
+IMAGE_DIR = ""
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
@@ -65,7 +66,7 @@ class TriggerDetectorState(TriggerBase):
 
     def unstage(self):
         super().unstage()
-        self._image_count.clear_sub(self._acquire_changed)
+        self._detector_status.clear_sub(self._acquire_changed)
         # set_and_wait(self.cam.acquire, 0) # Not sure this is needed.
 
     def trigger(self):
@@ -102,8 +103,9 @@ class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
 class LocalEigerDetectorBase(DetectorBase):
 
     # _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
-    _default_read_attrs = ('cam', 'hdf1', 'stats1', 'stats2', 'stats3',
-                           'stats4')
+    _default_read_attrs = ('cam', 'hdf1',
+    # 'stats1', 'stats2', 'stats3', 'stats4'
+    )
 
     _html_docs = ['EigerDoc.html']
     cam = Component(LocalEigerCam, 'cam1:')
@@ -123,10 +125,10 @@ class LocalEigerDetectorBase(DetectorBase):
     # roi4 = Component(ROIPlugin_V34, 'ROI4:')
 
     # ROIs stats
-    stats1 = Component(StatsPlugin_V34, "Stats1:")
-    stats2 = Component(StatsPlugin_V34, "Stats2:")
-    stats3 = Component(StatsPlugin_V34, "Stats3:")
-    stats4 = Component(StatsPlugin_V34, "Stats4:")
+    # stats1 = Component(StatsPlugin_V34, "Stats1:")
+    # stats2 = Component(StatsPlugin_V34, "Stats2:")
+    # stats3 = Component(StatsPlugin_V34, "Stats3:")
+    # stats4 = Component(StatsPlugin_V34, "Stats4:")
 
     def __init__(
         self, *args, write_path_template="", read_path_template="", **kwargs
@@ -134,9 +136,9 @@ class LocalEigerDetectorBase(DetectorBase):
         super().__init__(*args, **kwargs)
 
         if write_path_template != "":
-            self._write_path_template = write_path_template
+            self.hdf1._write_path_template = write_path_template
         if read_path_template != "":
-            self._read_path_template = read_path_template
+            self.hdf1._read_path_template = read_path_template
 
     def default_kinds(self):
 

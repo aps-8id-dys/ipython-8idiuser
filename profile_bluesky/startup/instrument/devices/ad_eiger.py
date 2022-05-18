@@ -20,9 +20,8 @@ from os.path import join, isdir
 from ..session_logs import logger
 logger.info(__file__)
 
-# TODO: Change these paths.
-LAMBDA_FILES_ROOT = "/extdisk/4idd/"
-BLUESKY_FILES_ROOT = "/home/sector4/4idd/bluesky_images"
+EIGER_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
+BLUESKY_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
 TEST_IMAGE_DIR = "%Y/%m/%d/"
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
@@ -49,18 +48,16 @@ class TriggerDetectorState(TriggerBase):
         if image_name is None:
             image_name = '_'.join([self.name, 'image'])
         self._image_name = image_name
-        # TODO: change the detector status PV
-        self._detector_status = self.cam.array_counter
+        self._detector_status = self.cam.acquire
         self._acquisition_signal = self.cam.acquire
 
     def setup_trigger(self):
         # Stage signals
-        #TODO: change these!
-        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
-        self.cam.stage_sigs["manual_trigger"] = "Enable"
-        self.cam.stage_sigs["num_images"] = 1
-        self.cam.stage_sigs["num_exposures"] = 1
-        self.cam.stage_sigs["num_triggers"] = int(1e5)
+        self.cam.stage_sigs["trigger_mode"] = "Internal Series"
+        # self.cam.stage_sigs["manual_trigger"] = "Enable"
+        # self.cam.stage_sigs["num_images"] = 1
+        # self.cam.stage_sigs["num_exposures"] = 1
+        # self.cam.stage_sigs["num_triggers"] = int(1e5)
 
     def stage(self):
         super().stage()
@@ -86,16 +83,14 @@ class TriggerDetectorState(TriggerBase):
         "This is called when the 'acquire' signal changes."
         if self._status is None:
             return
-        # TODO: This logic needs to be updated depending on which
-        # PV we are using. Something like this:
-        # if (old_value != 0) and (value == 0):
-        #     # Negative-going edge means an acquisition just finished.
-        #     ttime.sleep(self._sleep_time)
-        #     self._status.set_finished()
-        #     self._status = None
-        if value > old_value:  # There is a new image!
+        if (old_value != 0) and (value == 0):
+            # Negative-going edge means an acquisition just finished.
+            # ttime.sleep(self._sleep_time)
             self._status.set_finished()
             self._status = None
+        # if value > old_value:  # There is a new image!
+        #     self._status.set_finished()
+        #     self._status = None
 
 
 class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
@@ -106,10 +101,8 @@ class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
 
 class LocalEigerDetectorBase(DetectorBase):
 
-    # TODO: Do you need rois and stats?
-    # TODO: Any other plugins? codec? proc?
-    _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
-    _default_read_attrs = ('cam', 'file', 'stats1', 'stats2', 'stats3',
+    # _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
+    _default_read_attrs = ('cam', 'hdf1', 'stats1', 'stats2', 'stats3',
                            'stats4')
 
     _html_docs = ['EigerDoc.html']
@@ -124,10 +117,10 @@ class LocalEigerDetectorBase(DetectorBase):
     )
 
     # ROIs
-    roi1 = Component(ROIPlugin_V34, 'ROI1:')
-    roi2 = Component(ROIPlugin_V34, 'ROI2:')
-    roi3 = Component(ROIPlugin_V34, 'ROI3:')
-    roi4 = Component(ROIPlugin_V34, 'ROI4:')
+    # roi1 = Component(ROIPlugin_V34, 'ROI1:')
+    # roi2 = Component(ROIPlugin_V34, 'ROI2:')
+    # roi3 = Component(ROIPlugin_V34, 'ROI3:')
+    # roi4 = Component(ROIPlugin_V34, 'ROI4:')
 
     # ROIs stats
     stats1 = Component(StatsPlugin_V34, "Stats1:")
@@ -146,9 +139,6 @@ class LocalEigerDetectorBase(DetectorBase):
             self._read_path_template = read_path_template
 
     def default_kinds(self):
-
-        # TODO: This is setting A LOT of stuff as "configuration_attrs", should
-        # be revised at some point.
 
         # Some of the attributes return numpy arrays which Bluesky doesn't
         # accept: configuration_names, stream_hdr_appendix,
@@ -194,10 +184,9 @@ class LocalEigerDetectorBase(DetectorBase):
 
         self.cam.read_attrs += ["num_images_counter"]
 
-        # TODO: Do we need rois and stats?
         for name in self.component_names:
             comp = getattr(self, name)
-            if isinstance(comp, (ROIPlugin_V34, StatsPlugin_V34)):
+            if isinstance(comp, (StatsPlugin_V34)):
                 comp.configuration_attrs += [
                     item for item in comp.component_names if item not in
                     _remove_from_config
@@ -207,15 +196,14 @@ class LocalEigerDetectorBase(DetectorBase):
                 comp.read_attrs += ["max_value", "min_value"]
 
     def default_settings(self):
-        # TODO: Change these!
-        self.cam.num_triggers.put(1)
-        self.cam.manual_trigger.put("Disable")
-        self.cam.trigger_mode.put("Internal Enable")
-        self.cam.acquire.put(0)
-        self.cam.wait_for_plugins.put("Yes")
-        self.cam.create_directory.put(-1)
-        self.cam.fw_compression.put("Enable")
-        self.cam.fw_num_images_per_file.put(1)
+        # self.cam.num_triggers.put(1)
+        # self.cam.manual_trigger.put("Disable")
+        # self.cam.trigger_mode.put("Internal Enable")
+        # self.cam.acquire.put(0)
+        # self.cam.wait_for_plugins.put("Yes")
+        # self.cam.create_directory.put(-1)
+        # self.cam.fw_compression.put("Enable")
+        # self.cam.fw_num_images_per_file.put(1)
         self.setup_trigger()
 
 

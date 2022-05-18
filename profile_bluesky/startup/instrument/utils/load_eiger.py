@@ -12,7 +12,7 @@ __all__ = ['load_eiger']
 
 
 def load_eiger(
-    pv="dp_eiger_xrd92:",
+    pv="dp_eiger_xrd4:",
     write_image_path="",
     read_image_path=""
 ):
@@ -34,18 +34,18 @@ def load_eiger(
     # TODO: Are we using rois and stats?
     logger.info("Setting up ROI and STATS defaults ...  ")
     for name in eiger.component_names:
-        if "roi" in name:
-            roi = getattr(eiger, name)
-            roi.wait_for_connection(timeout=10)
-            roi.nd_array_port.put("EIG")
+        # if "roi" in name:
+        #     roi = getattr(eiger, name)
+        #     roi.wait_for_connection(timeout=10)
+        #     roi.nd_array_port.put("EIG")
         if "stats" in name:
             stat = getattr(eiger, name)
             stat.wait_for_connection(timeout=10)
-            stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
+            # stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
     logger.info("Done!")
 
     logger.info("Setting up defaults kinds ...  ")
-    eiger.default_kinds()
+    # eiger.default_kinds()
     logger.info("Done!")
     logger.info("Setting up default settings ...  ")
     eiger.default_settings()

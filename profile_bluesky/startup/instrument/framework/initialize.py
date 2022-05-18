@@ -36,7 +36,7 @@ import databroker
 import os
 import sys
 import warnings
-
+from .eiger_handler import EigerHDF5Handler
 
 # convenience imports
 import bluesky.plans as bp
@@ -90,6 +90,9 @@ callback_db = {}
 
 # Connect with the mongodb database.
 db = databroker.catalog[DATABROKER_CATALOG].v1
+
+# Add Eiger handler to catalog
+db.v2.register_handler("AD_EIGER_APS8ID", EigerHandler, overwrite=True)
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.

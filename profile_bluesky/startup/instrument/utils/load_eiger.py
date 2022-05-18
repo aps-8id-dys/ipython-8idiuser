@@ -3,9 +3,7 @@ Code borrowed from Gilberto:
 https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/startup/instrument/utils/load_eiger.py
 """
 
-from ..devices.ad_eiger import (
-    EigerDetectorTimeTrigger, EigerDetectorImageTrigger
-)
+from ..devices.ad_eiger import EigerDetector
 from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
@@ -15,35 +13,26 @@ __all__ = ['load_eiger']
 
 def load_eiger(
     pv="dp_eiger_xrd92:",
-    trigger_type="time",
-    write_image_path="/local/home/dpuser/test_gilberto/",
-    read_image_path="/home/beams17/POLAR/data/gilberto/test_gilberto/"
+    write_image_path="",
+    read_image_path=""
 ):
 
-    if not isinstance(trigger_type, str):
-        raise TypeError("trigger_type must be either 'time' or 'image'")
-
-    if trigger_type.lower() == "time":
-        detector = EigerDetectorTimeTrigger
-    elif trigger_type.lower() == "image":
-        detector = EigerDetectorImageTrigger
-    else:
-        raise TypeError("trigger_type must be either 'time' or 'image'")
-
     logger.info("-- Loading Eiger detector --")
-    eiger = detector(
+    eiger = EigerDetector(
         pv,
         write_image_path=write_image_path,
         read_image_path=read_image_path,
         name="eiger"
     )
 
-    sd.baseline.append(eiger)
+    # TODO: Should we have this? It can create problems when eiger is not used.
+    # sd.baseline.append(eiger)
 
     eiger.wait_for_connection(timeout=10)
     # This is needed otherwise .get may fail!!!
 
-    logger.info("Setting up ROI and STATS defaults ...", end=" ")
+    # TODO: Are we using rois and stats?
+    logger.info("Setting up ROI and STATS defaults ...  ")
     for name in eiger.component_names:
         if "roi" in name:
             roi = getattr(eiger, name)
@@ -55,10 +44,10 @@ def load_eiger(
             stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
     logger.info("Done!")
 
-    logger.info("Setting up defaults kinds ...", end=" ")
+    logger.info("Setting up defaults kinds ...  ")
     eiger.default_kinds()
     logger.info("Done!")
-    logger.info("Setting up default settings ...", end=" ")
+    logger.info("Setting up default settings ...  ")
     eiger.default_settings()
     logger.info("Done!")
     logger.info("All done!")

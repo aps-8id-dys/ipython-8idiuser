@@ -11,7 +11,7 @@ __all__ = [
 from instrument.session_logs import logger
 logger.info(__file__)
 
-import apstools.suspenders 
+# import apstools.suspenders 
 from ..framework import RE
 from ..devices import aps
 from ophyd import Component, Device, EpicsSignalRO

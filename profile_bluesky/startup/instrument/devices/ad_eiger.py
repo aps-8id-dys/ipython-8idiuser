@@ -10,15 +10,20 @@ from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase,
 from ophyd.areadetector.base import EpicsSignalWithRBV
 from ophyd.signal import EpicsSignalRO
 from ophyd.status import wait as status_wait, SubscriptionStatus
-from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34
+from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreHDF5SingleIterativeWrite
+from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
 from ophyd.utils.epics_pvs import set_and_wait
 from apstools.utils import run_in_thread
 from time import sleep
 from os.path import join, isdir
 from ..session_logs import logger
+
+from apstools.devices import AD_EpicsHdf5FileName
+
 logger.info(__file__)
+
+
 
 EIGER_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
 BLUESKY_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
@@ -32,6 +37,8 @@ class LocalEigerCam(EigerDetectorCam):
     file_number_sync = None
     file_number_write = None
     pool_max_buffers = None
+    # Hard-coded to 0 for AD_Acquire
+    EXT_TRIGGER = 0
 
     wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
     file_path = ADComponent(EpicsSignal, 'FilePath', string=True)
@@ -103,12 +110,51 @@ class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
 class LocalEigerDetectorBase(DetectorBase):
 
     # _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
-    _default_read_attrs = ('cam', 'hdf1',
+    _default_read_attrs = ('cam', 'hdf1', 'codec1',
     # 'stats1', 'stats2', 'stats3', 'stats4'
     )
 
+    #############################################
+    def staging_setup_DM(self, *args, **kwargs):
+        """
+        setup the detector's stage_sigs for acquisition with the DM workflow
+
+        Disclaimer: QZ copied this from Pete's Lambda750k. QZ doesn't know what he's doing
+        """
+        if len(args) != 5:
+            raise IndexError(
+                f"expected 5 parameters, received {len(args)}: args={args}"
+            )
+            self._file_path = args[0]
+            self._file_name = args[1]
+            num_images = args[2]
+            acquire_time = args[3]
+            acquire_period = args[4]
+            # logger.debug(f"staging_setup_DM({args})")
+
+            self.cam.stage_sigs["num_images"] = num_images
+
+    detector_number = 30
+    # TODO: add a dummy q map file to test the DM analysis too
+    qmap_file = "Lambda_qmap.h5"
+
+    @property
+    def plugin_file_name(self):
+        """
+        return the (base, no path) file name the plugin wrote
+        Implement for the DM workflow.
+        Not a bluesky "plan" (no "yield from")
+        """
+        fname = PurePath(self.hdf1.full_file_name.get()).name
+    
+        return fname
+
+    #############################################
+
     _html_docs = ['EigerDoc.html']
     cam = Component(LocalEigerCam, 'cam1:')
+
+    codec1 = Component(CodecPlugin_V34, "Codec1:")
 
     hdf1 = Component(
         MyHDF5Plugin,

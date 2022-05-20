@@ -86,6 +86,7 @@ def AD_Acquire(areadet,
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
     scaler1.staging_setup_DM(acquire_period)
+    print(f"(AD_Acquire): num_images={num_images}")
     areadet.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)

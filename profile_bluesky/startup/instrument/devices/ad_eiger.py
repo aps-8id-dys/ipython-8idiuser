@@ -3,23 +3,21 @@ Eiger area detector. Definition borrowd from Gilberto:
 https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/startup/instrument/devices/ad_eiger.py
 """
 
-from pathlib import PurePath
-from time import time as ttime
-from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase,
-                   Staged, EpicsSignal, Signal, Kind, Device)
+from ..session_logs import logger
+from apstools.devices import AD_EpicsHdf5FileName
+from apstools.utils import run_in_thread
+from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
 from ophyd.areadetector.base import EpicsSignalWithRBV
-from ophyd.signal import EpicsSignalRO
-from ophyd.status import wait as status_wait, SubscriptionStatus
+from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
 from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
+from ophyd.signal import EpicsSignalRO
+from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.utils.epics_pvs import set_and_wait
-from apstools.utils import run_in_thread
-from time import sleep
 from os.path import join, isdir
-from ..session_logs import logger
-
-from apstools.devices import AD_EpicsHdf5FileName
+from pathlib import PurePath
+from time import sleep
+from time import time as ttime
 
 logger.info(__file__)
 
@@ -101,7 +99,10 @@ class TriggerDetectorState(TriggerBase):
         #     self._status = None
 
 
-class MyHDF5Plugin(FileStoreHDF5SingleIterativeWrite, HDF5Plugin_V34):
+class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName, FileStoreIterativeWrite): pass
+
+
+class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.filestore_spec = 'AD_HDF5_Eiger500k_APS8ID'
@@ -125,14 +126,24 @@ class LocalEigerDetectorBase(DetectorBase):
             raise IndexError(
                 f"expected 5 parameters, received {len(args)}: args={args}"
             )
-            self._file_path = args[0]
-            self._file_name = args[1]
-            num_images = args[2]
-            acquire_time = args[3]
-            acquire_period = args[4]
-            # logger.debug(f"staging_setup_DM({args})")
+        self._file_path = args[0]
+        self._file_name = args[1]
+        num_images = args[2]
+        acquire_time = args[3]
+        acquire_period = args[4]
+        # logger.debug(f"staging_setup_DM({args})")
 
-            self.cam.stage_sigs["num_images"] = num_images
+        print(f"({self.__class__.__name__}): num_images={num_images}")
+        self.cam.stage_sigs["num_images"] = num_images
+        self.hdf1.stage_sigs["num_capture"] = num_images
+
+        print(f"({self.__class__.__name__}): file_name={self._file_name}")
+        # self.hdf1.file_name.put(self._file_name)
+        self.hdf1.stage_sigs["file_name"] = self._file_name
+
+        # This must always come last
+        self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')
+        print(f"({self.__class__.__name__}): hdf1 stage_sigs={self.hdf1.stage_sigs}")
 
     detector_number = 30
     # TODO: add a dummy q map file to test the DM analysis too
@@ -185,6 +196,10 @@ class LocalEigerDetectorBase(DetectorBase):
             self.hdf1._write_path_template = write_path_template
         if read_path_template != "":
             self.hdf1._read_path_template = read_path_template
+        # 'capture' must always be the last thing in stage list
+        capture=self.hdf1.stage_sigs.pop('capture')
+        self.hdf1.stage_sigs["capture"]=capture
+
 
     def default_kinds(self):
 

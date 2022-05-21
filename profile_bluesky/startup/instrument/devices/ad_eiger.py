@@ -23,8 +23,8 @@ logger.info(__file__)
 
 
 
-EIGER_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
-BLUESKY_FILES_ROOT = "/home/8ididata/2022-1/bluesky202205/"
+EIGER_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
+BLUESKY_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
 # IMAGE_DIR = "%Y/%m/%d/"
 IMAGE_DIR = ""
 
@@ -107,6 +107,8 @@ class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
         super().__init__(*args, **kwargs)
         self.filestore_spec = 'AD_HDF5_Eiger500k_APS8ID'
 
+    image_dir = IMAGE_DIR
+
 
 class LocalEigerDetectorBase(DetectorBase):
 
@@ -119,8 +121,6 @@ class LocalEigerDetectorBase(DetectorBase):
     def staging_setup_DM(self, *args, **kwargs):
         """
         setup the detector's stage_sigs for acquisition with the DM workflow
-
-        Disclaimer: QZ copied this from Pete's Lambda750k. QZ doesn't know what he's doing
         """
         if len(args) != 5:
             raise IndexError(
@@ -138,8 +138,10 @@ class LocalEigerDetectorBase(DetectorBase):
         self.hdf1.stage_sigs["num_capture"] = num_images
 
         print(f"({self.__class__.__name__}): file_name={self._file_name}")
-        # self.hdf1.file_name.put(self._file_name)
         self.hdf1.stage_sigs["file_name"] = self._file_name
+
+        print(f"({self.__class__.__name__}): hdf.image_dir={self._file_path}")
+        self.hdf1.stage_sigs["file_path"] = self._file_path
 
         # This must always come last
         self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')
@@ -170,8 +172,8 @@ class LocalEigerDetectorBase(DetectorBase):
     hdf1 = Component(
         MyHDF5Plugin,
         "HDF1:",
-        write_path_template=join(EIGER_FILES_ROOT, IMAGE_DIR),
-        read_path_template=join(BLUESKY_FILES_ROOT, IMAGE_DIR),
+        write_path_template=str(EIGER_FILES_ROOT / IMAGE_DIR),
+        read_path_template=str(BLUESKY_FILES_ROOT / IMAGE_DIR),
         kind='normal'
     )
 

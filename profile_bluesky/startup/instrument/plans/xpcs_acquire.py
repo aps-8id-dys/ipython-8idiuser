@@ -295,7 +295,7 @@ def AD_Acquire(areadet,
         if not os.path.exists(os.path.dirname(hdf_with_fullpath)):
             os.makedirs(os.path.dirname(hdf_with_fullpath))
 
-        # dm_workflow.create_hdf5_file(hdf_with_fullpath)
+        dm_workflow.create_hdf5_file(hdf_with_fullpath)
 
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.get()

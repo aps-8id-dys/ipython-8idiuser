@@ -6,6 +6,7 @@ https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/start
 from ..session_logs import logger
 from apstools.devices import AD_EpicsHdf5FileName
 from apstools.utils import run_in_thread
+import itertools
 from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
 from ophyd.areadetector.base import EpicsSignalWithRBV
 from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
@@ -99,7 +100,47 @@ class TriggerDetectorState(TriggerBase):
         #     self._status = None
 
 
-class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName, FileStoreIterativeWrite): pass
+class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName, FileStoreIterativeWrite):
+    def stage(self):
+        """
+        QZ: overrides the override in AD_EpicsHdf5FileName
+        that allows for writing file name with desired format
+        """
+        # Make a filename.
+        filename, read_path, write_path = self.make_filename()
+
+        # Ensure we do not have an old file open.
+        set_and_wait(self.capture, 0)
+        # These must be set before parent is staged (specifically
+        # before capture mode is turned on. They will not be reset
+        # on 'unstage' anyway.
+        set_and_wait(self.file_path, write_path)
+        set_and_wait(self.file_name, filename)
+        # set_and_wait(self.file_number, 0)
+
+        # get file number now since it is incremented during stage()
+        file_number = self.file_number.get()
+        # Must avoid parent's stage() since it sets file_number to 0
+        # Want to call grandparent's stage()
+        # super().stage()     # avoid this - sets `file_number` to zero
+        # call grandparent.stage()
+        FileStoreBase.stage(self)
+
+        # AD does the file name templating in C
+        # We can't access that result until after acquisition
+        # so we apply the same template here in Python.
+        template = self.file_template.get()
+        self._fn = template % (read_path, filename)
+        self._fp = read_path
+        if not self.file_path_exists.get():
+            raise IOError(f"Path {self.file_path.get()} does not exist on IOC.")
+
+        self._point_counter = itertools.count()
+
+        # from FileStoreHDF5.stage()
+        res_kwargs = {"frame_per_point": self.get_frames_per_point()}
+        self._generate_resource(res_kwargs)
+
 
 
 class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
@@ -145,7 +186,7 @@ class LocalEigerDetectorBase(DetectorBase):
 
         # # QZ added this to remove automatic FileNumber append 
         # # and to comply with DM transfer for Rigaku format
-        # self.hdf1.stage_sigs["file_template"] = "%s%s.h5"
+        self.hdf1.stage_sigs["file_template"] = "%s%s.h5"
 
         # This must always come last
         self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')

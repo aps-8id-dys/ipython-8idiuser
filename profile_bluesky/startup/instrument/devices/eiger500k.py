@@ -1,15 +1,11 @@
 """
-Ophyd detector class customized for Eigker500k from Eiger.
+Lightweight Bluesky detector class customized for Eigker500k from Eiger.
 
 """
 
 from ophyd import Device
 from ophyd import EpicsSignal
 from ophyd import Component as Cpt
-
-# from bluesky import plan_stubs as bps
-
-# softglue_trigger =  ophyd.EpicsSignal("8idi:softGlueA:MUX2-1_IN0_Signal", name="softglue_trigger")
 
 # merged class
 class Eiger500k_Cam1(Device):

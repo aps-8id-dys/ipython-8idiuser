@@ -1,5 +1,5 @@
 """
-Eiger area detector. Definition borrowd from Gilberto:
+Eiger area detector. Definition borrowed from Gilberto:
 https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/startup/instrument/devices/ad_eiger.py
 """
 
@@ -143,9 +143,9 @@ class LocalEigerDetectorBase(DetectorBase):
         print(f"({self.__class__.__name__}): hdf.image_dir={self._file_path}")
         self.hdf1.stage_sigs["file_path"] = self._file_path
 
-        # QZ added this to remove automatic FileNumber append 
-        # and to comply with DM transfer for Rigaku format
-        self.hdf1.stage_sigs["file_template"] = "%s%s.h5"
+        # # QZ added this to remove automatic FileNumber append 
+        # # and to comply with DM transfer for Rigaku format
+        # self.hdf1.stage_sigs["file_template"] = "%s%s.h5"
 
         # This must always come last
         self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')

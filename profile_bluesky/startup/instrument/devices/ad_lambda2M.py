@@ -212,7 +212,7 @@ class LocalEigerDetectorBase(DetectorBase):
         self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')
         print(f"({self.__class__.__name__}): hdf1 stage_sigs={self.hdf1.stage_sigs}")
 
-    detector_number = 30
+    detector_number = 27
     # TODO: add a dummy q map file to test the DM analysis too
     qmap_file = "Lambda_qmap.h5"
 

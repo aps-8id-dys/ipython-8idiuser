@@ -43,6 +43,7 @@ from .rigaku_500k import *
 # from .lambda_2m_QZ import *
 # from .eiger500k import *
 from .ad_eiger import *
+from .ad_lambda2M import *
 
 # non-hardware support
 from .data_management import *

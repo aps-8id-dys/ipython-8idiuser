@@ -100,35 +100,18 @@ class TriggerDetectorState(TriggerBase):
         #     self._status.set_finished()
         #     self._status = None
 
+      
 class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
     def stage(self):
-        """
-        QZ: overrides the override in AD_EpicsHdf5FileName
-        that allows for writing file name with desired format
-        """
-        # Make a filename.
-        filename, read_path, write_path = self.make_filename()
-
         # Ensure we do not have an old file open.
         set_and_wait(self.capture, 0)
-        # These must be set before parent is staged (specifically
-        # before capture mode is turned on. They will not be reset
-        # on 'unstage' anyway.
-        set_and_wait(self.file_path, write_path)
-        set_and_wait(self.file_name, filename)
-        # set_and_wait(self.file_number, 0)
 
-        # get file number now since it is incremented during stage()
-        # file_number = self.file_number.get()
-        # Must avoid parent's stage() since it sets file_number to 0
-        # Want to call grandparent's stage()
-        # super().stage()     # avoid this - sets `file_number` to zero
-        # call grandparent.stage()
+        # Stage signals, which include file name and path,
+        # see staging_setup_DM below.
         FileStoreBase.stage(self)
 
-        # AD does the file name templating in C
-        # We can't access that result until after acquisition
-        # so we apply the same template here in Python.
+        # Setup the staged file name and path in the database
+        filename, read_path, _ = self.make_filename()
         template = self.file_template.get()
         self._fn = template % (read_path, filename)
         self._fp = read_path
@@ -139,7 +122,7 @@ class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
 
         # from FileStoreHDF5.stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
-        self._generate_resource(res_kwargs)   
+        self._generate_resource(res_kwargs)  
 
 
     def generate_datum(self, key, timestamp, datum_kwargs):

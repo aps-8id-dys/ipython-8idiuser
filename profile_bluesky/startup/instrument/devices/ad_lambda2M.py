@@ -322,7 +322,7 @@ class EigerDetector(TriggerDetectorState, LocalEigerDetectorBase):
     pass
 
 lambda2M = EigerDetector(
-    "8idLambda2m",
+    "8idLambda2m:",
     write_path_template="",
     read_path_template="",
     name="lambda2M"

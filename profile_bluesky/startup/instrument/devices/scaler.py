@@ -104,7 +104,7 @@ class LocalScalerCH(DM_DeviceMixinScaler, FixScalerCH):
         """
         assert len(args) == 1
         acquire_period = args[0]
-        self.stage_sigs["count_mode"] = "AutoCount"
+        self.stage_sigs["count_mode"] = "OneShot"
         self.stage_sigs["auto_count_time"] = max(0.1,acquire_period)
 
 

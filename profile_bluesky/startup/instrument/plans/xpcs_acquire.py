@@ -85,12 +85,13 @@ def AD_Acquire(areadet,
 
     # Ask the devices to configure themselves for this plan.
     # no need to yield here, method does not have "yield from " calls
-    scaler1.staging_setup_DM(acquire_period)
+    # scaler1.staging_setup_DM(acquire_period)
+    print(f"(AD_Acquire): num_images={num_images}")
     areadet.staging_setup_DM(file_path, file_name,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
-    scaler1.select_channels(None)
+    # scaler1.select_channels(None)
     monitored_things = [
         timebase,
         pind1,
@@ -261,7 +262,7 @@ def AD_Acquire(areadet,
         yield from bps.close_run()
         # return ret
 
-    @bpp.stage_decorator([scaler1])
+    # @bpp.stage_decorator([scaler1])
     @bpp.monitor_during_decorator(monitored_things)
     def full_acquire_procedure(md={}):
         logger.debug("before update_metadata_prescan()")
@@ -278,8 +279,12 @@ def AD_Acquire(areadet,
         _md.update(md)
         logger.debug("metadata = %s", _md)
         # start autocount on the scaler
-        yield from bps.mv(scaler1.count, "Count")
-        logger.info("scaler should be autocounting now")
+        # yield from bps.mv(scaler1.count, "Count")
+        # print(f"DIAGNOSTIC ({__name__},full_acquire_procedure): scaler1.stage_sigs={scaler1.stage_sigs}")
+        # print(f"DIAGNOSTIC ({__name__},full_acquire_procedure): scaler1._staged={scaler1._staged}")
+        # print(f"DIAGNOSTIC ({__name__},full_acquire_procedure): scaler1.count={scaler1.count}")
+        # print(f"DIAGNOSTIC ({__name__},full_acquire_procedure): scaler1.count_mode={scaler1.count_mode}")
+        # logger.info("scaler should be autocounting now")
 
         # do the acquisition (the scan)
         logger.debug("before count()")

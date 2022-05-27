@@ -36,7 +36,7 @@ import databroker
 import os
 import sys
 import warnings
-
+from .eiger_handler import EigerHDF5Handler
 
 # convenience imports
 import bluesky.plans as bp
@@ -91,6 +91,9 @@ callback_db = {}
 # Connect with the mongodb database.
 db = databroker.catalog[DATABROKER_CATALOG].v1
 
+# Add Eiger handler to catalog
+db.v2.register_handler("AD_HDF5_Eiger500k_APS8ID", EigerHDF5Handler, overwrite=True)
+
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.
 callback_db["db"] = RE.subscribe(db.insert)
@@ -126,16 +129,12 @@ bec.disable_baseline()
 
 
 # set default timeout for all EpicsSignal connections & communications
-try:
+TIMEOUT = 60
+if not EpicsSignalBase._EpicsSignalBase__any_instantiated:
     EpicsSignalBase.set_defaults(
         auto_monitor=True,
         timeout=60,
         write_timeout=60,
-        connection_timeout=20,
+        connection_timeout=60,
     )
-except Exception as exc:
-    warnings.warn(
-        "ophyd version is old, upgrade to 1.6.0+ "
-        "to get set_defaults() method"
-    )
-    EpicsSignalBase.set_default_timeout(timeout=10, connection_timeout=5)
+# fmt: on

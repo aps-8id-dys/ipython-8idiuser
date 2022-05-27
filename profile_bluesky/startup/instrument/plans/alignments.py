@@ -19,8 +19,9 @@ from bluesky import plans as bp
 from bluesky import plan_stubs as bps
 
 from ..devices import actuator_flux, att, default_counter, pind4, lakeshore, samplestage
-from ..devices import shutter, scaler1, shutter_override
-from .shutters import sb, bb
+from ..devices import scaler1
+# from ..devices import shutter, shutter_override
+# from .shutters import sb, bb
 
 
 def pre_align():

@@ -103,17 +103,18 @@ class TriggerDetectorState(TriggerBase):
 class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
     def stage(self):
         """
-        Definition from Gilberto, 290-read_eiger_images
+        QZ: overrides the override in AD_EpicsHdf5FileName
+        that allows for writing file name with desired format
         """
-        # Ensure we do not have an old file open.
-        set_and_wait(self.capture, 0)
+        filename, read_path, write_path = self.make_filename()
 
-        # Stage signals, which include file name and path,
-        # see staging_setup_DM below.
+        set_and_wait(self.capture, 0)
+        set_and_wait(self.file_path, write_path)
+        set_and_wait(self.file_name, filename)
+
         FileStoreBase.stage(self)
 
-        # Setup the staged file name and path in the database
-        filename, read_path, _ = self.make_filename()
+        template = self.file_template.get()
         self._fn = template % (read_path, filename)
         self._fp = read_path
         if not self.file_path_exists.get():
@@ -124,31 +125,6 @@ class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
         # from FileStoreHDF5.stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
         self._generate_resource(res_kwargs)   
-
-    # def stage(self):
-    #     """
-    #     QZ: overrides the override in AD_EpicsHdf5FileName
-    #     that allows for writing file name with desired format
-    #     """
-    #     filename, read_path, write_path = self.make_filename()
-
-    #     set_and_wait(self.capture, 0)
-    #     set_and_wait(self.file_path, write_path)
-    #     set_and_wait(self.file_name, filename)
-
-    #     FileStoreBase.stage(self)
-
-    #     template = self.file_template.get()
-    #     self._fn = template % (read_path, filename)
-    #     self._fp = read_path
-    #     if not self.file_path_exists.get():
-    #         raise IOError(f"Path {self.file_path.get()} does not exist on IOC.")
-
-    #     self._point_counter = itertools.count()
-
-    #     # from FileStoreHDF5.stage()
-    #     res_kwargs = {"frame_per_point": self.get_frames_per_point()}
-    #     self._generate_resource(res_kwargs)   
 
 
     def generate_datum(self, key, timestamp, datum_kwargs):

@@ -19,7 +19,7 @@ if ( ccdimginfo.detector == 1 )
     ccdimginfo.ccdHardwareColSize = 1242                                   ; % define ccd hardware col size
     ccdimginfo.ccdHardwareRowSize = 1152                                   ; % define ccd hardware row size
     ccdimginfo.ccdxsense          = -1                                     ;
-    ccdimginfo.ccdzsense          = -1                                     ;
+    ccdimginfo.ccdzsense          = 1                                     ;
     ccdimginfo.harmonic           = 1                                      ;
     ccdimginfo.dpix               = 0.0225                                 ; % pixel size in mm
     ccdimginfo.saturation         = 65535                                  ; % saturation count in one pixel
@@ -392,13 +392,13 @@ if ( ccdimginfo.detector == 20 )
 end
 % ---
 % =========================================================================
-% --- Detector 25 : Lambda
+% --- Detector 25 : Lambda 750K
 % =========================================================================
 if ( ccdimginfo.detector == 25 )
     ccdimginfo.ccdHardwareRowSize = 516                                    ; % define ccd hardware row size
     ccdimginfo.ccdHardwareColSize = 1556                                   ; % define ccd hardware col size
 
-    ccdimginfo.ccdxsense          = 1;
+    ccdimginfo.ccdxsense          = 1; %-1 for long side vertical, +1 for short side vertical
     ccdimginfo.ccdzsense          = 1;
     ccdimginfo.harmonic           = 1                                      ;
     ccdimginfo.dpix               = 0.055                                  ; % pixel size in mm
@@ -415,7 +415,51 @@ end
 % ---
 
 % =========================================================================
-% --- Detector 30 : Eiger
+% --- Detector 26 : Lambda 250K
+% =========================================================================
+if ( ccdimginfo.detector == 26 )
+    ccdimginfo.ccdHardwareRowSize = 516                                    ; % define ccd hardware row size
+    ccdimginfo.ccdHardwareColSize = 516                                   ; % define ccd hardware col size
+
+    ccdimginfo.ccdxsense          = 1;
+    ccdimginfo.ccdzsense          = 1;
+    ccdimginfo.harmonic           = 1                                      ;
+    ccdimginfo.dpix               = 0.055                                  ; % pixel size in mm
+    ccdimginfo.saturation         = 4095                                  ; % saturation count in one pixel
+    ccdimginfo.adupphot           = 1.0                                  ; % Nuwan/Larry 20ms, att4, scaled Fe fluor to 7350
+    ccdimginfo.efficiency         = 1.000                                  ;
+    ccdimginfo.gain               = 1                                      ;
+    ccdimginfo.blemish            = 1                                      ;
+    ccdimginfo.flatfield          = 0                                      ;
+    ccdimginfo.distortion         = 0                                      ;
+    ccdimginfo.parasitic          = 0                                      ;
+    ccdimginfo.lld                = 0                                      ;
+end
+% ---
+% =========================================================================
+% --- Detector 27 : Lambda 2M
+% =========================================================================
+if ( ccdimginfo.detector == 27 )
+    ccdimginfo.ccdHardwareRowSize = 1558                                    ; % define ccd hardware row size
+    ccdimginfo.ccdHardwareColSize = 1813                                   ; % define ccd hardware col size
+
+    ccdimginfo.ccdxsense          = 1;  %%tested with paulsen D010 data (ccdz0 & ccdx0 and ccdz and ccdx have to be swapped to work correctly)
+    ccdimginfo.ccdzsense          = -1;
+    ccdimginfo.harmonic           = 1                                      ;
+    ccdimginfo.dpix               = 0.055                                  ; % pixel size in mm
+    ccdimginfo.saturation         = 4095                                  ; % saturation count in one pixel
+    ccdimginfo.adupphot           = 1.0                                  ; % Nuwan/Larry 20ms, att4, scaled Fe fluor to 7350
+    ccdimginfo.efficiency         = 1.000                                  ;
+    ccdimginfo.gain               = 1                                      ;
+    ccdimginfo.blemish            = 1                                      ;
+    ccdimginfo.flatfield          = 0                                      ;
+    ccdimginfo.distortion         = 0                                      ;
+    ccdimginfo.parasitic          = 0                                      ;
+    ccdimginfo.lld                = 0                                      ;
+end
+% ---
+% =========================================================================
+% --- Detector 30 : Eiger 500K Si
 % =========================================================================
 if ( ccdimginfo.detector == 30 ) 
     ccdimginfo.ccdHardwareColSize = 1030                                    ; % define ccd hardware col size
@@ -431,6 +475,27 @@ if ( ccdimginfo.detector == 30 )
     ccdimginfo.gain               = 1                                      ;
     ccdimginfo.blemish            = 1                                      ;
     ccdimginfo.flatfield          = 1                                      ;
+    ccdimginfo.distortion         = 0                                      ;
+    ccdimginfo.parasitic          = 0                                      ;
+    ccdimginfo.lld                = 0                                      ;
+end
+% =========================================================================
+% --- Detector 31 : Eiger 1M CdTe
+% =========================================================================
+if ( ccdimginfo.detector == 31 ) 
+    ccdimginfo.ccdHardwareColSize = 1028                                    ; % define ccd hardware col size
+    ccdimginfo.ccdHardwareRowSize = 1062;                                    ; % define ccd hardware row size
+
+    ccdimginfo.ccdxsense          = 1;
+    ccdimginfo.ccdzsense          = 1;
+    ccdimginfo.harmonic           = 1                                      ;
+    ccdimginfo.dpix               = 0.075                                  ; % pixel size in mm
+    ccdimginfo.saturation         = 4095                                  ; % saturation count in one pixel
+    ccdimginfo.adupphot           = 1.0                                  ; % Nuwan/Larry 20ms, att4, scaled Fe fluor to 7350
+    ccdimginfo.efficiency         = 1.000                                  ;
+    ccdimginfo.gain               = 1                                      ;
+    ccdimginfo.blemish            = 1                                      ;
+    ccdimginfo.flatfield          = 0                                      ;
     ccdimginfo.distortion         = 0                                      ;
     ccdimginfo.parasitic          = 0                                      ;
     ccdimginfo.lld                = 0                                      ;

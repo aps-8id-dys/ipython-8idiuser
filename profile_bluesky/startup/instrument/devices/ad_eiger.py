@@ -135,7 +135,7 @@ class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
 
         # inject the actual name of the HDF5 file here into datum_kwargs
         # datum_kwargs["HDF5_file_name"] = hdf5_file_name
-        datum_kwargs["filename"] = hdf5_file_name
+        # datum_kwargs["filename"] = hdf5_file_name
 
         logger.debug("make_filename: %s", hdf5_file_name)
         logger.debug("write_path: %s", write_path)

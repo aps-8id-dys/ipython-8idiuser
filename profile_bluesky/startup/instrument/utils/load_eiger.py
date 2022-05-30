@@ -4,7 +4,6 @@ https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/start
 """
 
 from ..devices.ad_eiger import EigerDetector
-from ..framework import sd
 from ..session_logs import logger
 logger.info(__file__)
 
@@ -25,28 +24,25 @@ def load_eiger(
         name="eiger"
     )
 
-    # TODO: Should we have this? It can create problems when eiger is not used.
-    # sd.baseline.append(eiger)
-
     eiger.wait_for_connection(timeout=10)
     # This is needed otherwise .get may fail!!!
 
     # TODO: Are we using rois and stats?
-    logger.info("Setting up ROI and STATS defaults ...  ")
-    for name in eiger.component_names:
-        # if "roi" in name:
-        #     roi = getattr(eiger, name)
-        #     roi.wait_for_connection(timeout=10)
-        #     roi.nd_array_port.put("EIG")
-        if "stats" in name:
-            stat = getattr(eiger, name)
-            stat.wait_for_connection(timeout=10)
-            # stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
-    logger.info("Done!")
+    # logger.info("Setting up ROI and STATS defaults ...  ")
+    # for name in eiger.component_names:
+    #     if "roi" in name:
+    #         roi = getattr(eiger, name)
+    #         roi.wait_for_connection(timeout=10)
+    #         roi.nd_array_port.put("EIG")
+    #     if "stats" in name:
+    #         stat = getattr(eiger, name)
+    #         stat.wait_for_connection(timeout=10)
+    #         stat.nd_array_port.put(f"ROI{stat.port_name.get()[-1]}")
+    # logger.info("Done!")
 
-    logger.info("Setting up defaults kinds ...  ")
+    # logger.info("Setting up defaults kinds ...  ")
     # eiger.default_kinds()
-    logger.info("Done!")
+    # logger.info("Done!")
     logger.info("Setting up default settings ...  ")
     eiger.default_settings()
     logger.info("Done!")

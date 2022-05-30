@@ -149,7 +149,7 @@ class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWr
 class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.filestore_spec = 'AD_HDF5_Eiger500k_APS8ID'
+        self.filestore_spec = 'AD_HDF5'
 
     image_dir = IMAGE_DIR
 

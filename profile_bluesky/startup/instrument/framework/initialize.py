@@ -92,7 +92,7 @@ callback_db = {}
 db = databroker.catalog[DATABROKER_CATALOG].v1
 
 # Add Eiger handler to catalog
-db.v2.register_handler("AD_HDF5_Eiger500k_APS8ID", EigerHDF5Handler, overwrite=True)
+# db.v2.register_handler("AD_HDF5_Eiger500k_APS8ID", EigerHDF5Handler, overwrite=True)
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.

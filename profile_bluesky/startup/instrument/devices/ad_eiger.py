@@ -3,32 +3,33 @@ Eiger area detector. Definition borrowed from Gilberto:
 https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/startup/instrument/devices/ad_eiger.py
 """
 
-from xml.dom.expatbuilder import parseString
 from ..session_logs import logger
 from apstools.devices import AD_EpicsHdf5FileName
-from apstools.utils import run_in_thread
 import itertools
-from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
-from ophyd.areadetector.base import EpicsSignalWithRBV
-from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
-from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34
+from ophyd import (
+    Component,
+    ADComponent,
+    EigerDetectorCam,
+    DetectorBase, Staged,
+    EpicsSignal
+)
+from ophyd.areadetector.filestore_mixins import (
+    FileStoreBase, FileStoreIterativeWrite
+)
+from ophyd.areadetector.plugins import (
+    StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34
+)
 from ophyd.areadetector.trigger_mixins import TriggerBase, ADTriggerStatus
-from ophyd.signal import EpicsSignalRO
-from ophyd.status import wait as status_wait, SubscriptionStatus
 from ophyd.utils.epics_pvs import set_and_wait
-from os.path import join, isdir
 from pathlib import PurePath
-from time import sleep
 from time import time as ttime
 
 logger.info(__file__)
 
-
-
 EIGER_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
 BLUESKY_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
-# IMAGE_DIR = "%Y/%m/%d/"
 IMAGE_DIR = ""
+
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
@@ -59,6 +60,8 @@ class TriggerDetectorState(TriggerBase):
         self._detector_status = self.cam.acquire
         self._acquisition_signal = self.cam.acquire
 
+    # TODO: The setup_trigger function might be unnecessary because this is
+    # handled by staging_setup_DM defined below.
     def setup_trigger(self):
         # Stage signals
         self.cam.stage_sigs["trigger_mode"] = "Internal Series"
@@ -74,7 +77,6 @@ class TriggerDetectorState(TriggerBase):
     def unstage(self):
         super().unstage()
         self._detector_status.clear_sub(self._acquire_changed)
-        # set_and_wait(self.cam.acquire, 0) # Not sure this is needed.
 
     def trigger(self):
         "Trigger one acquisition."
@@ -93,14 +95,10 @@ class TriggerDetectorState(TriggerBase):
             return
         if (old_value != 0) and (value == 0):
             # Negative-going edge means an acquisition just finished.
-            # ttime.sleep(self._sleep_time)
             self._status.set_finished()
             self._status = None
-        # if value > old_value:  # There is a new image!
-        #     self._status.set_finished()
-        #     self._status = None
 
-      
+
 class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
     def stage(self):
         # Ensure we do not have an old file open.
@@ -116,39 +114,39 @@ class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
         self._fn = template % (read_path, filename)
         self._fp = read_path
         if not self.file_path_exists.get():
-            raise IOError(f"Path {self.file_path.get()} does not exist on IOC.")
+            raise IOError(
+                f"Path {self.file_path.get()} does not exist on IOC."
+            )
 
         self._point_counter = itertools.count()
 
         # from FileStoreHDF5.stage()
         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
-        self._generate_resource(res_kwargs)  
-
+        self._generate_resource(res_kwargs)
 
     def generate_datum(self, key, timestamp, datum_kwargs):
         """Generate a uid and cache it with its key for later insertion."""
         template = self.file_template.get()
         filename, read_path, write_path = self.make_filename()
-        # file_number = self.file_number.get()
-        # hdf5_file_name = template % (read_path, filename, file_number)
         hdf5_file_name = template % (read_path, filename)
-
-        # inject the actual name of the HDF5 file here into datum_kwargs
-        # datum_kwargs["HDF5_file_name"] = hdf5_file_name
-        # datum_kwargs["filename"] = hdf5_file_name
 
         logger.debug("make_filename: %s", hdf5_file_name)
         logger.debug("write_path: %s", write_path)
-        return super(AD_EpicsHdf5FileName, self).generate_datum(key, timestamp, datum_kwargs)
+        return super(AD_EpicsHdf5FileName, self).generate_datum(
+            key, timestamp, datum_kwargs
+        )
 
 
-class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWrite):
+class myHdf5EpicsIterativeWriter(
+    AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWrite
+):
     pass
 
 
 class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Using the default bluesky HDF5 handler.
         self.filestore_spec = 'AD_HDF5'
 
     image_dir = IMAGE_DIR
@@ -156,10 +154,10 @@ class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
 
 class LocalEigerDetectorBase(DetectorBase):
 
+    # TODO: Might want to add rois and stats to the scan.
     # _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
-    _default_read_attrs = ('cam', 'hdf1', 'codec1',
+    _default_read_attrs = ('cam', 'hdf1', 'codec1')
     # 'stats1', 'stats2', 'stats3', 'stats4'
-    )
 
     #############################################
     def staging_setup_DM(self, *args, **kwargs):
@@ -173,6 +171,8 @@ class LocalEigerDetectorBase(DetectorBase):
         self._file_path = args[0]
         self._file_name = args[1]
         num_images = args[2]
+        # TODO: Do you need to change the related PVs in the detector? Note
+        # that acquire_time and acquire_period is not currently used.
         acquire_time = args[3]
         acquire_period = args[4]
         # logger.debug(f"staging_setup_DM({args})")
@@ -187,13 +187,16 @@ class LocalEigerDetectorBase(DetectorBase):
         print(f"({self.__class__.__name__}): hdf.image_dir={self._file_path}")
         self.hdf1.stage_sigs["file_path"] = self._file_path
 
-        # # QZ added this to remove automatic FileNumber append 
-        # # and to comply with DM transfer for Rigaku format
+        # QZ added this to remove automatic FileNumber append and to comply
+        # with DM transfer for Rigaku format
         self.hdf1.stage_sigs["file_template"] = "%s%s.h5"
 
         # This must always come last
-        self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')
-        print(f"({self.__class__.__name__}): hdf1 stage_sigs={self.hdf1.stage_sigs}")
+        self.hdf1.stage_sigs["capture"] = self.hdf1.stage_sigs.pop('capture')
+        print(
+            f"({self.__class__.__name__}): hdf1 stage_sigs="
+            f"{self.hdf1.stage_sigs}"
+        )
 
     detector_number = 30
     # TODO: add a dummy q map file to test the DM analysis too
@@ -207,7 +210,6 @@ class LocalEigerDetectorBase(DetectorBase):
         Not a bluesky "plan" (no "yield from")
         """
         fname = PurePath(self.hdf1.full_file_name.get()).name
-    
         return fname
 
     #############################################
@@ -225,6 +227,7 @@ class LocalEigerDetectorBase(DetectorBase):
         kind='normal'
     )
 
+    # TODO: Add rois and stats?
     # ROIs
     # roi1 = Component(ROIPlugin_V34, 'ROI1:')
     # roi2 = Component(ROIPlugin_V34, 'ROI2:')
@@ -247,12 +250,12 @@ class LocalEigerDetectorBase(DetectorBase):
         if read_path_template != "":
             self.hdf1._read_path_template = read_path_template
         # 'capture' must always be the last thing in stage list
-        capture=self.hdf1.stage_sigs.pop('capture')
-        self.hdf1.stage_sigs["capture"]=capture
+        capture = self.hdf1.stage_sigs.pop('capture')
+        self.hdf1.stage_sigs["capture"] = capture
 
-
+    # TODO: Decide which PVs you want to save in the run as "config", and which
+    # you want to save every point (kind="normal") or plot (kind="hinted")
     def default_kinds(self):
-
         # Some of the attributes return numpy arrays which Bluesky doesn't
         # accept: configuration_names, stream_hdr_appendix,
         # stream_img_appendix.
@@ -305,9 +308,11 @@ class LocalEigerDetectorBase(DetectorBase):
                     _remove_from_config
                 ]
             if isinstance(comp, StatsPlugin_V34):
-                comp.total.kind = Kind.hinted
+                comp.total.kind = "hinted"
                 comp.read_attrs += ["max_value", "min_value"]
 
+    # TODO: This function might be useless if you add all default values to
+    # staging_setup_DM().
     def default_settings(self):
         # self.cam.num_triggers.put(1)
         # self.cam.manual_trigger.put("Disable")

@@ -1,5 +1,5 @@
 """
-Eiger area detector. Definition borrowed from Gilberto:
+Lambda2M area detector based on Eiger Definition borrowed from Gilberto:
 https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/startup/instrument/devices/ad_eiger.py
 """
 
@@ -8,7 +8,7 @@ from ..session_logs import logger
 from apstools.devices import AD_EpicsHdf5FileName
 from apstools.utils import run_in_thread
 import itertools
-from ophyd import (Component, ADComponent, EigerDetectorCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
+from ophyd import (Component, ADComponent, Lambda750kCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
 from ophyd.areadetector.base import EpicsSignalWithRBV
 from ophyd.areadetector.filestore_mixins import FileStoreBase, FileStoreIterativeWrite, FileStoreHDF5SingleIterativeWrite
 from ophyd.areadetector.plugins import ROIPlugin_V34, StatsPlugin_V34, HDF5Plugin_V34, CodecPlugin_V34
@@ -24,20 +24,23 @@ from time import time as ttime
 logger.info(__file__)
 
 
-
-EIGER_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
-BLUESKY_FILES_ROOT = PurePath("/home/8ididata/2022-1/bluesky202205/")
+LAMBDA2M_FILES_ROOT = PurePath("/extdisk/2022-2/bluesky202205/")
+BLUESKY_FILES_ROOT = PurePath("/home/8ididata/2022-2/bluesky202205/")
 # IMAGE_DIR = "%Y/%m/%d/"
 IMAGE_DIR = ""
 
-# EigerDetectorCam inherits FileBase, which contains a few PVs that were
+# Lambda750kCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
 # pool_max_buffers.
-class LocalEigerCam(EigerDetectorCam):
-    file_number_sync = None
-    file_number_write = None
-    pool_max_buffers = None
+class LocalLambda2MCam(Lambda750kCam):
+    # file_number_sync = None
+    # file_number_write = None
+    # pool_max_buffers = None
+    # num_triggers = None
     # Hard-coded to 0 for AD_Acquire
+    config_file_path = None
+    temperature = None
+
     EXT_TRIGGER = 0
 
     wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
@@ -164,14 +167,10 @@ class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWr
 
 
 class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.filestore_spec = 'AD_HDF5_Eiger500k_APS8ID'
-
-    image_dir = IMAGE_DIR
+    pass
 
 
-class LocalEigerDetectorBase(DetectorBase):
+class LocalLambda2MDetectorBase(DetectorBase):
 
     # _default_configuration_attrs = ('roi1', 'roi2', 'roi3', 'roi4')
     _default_read_attrs = ('cam', 'hdf1', 'codec1',
@@ -212,7 +211,7 @@ class LocalEigerDetectorBase(DetectorBase):
         self.hdf1.stage_sigs["capture"]=self.hdf1.stage_sigs.pop('capture')
         print(f"({self.__class__.__name__}): hdf1 stage_sigs={self.hdf1.stage_sigs}")
 
-    detector_number = 27
+    detector_number = 30
     # TODO: add a dummy q map file to test the DM analysis too
     qmap_file = "Lambda_qmap.h5"
 
@@ -229,15 +228,15 @@ class LocalEigerDetectorBase(DetectorBase):
 
     #############################################
 
-    _html_docs = ['EigerDoc.html']
-    cam = Component(LocalEigerCam, 'cam1:')
+    _html_docs = ['Lambda2MDoc.html']
+    cam = Component(LocalLambda2MCam, 'cam1:')
 
     codec1 = Component(CodecPlugin_V34, "Codec1:")
 
     hdf1 = Component(
         MyHDF5Plugin,
         "HDF1:",
-        write_path_template=str(EIGER_FILES_ROOT / IMAGE_DIR),
+        write_path_template=str(LAMBDA2M_FILES_ROOT / IMAGE_DIR),
         read_path_template=str(BLUESKY_FILES_ROOT / IMAGE_DIR),
         kind='normal'
     )
@@ -308,7 +307,7 @@ class LocalEigerDetectorBase(DetectorBase):
         )
 
         self.cam.configuration_attrs += [
-            item for item in EigerDetectorCam.component_names if item not in
+            item for item in Lambda750kCam.component_names if item not in
             _remove_from_config
         ]
 
@@ -337,13 +336,13 @@ class LocalEigerDetectorBase(DetectorBase):
         self.setup_trigger()
 
 
-class EigerDetector(TriggerDetectorState, LocalEigerDetectorBase):
+class Lambda2MDetector(TriggerDetectorState, LocalLambda2MDetectorBase):
     pass
 
 
-lambda2m = EigerDetector(
+lambda2M = Lambda2MDetector(
     "8idLambda2m:",
     write_path_template="",
     read_path_template="",
-    name="lambda2m"
+    name="lambda2M"
 )

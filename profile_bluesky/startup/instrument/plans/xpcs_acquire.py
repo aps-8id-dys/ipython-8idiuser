@@ -35,7 +35,7 @@ def AD_Acquire(areadet,
     """
     acquisition sequence initiating data management workflow
 
-    outline of acquisition sequence:
+    Outline of acquisition sequence:
 
     * define cam params such as acquire time, period,
       num images, camera mode
@@ -45,10 +45,45 @@ def AD_Acquire(areadet,
       scalers and devices such as temperature
     * trigger area detector while monitoring the
       above params
+
+    PARAMETERS
+
+    areadet obj :
+        Area detector object to be used (such as ``lambda2m``).
+
+    file_name str :
+        Corresponds to the ARun number.  Could have additional
+        metadata appended but no whitespace is expected.
+        Unexpected content will be changed before use by
+        ``spec_support.APS_DM_8IDI.DM_Workflow.cleanupFilename()``.
+
+    acquire_time float :
+        Time (s) to expose each image.
+
+    acquire_period float :
+        Time (s) between starting each new image (with ``num_images > 1``).
+
+    num_images int :
+        Number of images to acquire.
+
+    path str :
+        File directory path used for the data management workflow
+        (such as ``/home/8ididata/2022-2/202206``).
+        Raises ``ValueError`` if set to ``None``.
+
+    submit_xpcs_job bool :
+        Should a job be submitted to the DM worflow for processing?
+        Default: ``True``
+
+    atten int :
+        ?
+        Default: ``0``
+
+    md dict :
+        User metadata dictionary to be added to the run.
     """
     logger.info("AD_Acquire starting")
 
-    # path = path or f"/home/8ididata/{aps.aps_cycle.get()}/bluesky"
     if path is None:
         raise ValueError("path is not specified."
             "  Typical value: /home/8ididata/2020-3/test202008")

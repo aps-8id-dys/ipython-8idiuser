@@ -19,8 +19,8 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import apstools.utils
 import datetime
+import pathlib
 import ophyd.signal
-import os
 
 
 def AD_Acquire(areadet,
@@ -89,9 +89,9 @@ def AD_Acquire(areadet,
             "  Typical value: /home/8ididata/2020-3/test202008")
 
     file_name = dm_workflow.cleanupFilename(file_name)
-    file_path = os.path.join(path,file_name)
-    if not file_path.endswith(os.path.sep):
-        file_path += os.path.sep
+
+    # Determine the directory paths to be used:
+    file_path = pathlib.Path(path) / file_name
     logger.info(f"file_path = {file_path}")
 
     plan_args = dict(
@@ -122,7 +122,8 @@ def AD_Acquire(areadet,
     # no need to yield here, method does not have "yield from " calls
     # scaler1.staging_setup_DM(acquire_period)
     print(f"(AD_Acquire): num_images={num_images}")
-    areadet.staging_setup_DM(file_path, file_name,
+    # TODO: redefine areadet.hdf1.write_path_template?
+    areadet.staging_setup_DM(f"{file_path}/", file_name,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
@@ -157,22 +158,24 @@ def AD_Acquire(areadet,
 
     def make_hdf5_workflow_filename():
         path = file_path
-        if path.startswith("/data"):
-            path = os.path.join("/", "home", "8ididata", *path.split("/")[2:])
+        old_root = pathlib.Path("/data")
+        if old_root in path.parents:
+            new_root = pathlib.Path("/home/8ididata")
+            path = new_root.joinpath(*path.parts[len(old_root.parts):])
             logger.debug(f"modified path: {path}")
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if not path.exists():
+                path.mkdir(parents=True)  # TODO: exists_ok=True kwarg?
                 logger.debug(f"created path: {path}")
         fname = (
             f"{file_name}"
             f"_{dm_pars.data_begin.get():04.0f}"
             f"-{dm_pars.data_end.get():04.0f}"
         )
-        fullname = os.path.join(path, f"{fname}.hdf")
+        fullname = path / f"{fname}.hdf"
         suffix = 0
-        while os.path.exists(fullname):
+        while fullname.exists():
             suffix += 1
-            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+            fullname = path / f"{fname}__{suffix:03d}.hdf"
         if suffix > 0:
             logger.info(f"using modified file name: {fullname}")
         return fullname
@@ -183,12 +186,13 @@ def AD_Acquire(areadet,
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
-            dm_pars.root_folder, file_path,
+            dm_pars.root_folder, str(file_path),
         )
         # logger.debug("dm_pars.root_folder")
 
         yield from bps.mv(
-            dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            # dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            dm_pars.user_data_folder, str(file_path.parent),   # FIXME: correct?
         )
         # logger.debug("dm_pars.user_data_folder")
 
@@ -309,7 +313,7 @@ def AD_Acquire(areadet,
         logger.debug("file_path = %s", file_path)
         _md = {
             "file_name": file_name,
-            "file_path": file_path
+            "file_path": str(file_path)
         }
         _md.update(md)
         logger.debug("metadata = %s", _md)
@@ -331,17 +335,17 @@ def AD_Acquire(areadet,
         hdf_with_fullpath = make_hdf5_workflow_filename()
         print(f"HDF5 workflow file name: {hdf_with_fullpath}")
 
-        if not os.path.exists(os.path.dirname(hdf_with_fullpath)):
-            os.makedirs(os.path.dirname(hdf_with_fullpath))
+        if not hdf_with_fullpath.parent.exists():
+            hdf_with_fullpath.parent.mkdir(parents=True)
 
-        dm_workflow.create_hdf5_file(hdf_with_fullpath)
+        dm_workflow.create_hdf5_file(str(hdf_with_fullpath))
 
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.get()
         dm_workflow.analysis = dm_pars.analysis.get()
 
         # no need to yield from since the function is not a plan
-        kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)
+        kickoff_DM_workflow(str(hdf_with_fullpath), analysis=submit_xpcs_job)
 
     @apstools.utils.run_in_thread
     def kickoff_DM_workflow(hdf_workflow_file, analysis=True):

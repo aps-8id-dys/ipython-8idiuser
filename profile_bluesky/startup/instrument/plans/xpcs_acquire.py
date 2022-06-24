@@ -93,8 +93,25 @@ def AD_Acquire(areadet,
     file_name = dm_workflow.cleanupFilename(file_name)
 
     # Determine the directory paths to be used:
-    file_path = pathlib.Path(path) / file_name
-    logger.info(f"file_path = {file_path}")
+    workflow_path = pathlib.Path(path) / file_name
+    logger.info(f"DM workflow file_path = {workflow_path}")
+
+    if areadet.hdf1.write_path_template == areadet.hdf1.read_path_template:
+        # areadet & bluesky see the same directory
+        ioc_write_path = pathlib.Path(workflow_path)
+    else:
+        # TODO: redefine areadet.hdf1.write_path_template?
+        # TODO: redefine areadet.hdf1.read_path_template?
+        # areadet & bluesky see different directories
+        ioc_write_path = pathlib.Path(path) / file_name  # FIXME:
+        raise NotImplementedError(
+            "IOC and bluesky do not use same directories."
+            " Must resolve."
+            f" workflow_path={workflow_path}"
+            f" areadet.hdf1.write_path_template={areadet.hdf1.write_path_template}"
+            f" areadet.hdf1.read_path_template={areadet.hdf1.read_path_template}"
+        )
+    logger.info(f"IOC image file_path = {ioc_write_path}")
 
     plan_args = dict(
         detector_name = areadet.name,
@@ -124,8 +141,7 @@ def AD_Acquire(areadet,
     # no need to yield here, method does not have "yield from " calls
     # scaler1.staging_setup_DM(acquire_period)
     print(f"(AD_Acquire): num_images={num_images}")
-    # TODO: redefine areadet.hdf1.write_path_template?
-    areadet.staging_setup_DM(f"{file_path}/", file_name,
+    areadet.staging_setup_DM(f"{ioc_write_path}/", file_name,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
@@ -159,7 +175,7 @@ def AD_Acquire(areadet,
         return datetime.datetime.now().strftime("%c").strip()
 
     def make_hdf5_workflow_filename():
-        path = file_path
+        path = workflow_path
         old_root = pathlib.Path("/data")
         if old_root in path.parents:
             new_root = pathlib.Path("/home/8ididata")
@@ -188,13 +204,13 @@ def AD_Acquire(areadet,
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
-            dm_pars.root_folder, str(file_path),
+            dm_pars.root_folder, str(workflow_path),
         )
         # logger.debug("dm_pars.root_folder")
 
         yield from bps.mv(
             # dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
-            dm_pars.user_data_folder, str(file_path.parent),   # FIXME: correct?
+            dm_pars.user_data_folder, str(workflow_path.parent),   # FIXME: correct?
         )
         # logger.debug("dm_pars.user_data_folder")
 
@@ -312,10 +328,10 @@ def AD_Acquire(areadet,
 
         logger.debug("supplied metadata = %s", md)
         logger.debug("file_name = %s", file_name)
-        logger.debug("file_path = %s", file_path)
+        logger.debug("file_path = %s", workflow_path)
         _md = {
             "file_name": file_name,
-            "file_path": str(file_path)
+            "file_path": str(workflow_path)
         }
         _md.update(md)
         logger.debug("metadata = %s", _md)

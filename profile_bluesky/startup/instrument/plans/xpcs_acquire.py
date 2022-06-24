@@ -52,9 +52,11 @@ def AD_Acquire(areadet,
         Area detector object to be used (such as ``lambda2m``).
 
     file_name str :
-        Corresponds to the ARun number.  Could have additional
-        metadata appended but no whitespace is expected.
-        Unexpected content will be changed before use by
+        Corresponds to the ARun number.
+        Actually not a file *name* but used as a subdirectory of ``path`` **and
+        also** used to construct the name of the workflow file. Could have
+        additional metadata appended but no whitespace is expected. Unexpected
+        content will be changed before use by
         ``spec_support.APS_DM_8IDI.DM_Workflow.cleanupFilename()``.
 
     acquire_time float :

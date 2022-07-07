@@ -5,7 +5,7 @@ https://github.com/APS-4ID-POLAR/ipython-polar/blob/master/profile_bluesky/start
 
 from xml.dom.expatbuilder import parseString
 from ..session_logs import logger
-from apstools.devices import AD_EpicsHdf5FileName
+from apstools.devices import AD_EpicsFileNameHDF5Plugin
 from apstools.utils import run_in_thread
 import itertools
 from ophyd import (Component, ADComponent, Lambda750kCam, DetectorBase, Staged, EpicsSignal, Signal, Kind, Device)
@@ -24,10 +24,10 @@ from time import time as ttime
 logger.info(__file__)
 
 
-LAMBDA2M_FILES_ROOT = PurePath("/extdisk/2022-2/bluesky202205/")
-BLUESKY_FILES_ROOT = PurePath("/home/8ididata/2022-2/bluesky202205/")
+LAMBDA2M_FILES_ROOT = PurePath("/extdisk/")
+BLUESKY_FILES_ROOT = PurePath("/home/8ididata/")
 # IMAGE_DIR = "%Y/%m/%d/"
-IMAGE_DIR = ""
+IMAGE_DIR = "2022-2/bluesky202205"
 
 # Lambda750kCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
@@ -103,71 +103,72 @@ class TriggerDetectorState(TriggerBase):
         #     self._status.set_finished()
         #     self._status = None
 
-class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
-    def stage(self):
-        """
-        QZ: overrides the override in AD_EpicsHdf5FileName
-        that allows for writing file name with desired format
-        """
-        # Make a filename.
-        filename, read_path, write_path = self.make_filename()
 
-        # Ensure we do not have an old file open.
-        set_and_wait(self.capture, 0)
-        # These must be set before parent is staged (specifically
-        # before capture mode is turned on. They will not be reset
-        # on 'unstage' anyway.
-        set_and_wait(self.file_path, write_path)
-        set_and_wait(self.file_name, filename)
-        # set_and_wait(self.file_number, 0)
+# class AD_EpicsHdf5FileName_8IDI(AD_EpicsHdf5FileName):
+#     def stage(self):
+#         """
+#         QZ: overrides the override in AD_EpicsHdf5FileName
+#         that allows for writing file name with desired format
+#         """
+#         # Make a filename.
+#         filename, read_path, write_path = self.make_filename()
 
-        # get file number now since it is incremented during stage()
-        # file_number = self.file_number.get()
-        # Must avoid parent's stage() since it sets file_number to 0
-        # Want to call grandparent's stage()
-        # super().stage()     # avoid this - sets `file_number` to zero
-        # call grandparent.stage()
-        FileStoreBase.stage(self)
+#         # Ensure we do not have an old file open.
+#         set_and_wait(self.capture, 0)
+#         # These must be set before parent is staged (specifically
+#         # before capture mode is turned on. They will not be reset
+#         # on 'unstage' anyway.
+#         set_and_wait(self.file_path, write_path)
+#         set_and_wait(self.file_name, filename)
+#         # set_and_wait(self.file_number, 0)
 
-        # AD does the file name templating in C
-        # We can't access that result until after acquisition
-        # so we apply the same template here in Python.
-        template = self.file_template.get()
-        self._fn = template % (read_path, filename)
-        self._fp = read_path
-        if not self.file_path_exists.get():
-            raise IOError(f"Path {self.file_path.get()} does not exist on IOC.")
+#         # get file number now since it is incremented during stage()
+#         # file_number = self.file_number.get()
+#         # Must avoid parent's stage() since it sets file_number to 0
+#         # Want to call grandparent's stage()
+#         # super().stage()     # avoid this - sets `file_number` to zero
+#         # call grandparent.stage()
+#         FileStoreBase.stage(self)
 
-        self._point_counter = itertools.count()
+#         # AD does the file name templating in C
+#         # We can't access that result until after acquisition
+#         # so we apply the same template here in Python.
+#         template = self.file_template.get()
+#         self._fn = template % (read_path, filename)
+#         self._fp = read_path
+#         if not self.file_path_exists.get():
+#             raise IOError(f"Path {self.file_path.get()} does not exist on IOC.")
 
-        # from FileStoreHDF5.stage()
-        res_kwargs = {"frame_per_point": self.get_frames_per_point()}
-        self._generate_resource(res_kwargs)   
+#         self._point_counter = itertools.count()
 
-
-    def generate_datum(self, key, timestamp, datum_kwargs):
-        """Generate a uid and cache it with its key for later insertion."""
-        template = self.file_template.get()
-        filename, read_path, write_path = self.make_filename()
-        # file_number = self.file_number.get()
-        # hdf5_file_name = template % (read_path, filename, file_number)
-        hdf5_file_name = template % (read_path, filename)
-
-        # inject the actual name of the HDF5 file here into datum_kwargs
-        # datum_kwargs["HDF5_file_name"] = hdf5_file_name
-        datum_kwargs["filename"] = hdf5_file_name
-
-        logger.debug("make_filename: %s", hdf5_file_name)
-        logger.debug("write_path: %s", write_path)
-        return super(AD_EpicsHdf5FileName, self).generate_datum(key, timestamp, datum_kwargs)
+#         # from FileStoreHDF5.stage()
+#         res_kwargs = {"frame_per_point": self.get_frames_per_point()}
+#         self._generate_resource(res_kwargs)   
 
 
-class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWrite):
-    pass
+#     def generate_datum(self, key, timestamp, datum_kwargs):
+#         """Generate a uid and cache it with its key for later insertion."""
+#         template = self.file_template.get()
+#         filename, read_path, write_path = self.make_filename()
+#         # file_number = self.file_number.get()
+#         # hdf5_file_name = template % (read_path, filename, file_number)
+#         hdf5_file_name = template % (read_path, filename)
+
+#         # inject the actual name of the HDF5 file here into datum_kwargs
+#         # datum_kwargs["HDF5_file_name"] = hdf5_file_name
+#         datum_kwargs["filename"] = hdf5_file_name
+
+#         logger.debug("make_filename: %s", hdf5_file_name)
+#         logger.debug("write_path: %s", write_path)
+#         return super(AD_EpicsHdf5FileName, self).generate_datum(key, timestamp, datum_kwargs)
 
 
-class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
-    pass
+# class myHdf5EpicsIterativeWriter(AD_EpicsHdf5FileName_8IDI, FileStoreIterativeWrite):
+#     pass
+
+
+# class MyHDF5Plugin(HDF5Plugin_V34, myHdf5EpicsIterativeWriter):
+#     pass
 
 
 class LocalLambda2MDetectorBase(DetectorBase):
@@ -234,7 +235,7 @@ class LocalLambda2MDetectorBase(DetectorBase):
     codec1 = Component(CodecPlugin_V34, "Codec1:")
 
     hdf1 = Component(
-        MyHDF5Plugin,
+        AD_EpicsFileNameHDF5Plugin,
         "HDF1:",
         write_path_template=str(LAMBDA2M_FILES_ROOT / IMAGE_DIR),
         read_path_template=str(BLUESKY_FILES_ROOT / IMAGE_DIR),

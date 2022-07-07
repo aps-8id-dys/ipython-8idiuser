@@ -286,6 +286,11 @@ def AD_Acquire(areadet,
         # print(f"DIAGNOSTIC ({__name__},full_acquire_procedure): scaler1.count_mode={scaler1.count_mode}")
         # logger.info("scaler should be autocounting now")
 
+
+        ###### TODO: HDF file plugin config ######
+
+
+
         # do the acquisition (the scan)
         logger.debug("before count()")
         # yield from bp.count([areadet], md=md)

@@ -19,8 +19,8 @@ from bluesky import plan_stubs as bps
 from bluesky import preprocessors as bpp
 import apstools.utils
 import datetime
+import pathlib
 import ophyd.signal
-import os
 
 
 def AD_Acquire(areadet,
@@ -35,7 +35,7 @@ def AD_Acquire(areadet,
     """
     acquisition sequence initiating data management workflow
 
-    outline of acquisition sequence:
+    Outline of acquisition sequence:
 
     * define cam params such as acquire time, period,
       num images, camera mode
@@ -45,19 +45,73 @@ def AD_Acquire(areadet,
       scalers and devices such as temperature
     * trigger area detector while monitoring the
       above params
+
+    PARAMETERS
+
+    areadet obj :
+        Area detector object to be used (such as ``lambda2m``).
+
+    file_name str :
+        Corresponds to the ARun number.
+        Actually not a file *name* but used as a subdirectory of ``path`` **and
+        also** used to construct the name of the workflow file. Could have
+        additional metadata appended but no whitespace is expected. Unexpected
+        content will be changed before use by
+        ``spec_support.APS_DM_8IDI.DM_Workflow.cleanupFilename()``.
+
+    acquire_time float :
+        Time (s) to expose each image.
+
+    acquire_period float :
+        Time (s) between starting each new image (with ``num_images > 1``).
+
+    num_images int :
+        Number of images to acquire.
+
+    path str :
+        File directory path used for the data management workflow
+        (such as ``/home/8ididata/2022-2/202206``).
+        Raises ``ValueError`` if set to ``None``.
+
+    submit_xpcs_job bool :
+        Should a job be submitted to the DM worflow for processing?
+        Default: ``True``
+
+    atten int :
+        ?
+        Default: ``0``
+
+    md dict :
+        User metadata dictionary to be added to the run.
     """
     logger.info("AD_Acquire starting")
 
-    # path = path or f"/home/8ididata/{aps.aps_cycle.get()}/bluesky"
     if path is None:
         raise ValueError("path is not specified."
             "  Typical value: /home/8ididata/2020-3/test202008")
 
     file_name = dm_workflow.cleanupFilename(file_name)
-    file_path = os.path.join(path,file_name)
-    if not file_path.endswith(os.path.sep):
-        file_path += os.path.sep
-    logger.info(f"file_path = {file_path}")
+
+    # Determine the directory paths to be used:
+    workflow_path = pathlib.Path(path) / file_name
+    logger.info(f"DM workflow file_path = {workflow_path}")
+
+    if areadet.hdf1.write_path_template == areadet.hdf1.read_path_template:
+        # areadet & bluesky see the same directory
+        ioc_write_path = pathlib.Path(workflow_path)
+    else:
+        # TODO: redefine areadet.hdf1.write_path_template?
+        # TODO: redefine areadet.hdf1.read_path_template?
+        # areadet & bluesky see different directories
+        ioc_write_path = pathlib.Path(path) / file_name  # FIXME:
+        raise NotImplementedError(
+            "IOC and bluesky do not use same directories."
+            " Must resolve."
+            f" workflow_path={workflow_path}"
+            f" areadet.hdf1.write_path_template={areadet.hdf1.write_path_template}"
+            f" areadet.hdf1.read_path_template={areadet.hdf1.read_path_template}"
+        )
+    logger.info(f"IOC image file_path = {ioc_write_path}")
 
     plan_args = dict(
         detector_name = areadet.name,
@@ -87,7 +141,7 @@ def AD_Acquire(areadet,
     # no need to yield here, method does not have "yield from " calls
     # scaler1.staging_setup_DM(acquire_period)
     print(f"(AD_Acquire): num_images={num_images}")
-    areadet.staging_setup_DM(file_path, file_name,
+    areadet.staging_setup_DM(f"{ioc_write_path}/", file_name,
             num_images, acquire_time, acquire_period)
     dm_workflow.set_xpcs_qmap_file(areadet.qmap_file)
 
@@ -121,23 +175,25 @@ def AD_Acquire(areadet,
         return datetime.datetime.now().strftime("%c").strip()
 
     def make_hdf5_workflow_filename():
-        path = file_path
-        if path.startswith("/data"):
-            path = os.path.join("/", "home", "8ididata", *path.split("/")[2:])
+        path = workflow_path
+        old_root = pathlib.Path("/data")
+        if old_root in path.parents:
+            new_root = pathlib.Path("/home/8ididata")
+            path = new_root.joinpath(*path.parts[len(old_root.parts):])
             logger.debug(f"modified path: {path}")
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if not path.exists():
+                path.mkdir(parents=True)  # TODO: exists_ok=True kwarg?
                 logger.debug(f"created path: {path}")
         fname = (
             f"{file_name}"
             f"_{dm_pars.data_begin.get():04.0f}"
             f"-{dm_pars.data_end.get():04.0f}"
         )
-        fullname = os.path.join(path, f"{fname}.hdf")
+        fullname = path / f"{fname}.hdf"
         suffix = 0
-        while os.path.exists(fullname):
+        while fullname.exists():
             suffix += 1
-            fullname = os.path.join(path, f"{fname}__{suffix:03d}.hdf")
+            fullname = path / f"{fname}__{suffix:03d}.hdf"
         if suffix > 0:
             logger.info(f"using modified file name: {fullname}")
         return fullname
@@ -148,12 +204,13 @@ def AD_Acquire(areadet,
         logger.info(f"detNum={detNum}, det_pars={det_pars}")
         yield from bps.mv(
             # StrReg 2-7 in order
-            dm_pars.root_folder, file_path,
+            dm_pars.root_folder, str(workflow_path),
         )
         # logger.debug("dm_pars.root_folder")
 
         yield from bps.mv(
-            dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            # dm_pars.user_data_folder, os.path.dirname(file_path),   # just last item in path
+            dm_pars.user_data_folder, str(workflow_path.parent),   # FIXME: correct?
         )
         # logger.debug("dm_pars.user_data_folder")
 
@@ -271,10 +328,10 @@ def AD_Acquire(areadet,
 
         logger.debug("supplied metadata = %s", md)
         logger.debug("file_name = %s", file_name)
-        logger.debug("file_path = %s", file_path)
+        logger.debug("file_path = %s", workflow_path)
         _md = {
             "file_name": file_name,
-            "file_path": file_path
+            "file_path": str(workflow_path)
         }
         _md.update(md)
         logger.debug("metadata = %s", _md)
@@ -301,17 +358,17 @@ def AD_Acquire(areadet,
         hdf_with_fullpath = make_hdf5_workflow_filename()
         print(f"HDF5 workflow file name: {hdf_with_fullpath}")
 
-        if not os.path.exists(os.path.dirname(hdf_with_fullpath)):
-            os.makedirs(os.path.dirname(hdf_with_fullpath))
+        if not hdf_with_fullpath.parent.exists():
+            hdf_with_fullpath.parent.mkdir(parents=True)
 
-        dm_workflow.create_hdf5_file(hdf_with_fullpath)
+        dm_workflow.create_hdf5_file(str(hdf_with_fullpath))
 
         # update these str values from the string registers
         dm_workflow.transfer = dm_pars.transfer.get()
         dm_workflow.analysis = dm_pars.analysis.get()
 
         # no need to yield from since the function is not a plan
-        kickoff_DM_workflow(hdf_with_fullpath, analysis=submit_xpcs_job)
+        kickoff_DM_workflow(str(hdf_with_fullpath), analysis=submit_xpcs_job)
 
     @apstools.utils.run_in_thread
     def kickoff_DM_workflow(hdf_workflow_file, analysis=True):
